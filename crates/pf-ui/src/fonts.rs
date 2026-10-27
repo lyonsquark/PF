@@ -3,7 +3,11 @@
 
 use std::sync::Arc;
 
-use egui::{FontData, FontDefinitions, FontFamily};
+use egui::epaint::text::VariationCoords;
+use egui::{Color32, FontData, FontDefinitions, FontFamily};
+
+/// Weight for the UI font's `wght` axis (SF Pro is variable). 400 looked thin next to native macOS text.
+pub const UI_FONT_WEIGHT: f32 = 500.0;
 
 /// The macOS monospaced font, used for numbers in tables. Read at runtime from the user's own Mac.
 pub const MONO_FONT_PATH: &str = "/System/Library/Fonts/SFNSMono.ttf";
@@ -67,8 +71,9 @@ pub fn choice_for_key(key: Option<&str>) -> &'static UiFontChoice {
 pub fn definitions(ui_font: Option<Vec<u8>>, mono_font: Option<Vec<u8>>) -> FontDefinitions {
     let mut defs = FontDefinitions::default();
     if let Some(bytes) = ui_font {
-        defs.font_data
-            .insert("ui_font".to_owned(), Arc::new(FontData::from_owned(bytes)));
+        let mut data = FontData::from_owned(bytes);
+        data.tweak.coords = VariationCoords::new([(b"wght", UI_FONT_WEIGHT)]);
+        defs.font_data.insert("ui_font".to_owned(), Arc::new(data));
         defs.families
             .entry(FontFamily::Proportional)
             .or_default()
@@ -93,6 +98,24 @@ pub fn install(ctx: &egui::Context, key: Option<&str>) {
     let ui_font = read_optional(choice.path);
     let mono_font = read_optional(MONO_FONT_PATH);
     ctx.set_fonts(definitions(ui_font, mono_font));
+}
+
+/// Text colour override for light mode: macOS draws text darker than egui's default grey.
+/// Dark mode keeps egui's own colours, so `None` is returned.
+pub fn text_color_for(dark_mode: bool) -> Option<Color32> {
+    if dark_mode {
+        None
+    } else {
+        Some(Color32::BLACK)
+    }
+}
+
+/// Applies the text colour for the current theme, writing only when it changes.
+pub fn apply_text_contrast(ctx: &egui::Context) {
+    let want = text_color_for(ctx.global_style().visuals.dark_mode);
+    if ctx.global_style().visuals.override_text_color != want {
+        ctx.global_style_mut(|style| style.visuals.override_text_color = want);
+    }
 }
 
 fn read_optional(path: &str) -> Option<Vec<u8>> {
@@ -161,6 +184,12 @@ mod tests {
     fn missing_fonts_keep_egui_defaults() {
         let defs = definitions(None, None);
         assert_eq!(defs, FontDefinitions::default());
+    }
+
+    #[test]
+    fn light_mode_text_is_black_and_dark_mode_keeps_defaults() {
+        assert_eq!(text_color_for(false), Some(Color32::BLACK));
+        assert_eq!(text_color_for(true), None);
     }
 
     #[test]

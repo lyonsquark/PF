@@ -113,6 +113,7 @@ impl PfApp {
 
     /// Draws the whole app. Called from `eframe::App::ui` and from kittest harnesses.
     pub fn ui_root(&mut self, ui: &mut Ui) {
+        crate::fonts::apply_text_contrast(ui.ctx());
         // The engine is locked once per frame; a poisoned lock is recovered, not a panic.
         let engine_arc = self.engine.clone();
         let mut guard = engine_arc
