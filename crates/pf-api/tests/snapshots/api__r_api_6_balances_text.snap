@@ -1,0 +1,11 @@
+---
+source: crates/pf-api/tests/api.rs
+expression: text
+---
+Checking (Chase): $2,051.95
+External 401k (Fidelity) [external]: $1,000.00
+Mortgage (Rocket): $0.00
+Savings (Ally): $10,500.00
+Visa (Chase): -$668.40
+
+Total: $11,883.55

@@ -1,0 +1,12 @@
+---
+source: crates/pf-api/tests/api.rs
+expression: markdown
+---
+| Account | Institution | Type | Balance |
+| --- | --- | --- | ---: |
+| Checking | Chase | checking | $2,051.95 |
+| External 401k *(ext)*  | Fidelity | investment | $1,000.00 |
+| Mortgage | Rocket | loan | $0.00 |
+| Savings | Ally | savings | $10,500.00 |
+| Visa | Chase | credit | -$668.40 |
+| **Total** | | | **$11,883.55** |

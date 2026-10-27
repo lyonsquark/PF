@@ -1,0 +1,44 @@
+---
+source: crates/pf-api/tests/api.rs
+expression: json
+---
+{
+  "accounts" : [
+    {
+      "balance" : 2051.95,
+      "external" : false,
+      "institution" : "Chase",
+      "name" : "Checking",
+      "type" : "checking"
+    },
+    {
+      "balance" : 1000,
+      "external" : true,
+      "institution" : "Fidelity",
+      "name" : "External 401k",
+      "type" : "investment"
+    },
+    {
+      "balance" : 0,
+      "external" : false,
+      "institution" : "Rocket",
+      "name" : "Mortgage",
+      "type" : "loan"
+    },
+    {
+      "balance" : 10500,
+      "external" : false,
+      "institution" : "Ally",
+      "name" : "Savings",
+      "type" : "savings"
+    },
+    {
+      "balance" : -668.4,
+      "external" : false,
+      "institution" : "Chase",
+      "name" : "Visa",
+      "type" : "credit"
+    }
+  ],
+  "total" : 11883.55
+}

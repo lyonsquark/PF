@@ -1,0 +1,52 @@
+---
+source: crates/pf-api/tests/api.rs
+expression: json
+---
+{
+  "account" : "Checking",
+  "count" : 5,
+  "transactions" : [
+    {
+      "amount" : -500,
+      "category" : "Transfer",
+      "date" : "2026-03-12",
+      "payee" : "Transfer to Savings",
+      "runningBalance" : 2051.95,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -142.3,
+      "category" : "Groceries",
+      "date" : "2026-03-10",
+      "payee" : "Whole Foods",
+      "runningBalance" : 2551.95,
+      "status" : "pending"
+    },
+    {
+      "amount" : -300,
+      "contexts" : [
+        "Taxes"
+      ],
+      "date" : "2026-02-10",
+      "payee" : "County Tax Office",
+      "runningBalance" : 2694.25,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1500,
+      "category" : "Rent",
+      "date" : "2026-02-01",
+      "payee" : "Landlord",
+      "runningBalance" : 2994.25,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -5.75,
+      "category" : "Dining",
+      "date" : "2026-01-20",
+      "payee" : "Starbucks",
+      "runningBalance" : 4494.25,
+      "status" : "cleared"
+    }
+  ]
+}

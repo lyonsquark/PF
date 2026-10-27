@@ -1,0 +1,13 @@
+---
+source: crates/pf-api/tests/api.rs
+expression: text
+---
+Checking — Last 5 transactions
+
+Date        Amount        Balance       Status      Payee
+-----------------------------------------------------------------------------
+2026-03-12  -$500.00      $2,051.95     Cleared     Transfer to Savings  [Transfer]
+2026-03-10  -$142.30      $2,551.95     Pending     Whole Foods  [Groceries]
+2026-02-10  -$300.00      $2,694.25     Cleared     County Tax Office  {#Taxes}
+2026-02-01  -$1,500.00    $2,994.25     Cleared     Landlord  [Rent]
+2026-01-20  -$5.75        $4,494.25     Cleared     Starbucks  [Dining]

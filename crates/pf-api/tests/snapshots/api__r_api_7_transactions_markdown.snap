@@ -1,0 +1,13 @@
+---
+source: crates/pf-api/tests/api.rs
+expression: markdown
+---
+## Checking — Last 5 Transactions
+
+| Date | Payee | Amount | Balance | Status | Category | Contexts | Memo |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| 2026-03-12 | Transfer to Savings | -$500.00 | $2,051.95 | Cleared | Transfer |  |  |
+| 2026-03-10 | Whole Foods | -$142.30 | $2,551.95 | Pending | Groceries |  |  |
+| 2026-02-10 | County Tax Office | -$300.00 | $2,694.25 | Cleared |  | `#Taxes` |  |
+| 2026-02-01 | Landlord | -$1,500.00 | $2,994.25 | Cleared | Rent |  |  |
+| 2026-01-20 | Starbucks | -$5.75 | $4,494.25 | Cleared | Dining |  |  |
