@@ -201,14 +201,29 @@ fn card(ui: &mut Ui, title: &str, value: Decimal, color: Color32) {
 /// One account group: its title, then a table with a Cleared and an All column (R-BAL-9). The name
 /// column takes the rest of the width, so the header and every row share the same columns.
 fn group_section(cx: &mut UiCtx, ui: &mut Ui, group: &AccountGroup, reality_lines: bool) {
-    ui.add_space(8.0);
-    ui.label(RichText::new(group.title).size(16.0).strong());
-    ui.add_space(4.0);
-    let row_height = if reality_lines {
-        ROW_HEIGHT_REALITY
-    } else {
-        ROW_HEIGHT
-    };
+    // Each group gets its own ID scope: its table and rows would otherwise share IDs with the
+    // other groups' (egui reports that as a duplicate ID in debug builds).
+    ui.push_id(group.title, |ui| {
+        ui.add_space(8.0);
+        ui.label(RichText::new(group.title).size(16.0).strong());
+        ui.add_space(4.0);
+        let row_height = if reality_lines {
+            ROW_HEIGHT_REALITY
+        } else {
+            ROW_HEIGHT
+        };
+        group_table(cx, ui, group, row_height, reality_lines);
+    });
+}
+
+/// The framed table of one group's accounts.
+fn group_table(
+    cx: &mut UiCtx,
+    ui: &mut Ui,
+    group: &AccountGroup,
+    row_height: f32,
+    reality_lines: bool,
+) {
     Frame::group(ui.style())
         .inner_margin(12.0)
         .corner_radius(10.0)
