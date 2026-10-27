@@ -19,9 +19,9 @@ use crate::engine::Engine;
 /// The day every `World` is pinned to.
 pub const TEST_TODAY: Date = jiff::civil::date(2026, 3, 15);
 
-/// Time zone for fixture imports and conversions. Decision (3): tests pin America/Chicago.
+/// Time zone for fixture imports and conversions. `fixtures/world.md` is New York-authored.
 pub fn test_tz() -> TimeZone {
-    TimeZone::get("America/Chicago").expect("system tzdb has America/Chicago")
+    TimeZone::get("America/New_York").expect("system tzdb has America/New_York")
 }
 
 /// Parses a `YYYY-MM-DD` literal in tests.
