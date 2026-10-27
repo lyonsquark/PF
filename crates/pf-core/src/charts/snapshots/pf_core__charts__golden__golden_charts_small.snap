@@ -1,0 +1,692 @@
+---
+source: crates/pf-core/src/charts/golden.rs
+assertion_line: 57
+expression: out
+---
+== balance 1Y ==
+[
+    BalancePoint {
+        date: 2025-03-15,
+        balance: 0,
+    },
+    BalancePoint {
+        date: 2026-01-24,
+        balance: 2500,
+    },
+    BalancePoint {
+        date: 2026-01-25,
+        balance: 6500,
+    },
+    BalancePoint {
+        date: 2026-01-31,
+        balance: 5000,
+    },
+    BalancePoint {
+        date: 2026-02-03,
+        balance: 4935.01,
+    },
+    BalancePoint {
+        date: 2026-02-14,
+        balance: 4847.01,
+    },
+    BalancePoint {
+        date: 2026-02-17,
+        balance: 4758.91,
+    },
+    BalancePoint {
+        date: 2026-02-25,
+        balance: 8758.91,
+    },
+    BalancePoint {
+        date: 2026-02-28,
+        balance: 7258.91,
+    },
+    BalancePoint {
+        date: 2026-03-01,
+        balance: 7138.46,
+    },
+    BalancePoint {
+        date: 2026-03-02,
+        balance: 6996.16,
+    },
+    BalancePoint {
+        date: 2026-03-05,
+        balance: 6996.16,
+    },
+    BalancePoint {
+        date: 2026-03-10,
+        balance: 6546.16,
+    },
+    BalancePoint {
+        date: 2026-03-12,
+        balance: 6539.41,
+    },
+    BalancePoint {
+        date: 2026-03-15,
+        balance: 6539.41,
+    },
+]
+== spending Mar vs Feb ==
+SpendingComparison {
+    a: CumulativeSeries {
+        label: "Mar 26",
+        points: [
+            (
+                1,
+                120.45,
+            ),
+            (
+                2,
+                262.75,
+            ),
+            (
+                3,
+                262.75,
+            ),
+            (
+                4,
+                262.75,
+            ),
+            (
+                5,
+                262.75,
+            ),
+            (
+                6,
+                262.75,
+            ),
+            (
+                7,
+                262.75,
+            ),
+            (
+                8,
+                262.75,
+            ),
+            (
+                9,
+                262.75,
+            ),
+            (
+                10,
+                712.75,
+            ),
+            (
+                11,
+                712.75,
+            ),
+            (
+                12,
+                719.50,
+            ),
+            (
+                13,
+                719.50,
+            ),
+            (
+                14,
+                719.50,
+            ),
+            (
+                15,
+                719.50,
+            ),
+        ],
+    },
+    b: CumulativeSeries {
+        label: "Feb 26",
+        points: [
+            (
+                1,
+                0,
+            ),
+            (
+                2,
+                0,
+            ),
+            (
+                3,
+                64.99,
+            ),
+            (
+                4,
+                64.99,
+            ),
+            (
+                5,
+                64.99,
+            ),
+            (
+                6,
+                64.99,
+            ),
+            (
+                7,
+                64.99,
+            ),
+            (
+                8,
+                64.99,
+            ),
+            (
+                9,
+                64.99,
+            ),
+            (
+                10,
+                64.99,
+            ),
+            (
+                11,
+                64.99,
+            ),
+            (
+                12,
+                64.99,
+            ),
+            (
+                13,
+                64.99,
+            ),
+            (
+                14,
+                152.99,
+            ),
+            (
+                15,
+                152.99,
+            ),
+            (
+                16,
+                152.99,
+            ),
+            (
+                17,
+                241.09,
+            ),
+            (
+                18,
+                241.09,
+            ),
+            (
+                19,
+                241.09,
+            ),
+            (
+                20,
+                241.09,
+            ),
+            (
+                21,
+                241.09,
+            ),
+            (
+                22,
+                241.09,
+            ),
+            (
+                23,
+                241.09,
+            ),
+            (
+                24,
+                241.09,
+            ),
+            (
+                25,
+                241.09,
+            ),
+            (
+                26,
+                241.09,
+            ),
+            (
+                27,
+                241.09,
+            ),
+            (
+                28,
+                1741.09,
+            ),
+        ],
+    },
+    total_a: 719.50,
+    total_b: 1741.09,
+}
+== budget pacing Mar ==
+BudgetPacing {
+    total_budget: 2380,
+    budget_line: [
+        (
+            1,
+            76.774193548387096774193548387,
+        ),
+        (
+            2,
+            153.54838709677419354838709677,
+        ),
+        (
+            3,
+            230.32258064516129032258064516,
+        ),
+        (
+            4,
+            307.09677419354838709677419355,
+        ),
+        (
+            5,
+            383.87096774193548387096774194,
+        ),
+        (
+            6,
+            460.64516129032258064516129032,
+        ),
+        (
+            7,
+            537.41935483870967741935483871,
+        ),
+        (
+            8,
+            614.19354838709677419354838710,
+        ),
+        (
+            9,
+            690.96774193548387096774193548,
+        ),
+        (
+            10,
+            767.74193548387096774193548387,
+        ),
+        (
+            11,
+            844.5161290322580645161290323,
+        ),
+        (
+            12,
+            921.2903225806451612903225806,
+        ),
+        (
+            13,
+            998.0645161290322580645161290,
+        ),
+        (
+            14,
+            1074.8387096774193548387096774,
+        ),
+        (
+            15,
+            1151.6129032258064516129032258,
+        ),
+        (
+            16,
+            1228.3870967741935483870967742,
+        ),
+        (
+            17,
+            1305.1612903225806451612903226,
+        ),
+        (
+            18,
+            1381.9354838709677419354838710,
+        ),
+        (
+            19,
+            1458.7096774193548387096774194,
+        ),
+        (
+            20,
+            1535.4838709677419354838709677,
+        ),
+        (
+            21,
+            1612.2580645161290322580645161,
+        ),
+        (
+            22,
+            1689.0322580645161290322580645,
+        ),
+        (
+            23,
+            1765.8064516129032258064516129,
+        ),
+        (
+            24,
+            1842.5806451612903225806451613,
+        ),
+        (
+            25,
+            1919.3548387096774193548387097,
+        ),
+        (
+            26,
+            1996.1290322580645161290322581,
+        ),
+        (
+            27,
+            2072.9032258064516129032258064,
+        ),
+        (
+            28,
+            2149.6774193548387096774193548,
+        ),
+        (
+            29,
+            2226.4516129032258064516129032,
+        ),
+        (
+            30,
+            2303.2258064516129032258064516,
+        ),
+        (
+            31,
+            2380.0000000000000000000000000,
+        ),
+    ],
+    actual_line: [
+        (
+            1,
+            120.45,
+        ),
+        (
+            2,
+            262.75,
+        ),
+        (
+            3,
+            262.75,
+        ),
+        (
+            4,
+            262.75,
+        ),
+        (
+            5,
+            262.75,
+        ),
+        (
+            6,
+            262.75,
+        ),
+        (
+            7,
+            262.75,
+        ),
+        (
+            8,
+            262.75,
+        ),
+        (
+            9,
+            262.75,
+        ),
+        (
+            10,
+            712.75,
+        ),
+        (
+            11,
+            712.75,
+        ),
+        (
+            12,
+            719.50,
+        ),
+        (
+            13,
+            719.50,
+        ),
+        (
+            14,
+            719.50,
+        ),
+        (
+            15,
+            719.50,
+        ),
+    ],
+    spent: 719.50,
+    over_budget: false,
+}
+== profit and loss 6M ==
+[
+    MonthSummary {
+        year: 2026,
+        month: 1,
+        label: "Jan 26",
+        income: 6500,
+        expenses: 1500,
+    },
+    MonthSummary {
+        year: 2026,
+        month: 2,
+        label: "Feb 26",
+        income: 4000,
+        expenses: 1741.09,
+    },
+    MonthSummary {
+        year: 2026,
+        month: 3,
+        label: "Mar 26",
+        income: 0,
+        expenses: 719.50,
+    },
+]
+== breakdown 1M ==
+[
+    Slice {
+        name: "Housing",
+        amount: 1708.55,
+        color: "#6744e5",
+    },
+    Slice {
+        name: "Uncategorized",
+        amount: 450,
+        color: "#8e8e93",
+    },
+    Slice {
+        name: "Groceries",
+        amount: 142.30,
+        color: "#92e544",
+    },
+    Slice {
+        name: "Dining",
+        amount: 6.75,
+        color: "#4744e5",
+    },
+]
+== waterfall Feb ==
+Waterfall {
+    month_label: "February 2026",
+    total_in: 4000,
+    total_out: 1741.09,
+    bars: [
+        WaterfallBar {
+            label: "Income",
+            y_start: 0,
+            y_end: 4000,
+            kind: Income,
+            color: "#34c759",
+        },
+        WaterfallBar {
+            label: "Housing",
+            y_start: 4000,
+            y_end: 2346.91,
+            kind: Expense,
+            color: "#ff3b30",
+        },
+        WaterfallBar {
+            label: "Dining",
+            y_start: 2346.91,
+            y_end: 2258.91,
+            kind: Expense,
+            color: "#ff6b55",
+        },
+        WaterfallBar {
+            label: "Savings",
+            y_start: 0,
+            y_end: 2258.91,
+            kind: Savings,
+            color: "#007aff",
+        },
+    ],
+}
+== waterfall Mar ==
+Waterfall {
+    month_label: "March 2026",
+    total_in: 0,
+    total_out: 719.50,
+    bars: [
+        WaterfallBar {
+            label: "Income",
+            y_start: 0,
+            y_end: 0,
+            kind: Income,
+            color: "#34c759",
+        },
+        WaterfallBar {
+            label: "Uncategorized",
+            y_start: 0,
+            y_end: -450,
+            kind: Expense,
+            color: "#ff3b30",
+        },
+        WaterfallBar {
+            label: "Groceries",
+            y_start: -450,
+            y_end: -592.30,
+            kind: Expense,
+            color: "#ff6b55",
+        },
+        WaterfallBar {
+            label: "Housing",
+            y_start: -592.30,
+            y_end: -712.75,
+            kind: Expense,
+            color: "#ff9500",
+        },
+        WaterfallBar {
+            label: "Dining",
+            y_start: -712.75,
+            y_end: -719.50,
+            kind: Expense,
+            color: "#af52de",
+        },
+        WaterfallBar {
+            label: "Savings",
+            y_start: 0,
+            y_end: -719.50,
+            kind: Savings,
+            color: "#ff3b30",
+        },
+    ],
+}
+== distribution 1Y ==
+[
+    Slice {
+        name: "Housing",
+        amount: 3064.99,
+        color: "#6744e5",
+    },
+    Slice {
+        name: "Uncategorized",
+        amount: 450,
+        color: "#8e8e93",
+    },
+    Slice {
+        name: "Utilities",
+        amount: 208.55,
+        color: "#44e58a",
+    },
+    Slice {
+        name: "Groceries",
+        amount: 142.30,
+        color: "#92e544",
+    },
+    Slice {
+        name: "Dining",
+        amount: 94.75,
+        color: "#4744e5",
+    },
+]
+== trend 1Y ==
+[
+    MonthSummary {
+        year: 2026,
+        month: 1,
+        label: "Jan 26",
+        income: 6500,
+        expenses: 1500,
+    },
+    MonthSummary {
+        year: 2026,
+        month: 2,
+        label: "Feb 26",
+        income: 4000,
+        expenses: 1741.09,
+    },
+    MonthSummary {
+        year: 2026,
+        month: 3,
+        label: "Mar 26",
+        income: 0,
+        expenses: 719.50,
+    },
+]
+== sankey Feb ==
+Sankey {
+    month_label: "February 2026",
+    total_in: 4000,
+    total_out: 1741.09,
+    nodes: [
+        SankeyNode {
+            name: "Income",
+            color: "#34c759",
+        },
+        SankeyNode {
+            name: "Housing",
+            color: "#6744e5",
+        },
+        SankeyNode {
+            name: "Dining",
+            color: "#4744e5",
+        },
+        SankeyNode {
+            name: "Utilities",
+            color: "#44e58a",
+        },
+        SankeyNode {
+            name: "Savings",
+            color: "#30d158",
+        },
+    ],
+    links: [
+        SankeyLink {
+            source: 0,
+            target: 1,
+            value: 1653.09,
+        },
+        SankeyLink {
+            source: 0,
+            target: 2,
+            value: 88,
+        },
+        SankeyLink {
+            source: 0,
+            target: 4,
+            value: 2258.91,
+        },
+        SankeyLink {
+            source: 1,
+            target: 3,
+            value: 88.10,
+        },
+    ],
+}
+== sankey Mar ==
+Sankey {
+    month_label: "March 2026",
+    total_in: 0,
+    total_out: 719.50,
+    nodes: [],
+    links: [],
+}

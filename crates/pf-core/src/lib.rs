@@ -2,6 +2,7 @@
 
 pub mod balance;
 pub mod categorize;
+pub mod charts;
 pub mod color;
 pub mod csv_import;
 pub mod filter;
