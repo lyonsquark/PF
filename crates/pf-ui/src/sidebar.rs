@@ -79,7 +79,7 @@ fn nav_entry(cx: &mut UiCtx, ui: &mut Ui, target: Screen, label: &str) {
 
 /// The "ACCOUNTS" header with its grouping menu, then the account rows.
 fn accounts_section(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
-    accounts_header(st, ui);
+    accounts_header(cx, st, ui);
     let rows = cx.caches.lookups(&*cx.engine).account_rows.clone();
     match st.grouping {
         Grouping::Az => {
@@ -128,10 +128,17 @@ fn accounts_section(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     }
 }
 
-/// The "ACCOUNTS" title and the grouping menu.
-fn accounts_header(st: &mut State, ui: &mut Ui) {
+/// The "ACCOUNTS" title, the grouping menu, and "+" to add an account (T16).
+fn accounts_header(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("ACCOUNTS").small().strong());
+        let add = ui.small_button("+").on_hover_text("Add Account");
+        add.widget_info(|| WidgetInfo::labeled(Role::Button, true, "Add Account"));
+        if add.clicked() {
+            cx.dialogs.open(Dialog::AddAccount(
+                crate::dialogs::account::AccountForm::default(),
+            ));
+        }
         let combo = ComboBox::from_id_salt("sidebar_grouping")
             .selected_text(st.grouping.label())
             .width(100.0)
@@ -161,6 +168,14 @@ fn account_row(cx: &mut UiCtx, ui: &mut Ui, row: &AccountRow) -> Response {
         *cx.screen = target;
     }
     response.context_menu(|ui| {
+        if ui.button("Edit Account").clicked() {
+            let today = cx.engine.today();
+            if let Some(form) = crate::dialogs::account::edit_form(cx.engine.db(), row.id, today) {
+                cx.dialogs.open(Dialog::EditAccount(Box::new(form)));
+            }
+            ui.close();
+        }
+        ui.separator();
         if ui.button("Delete").clicked() {
             cx.dialogs.open(Dialog::Confirm {
                 title: "Delete Account?".to_string(),

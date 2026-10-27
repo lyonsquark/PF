@@ -29,6 +29,8 @@ const REDO: KeyboardShortcut =
     KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Z);
 /// Cmd-S (R-MD-7).
 const BACKUP: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::S);
+/// Cmd-N: New Transaction on the account screen (T16).
+const NEW_TX: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::N);
 /// Cmd-F: the account screen's search bar (T15c).
 const SEARCH: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::F);
 
@@ -143,6 +145,17 @@ impl PfApp {
             && ui.ctx().input_mut(|i| i.consume_shortcut(&SEARCH))
         {
             screens::account::toggle_search(&mut self.states.account, cx.engine.today());
+        }
+        // Cmd-N opens New Transaction for the account on screen (T16).
+        if !cx.dialogs.is_open()
+            && let Screen::Account(id) = *cx.screen
+            && ui.ctx().input_mut(|i| i.consume_shortcut(&NEW_TX))
+        {
+            let today = cx.engine.today();
+            let scenario = cx.engine.state.active_scenario;
+            cx.dialogs.open(dialogs::Dialog::AddTransaction(Box::new(
+                crate::dialogs::add_transaction::TxForm::new(Some(id), scenario, today),
+            )));
         }
 
         egui::Panel::top("menu").show(ui, |ui| menu_bar(&mut cx, ui));

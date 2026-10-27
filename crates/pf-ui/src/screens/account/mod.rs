@@ -21,6 +21,7 @@ use rust_decimal::Decimal;
 
 use crate::app::UiCtx;
 use crate::caches::Cached;
+use crate::dialogs::Dialog;
 use crate::widgets::colors;
 
 use edit::{
@@ -116,7 +117,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
     header(cx, st, ui, id, &head);
     ui.separator();
     period_row(cx, ui, active);
-    action_row(cx, st, ui, count);
+    action_row(cx, st, ui, id, count);
 
     let State {
         rows,
@@ -304,8 +305,19 @@ fn period_row(cx: &mut UiCtx, ui: &mut Ui, active: Option<ScenarioId>) {
 
 /// The action row: the "Find" button toggles the search bar (T15c), which opens under the row.
 /// T16 (Add Transaction) and T22 (Import CSV, Reality only) add their buttons here.
-fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, count: usize) {
+fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId, count: usize) {
     ui.horizontal(|ui| {
+        if ui
+            .button("+ Add Transaction")
+            .on_hover_text("Add a new transaction")
+            .clicked()
+        {
+            let today = cx.engine.today();
+            let scenario = cx.engine.state.active_scenario;
+            cx.dialogs.open(Dialog::AddTransaction(Box::new(
+                crate::dialogs::add_transaction::TxForm::new(Some(id), scenario, today),
+            )));
+        }
         let open = st.search.as_ref().is_some_and(|s| s.open);
         let hover = if open {
             "Hide search"

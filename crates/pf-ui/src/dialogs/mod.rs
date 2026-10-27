@@ -1,5 +1,7 @@
 //! Modal dialogs. At most one is open at a time (Swift alerts and confirmations).
 
+pub mod account;
+pub mod add_transaction;
 pub mod alert;
 pub mod csv_wizard;
 pub mod orphaned;
@@ -35,6 +37,12 @@ pub enum Dialog {
     },
     /// Orphaned transactions (live rows with no account) with Delete All (T21, R-TXN-15).
     Orphaned,
+    /// New Transaction (T16).
+    AddTransaction(Box<add_transaction::TxForm>),
+    /// New Account (T16).
+    AddAccount(account::AccountForm),
+    /// Edit Account, with its starting balance (T16).
+    EditAccount(Box<account::EditAccountForm>),
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -92,10 +100,10 @@ impl Dialogs {
 
 /// Draws the active dialog (if any) as a modal and runs its outcome.
 pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
-    let Some(dialog) = cx.dialogs.active.take() else {
+    let Some(mut dialog) = cx.dialogs.active.take() else {
         return;
     };
-    let outcome = match &dialog {
+    let outcome = match &mut dialog {
         Dialog::Alert { title, message } => alert::show_alert(ui, title, message),
         Dialog::Confirm {
             title,
@@ -113,6 +121,9 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
             }
         },
         Dialog::Orphaned => orphaned::show(cx, ui),
+        Dialog::AddTransaction(form) => add_transaction::show(cx, ui, form),
+        Dialog::AddAccount(form) => account::show_add(cx, ui, form),
+        Dialog::EditAccount(form) => account::show_edit(cx, ui, form),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {
