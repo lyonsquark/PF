@@ -19,6 +19,7 @@ fn main() -> anyhow::Result<()> {
         std::fs::create_dir_all(dir)?;
     }
     let engine = Engine::open(&path)?;
+    let ui_font = pf_engine::commands::settings::ui_font(&engine).map(str::to_owned);
     let port: u16 = engine
         .setting("apiPort")
         .and_then(|v| v.parse().ok())
@@ -36,7 +37,7 @@ fn main() -> anyhow::Result<()> {
         "PF",
         options,
         Box::new(move |cc| {
-            pf_ui::fonts::install(&cc.egui_ctx);
+            pf_ui::fonts::install(&cc.egui_ctx, ui_font.as_deref());
             let ctx = cc.egui_ctx.clone();
             let repaint: Arc<dyn Fn() + Send + Sync> = Arc::new(move || ctx.request_repaint());
             let mut app =

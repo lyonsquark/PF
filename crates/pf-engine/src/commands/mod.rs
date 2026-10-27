@@ -8,4 +8,5 @@ pub mod contexts;
 pub mod import;
 pub mod obligations;
 pub mod scenarios;
+pub mod settings;
 pub mod transactions;
