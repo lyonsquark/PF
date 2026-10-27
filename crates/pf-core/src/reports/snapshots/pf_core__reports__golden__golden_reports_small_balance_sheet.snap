@@ -1,0 +1,17 @@
+---
+source: crates/pf-core/src/reports/golden.rs
+assertion_line: 134
+expression: render_balance(&bs)
+---
+As of 2026-03-15
+Account                                Balance       Pending
+Checking (Chase)                       6476.46       -120.45
+Rewards Card (Amex)                      62.95         -6.75
+Total                                  6539.41       -127.20
+
+Obligation                             Balance
+Vacation Fund (Funding)                    500
+Total Obligations                          500
+
+Net Worth                              6539.41
+Available                              6039.41

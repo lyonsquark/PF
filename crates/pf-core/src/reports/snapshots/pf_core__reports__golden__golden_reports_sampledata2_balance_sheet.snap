@@ -1,0 +1,13 @@
+---
+source: crates/pf-core/src/reports/golden.rs
+assertion_line: 146
+expression: render_balance(&bs)
+---
+As of 2025-12-31
+Account                                Balance       Pending
+Main Checking (Chase)                 38554.48             0
+Rewards Card (Amex)                    -933.41             0
+Total                                 37621.07             0
+
+Net Worth                             37621.07
+Available                             37621.07

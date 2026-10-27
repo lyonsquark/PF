@@ -1,0 +1,26 @@
+---
+source: crates/pf-core/src/reports/golden.rs
+assertion_line: 136
+expression: render_matrix(&matrix)
+---
+Monthly Matrix 2026
+
+Actual
+Category                       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug       Sep       Oct       Nov       Dec     Total
+Dining                           0       -88     -6.75         0         0         0         0         0         0         0         0         0    -94.75
+Groceries                        0         0   -142.30         0         0         0         0         0         0         0         0         0   -142.30
+Housing                      -1500  -1564.99         0         0         0         0         0         0         0         0         0         0  -3064.99
+Housing/Utilities                0    -88.10   -120.45         0         0         0         0         0         0         0         0         0   -208.55
+Income                        4000      4000         0         0         0         0         0         0         0         0         0         0      8000
+Uncategorized                 2500         0      -450         0         0         0         0         0         0         0         0         0      2050
+NET                           5000   2258.91   -719.50         0         0         0         0         0         0         0         0         0   6539.41
+
+Budget
+Category                       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug       Sep       Oct       Nov       Dec     Total
+Dining                           0         0         0         0         0         0         0         0         0         0         0         0         0
+Groceries                     -600      -600      -750      -600      -600      -750      -600      -750      -600      -600      -750      -600     -7800
+Housing                      -1540     -2140     -1540     -1540     -2140     -1540     -1500     -2100     -1500     -1500     -2100     -1500    -20640
+Housing/Utilities              -90         0       -90         0       -90         0       -90         0       -90         0       -90         0      -540
+Income                        4000      4000      4000      4000      4000      4000      4000      4000      4000      4000      4000      4000     48000
+Uncategorized                    0         0         0         0         0         0         0         0         0         0         0         0         0
+NET                           1770      1260      1620      1860      1170      1710      1810      1150      1810      1900      1060      1900     19020

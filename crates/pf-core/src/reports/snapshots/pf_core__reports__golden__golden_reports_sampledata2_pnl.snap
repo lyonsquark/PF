@@ -1,0 +1,13 @@
+---
+source: crates/pf-core/src/reports/golden.rs
+assertion_line: 144
+expression: render_pnl(&pnl)
+---
+Category                      Budgeted        Actual    Difference
+Dining                           -4680      -4653.63         26.37
+Groceries                        -7800      -7821.45        -21.45
+Housing                         -32400     -32400.00          0.00
+Housing/Utilities             -8737.20      -8510.75        226.45
+Income                           96000      96000.00          0.00
+Shopping                         -4800      -4993.10       -193.10
+Total                         37582.80      37621.07         38.27
