@@ -53,6 +53,8 @@ pub struct State {
     pub(crate) cell: Option<CellEdit>,
     /// The amount cell being edited: its row and the edit text (T15b).
     pub(crate) amount: Option<(TransactionId, String)>,
+    /// The row whose tag "+" menu is open, so its button stays shown while the menu is (T16).
+    pub(crate) tag_open: Option<TransactionId>,
     /// The search bar's state; `Some` once it has been opened (T15c).
     pub(crate) search: Option<SearchState>,
     /// Ask the search field for focus on the next frame (set when the bar opens).
@@ -76,6 +78,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         st.amount = None;
         st.search = None;
         st.focus_search = false;
+        st.tag_open = None;
         st.for_account = Some(id);
     }
     let Some((name, institution)) = cx
@@ -126,6 +129,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         pruned,
         cell,
         amount,
+        tag_open,
         ..
     } = st;
     let view = rows.get(revision, &key, || {
@@ -155,6 +159,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
             categories: &lookups.categories,
             contexts: &lookups.contexts,
             searching: view.searching,
+            tag_open,
             pending: Vec::new(),
         };
         table::show(ui, &view.rows, selection, anchor, &mut edits);

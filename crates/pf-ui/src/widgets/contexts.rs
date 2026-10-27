@@ -40,36 +40,40 @@ fn chip(ui: &mut Ui, name: &str, color: Color32) {
         });
 }
 
+/// What the "+" menu did this frame.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TagMenu {
+    /// `Some(new list)` when a click changed the tags.
+    pub changed: Option<Vec<ContextId>>,
+    /// True while the menu is open after this frame.
+    pub open: bool,
+}
+
 /// The "+" menu (hover text "Add or remove context tags") listing `all` (non-archived contexts),
 /// with "• " on the selected ones. Clicking toggles: removes when present, else appends at the end.
-/// Returns `Some(new list)` when a click changed it.
-pub fn context_toggle_menu(
-    ui: &mut Ui,
-    current: &[ContextId],
-    all: &[ContextEntry],
-) -> Option<Vec<ContextId>> {
+pub fn context_toggle_menu(ui: &mut Ui, current: &[ContextId], all: &[ContextEntry]) -> TagMenu {
     let mut changed = None;
-    MenuButton::new(RichText::new("+").color(colors::BLUE))
-        .ui(ui, |ui| {
-            for (id, name, _) in all {
-                let selected = current.contains(id);
-                let label = if selected {
-                    format!("• {name}")
+    let (button, _) = MenuButton::new(RichText::new("+").color(colors::BLUE)).ui(ui, |ui| {
+        for (id, name, _) in all {
+            let selected = current.contains(id);
+            let label = if selected {
+                format!("• {name}")
+            } else {
+                name.clone()
+            };
+            if ui.button(label).clicked() {
+                let mut next = current.to_vec();
+                if selected {
+                    next.retain(|c| c != id);
                 } else {
-                    name.clone()
-                };
-                if ui.button(label).clicked() {
-                    let mut next = current.to_vec();
-                    if selected {
-                        next.retain(|c| c != id);
-                    } else {
-                        next.push(*id);
-                    }
-                    changed = Some(next);
+                    next.push(*id);
                 }
+                changed = Some(next);
             }
-        })
-        .0
-        .on_hover_text("Add or remove context tags");
-    changed
+        }
+    });
+    // The popup is looked up by the id MenuButton gives it, so this is true while it is open.
+    let open = egui::Popup::is_id_open(ui.ctx(), egui::Popup::menu(&button).get_id());
+    button.on_hover_text("Add or remove context tags");
+    TagMenu { changed, open }
 }

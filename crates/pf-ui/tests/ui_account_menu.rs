@@ -209,6 +209,8 @@ fn ui_attach_file_via_fake_dialog() {
     {
         let mut h = harness(&mut app);
         h.run();
+        h.get_by_label("Payee Coffee").hover();
+        h.run();
         h.get_by_label("Attach").click();
         h.run();
     }
@@ -226,6 +228,8 @@ fn ui_open_unsafe_attachment_shows_alert() {
     let (mut app, _) = attached_app(Some("/tmp/x.exe"), files.clone());
     {
         let mut h = harness(&mut app);
+        h.run();
+        h.get_by_label("Payee Coffee").hover();
         h.run();
         h.get_by_label("Open").click();
         h.run();
@@ -245,8 +249,28 @@ fn ui_open_safe_attachment_calls_open() {
     {
         let mut h = harness(&mut app);
         h.run();
+        h.get_by_label("Payee Coffee").hover();
+        h.run();
         h.get_by_label("Open").click();
         h.run();
     }
     assert_eq!(files.opened(), vec![PathBuf::from("/tmp/x.pdf")]);
+}
+
+#[test]
+/// The row's hover buttons (Attach here) are hidden until the pointer is over the row.
+fn ui_row_buttons_show_on_hover() {
+    let (mut app, _) = attached_app(None, FakeDialogs::default());
+    let mut h = harness(&mut app);
+    h.run();
+    assert!(
+        h.query_by_label("Attach").is_none(),
+        "hidden when not hovered"
+    );
+    h.get_by_label("Payee Coffee").hover();
+    h.run();
+    assert!(
+        h.query_by_label("Attach").is_some(),
+        "shown when the row is hovered"
+    );
 }

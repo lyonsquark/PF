@@ -69,6 +69,8 @@ pub struct Edits<'a> {
     pub contexts: &'a [ContextEntry],
     /// Whether a search filters the rows: the running column then shows the search balance (R-BAL-8).
     pub searching: bool,
+    /// The row whose tag "+" menu is open; its button stays shown while the menu is.
+    pub tag_open: &'a mut Option<TransactionId>,
     /// Commits requested this frame, in draw order.
     pub pending: Vec<Pending>,
 }

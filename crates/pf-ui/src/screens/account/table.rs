@@ -55,6 +55,7 @@ pub fn show(
         ui.vertical_centered(|ui| ui.label(RichText::new("No transactions").weak()));
         return;
     }
+    // A tag menu's row is remembered only while some popup is open (see `contexts_cell`).
     let modifiers = ui.input(|i| i.modifiers);
     let mut clicked: Option<usize> = None;
     // Horizontal scroll so every column is reachable in a narrow window. The table keeps its own
@@ -311,9 +312,25 @@ fn text_cell(
     }
 }
 
-/// The attachment: "Open" opens it (the hover text is the path), and "×" removes it when the row is
-/// unlocked. With no attachment, an unlocked row offers "Attach" (T15c, R-TXN-14).
+/// True while the pointer is over this row's band of the table. The hover buttons (Attach, Open,
+/// remove, the tag "+") show only then, so the columns stay quiet.
+fn row_hovered(ui: &Ui) -> bool {
+    let band = ui.max_rect();
+    ui.ctx()
+        .pointer_hover_pos()
+        .is_some_and(|p| ui.clip_rect().contains(p) && p.y >= band.top() && p.y <= band.bottom())
+}
+
+/// The attachment. Without the hover buttons it shows a weak "Yes" when a file is attached. With
+/// them: "Open" (the hover text is the path), "×" to remove when the row is unlocked, and "Attach"
+/// when there is no file (T15c, R-TXN-14).
 fn attachment_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
+    if !row_hovered(ui) {
+        if tx.attachment.is_some() {
+            ui.label(RichText::new("Yes").weak());
+        }
+        return;
+    }
     ui.horizontal(|ui| match &tx.attachment {
         Some(path) => {
             if ui.button("Open").on_hover_text(path.as_str()).clicked() {
@@ -343,18 +360,31 @@ fn attachment_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
     });
 }
 
-/// The context chips in a scroll area, then the "+" menu (unlocked rows only).
+/// The context chips in a scroll area, then the "+" menu (unlocked rows only). The "+" shows on hover,
+/// and stays while its own menu is open.
 fn contexts_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
+    let show_menu = !tx.locked && (row_hovered(ui) || *edits.tag_open == Some(tx.id));
     ui.horizontal(|ui| {
-        let width = (ui.available_width() - 28.0).max(0.0);
+        let width = if show_menu {
+            (ui.available_width() - 28.0).max(0.0)
+        } else {
+            ui.available_width()
+        };
         ScrollArea::horizontal()
             .id_salt(("contexts", tx.id.raw()))
             .max_width(width)
             .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
             .show(ui, |ui| context_chips(ui, &tx.contexts, tx.locked));
-        if !tx.locked {
+        if show_menu {
             let ids: Vec<ContextId> = tx.contexts.iter().map(|(id, _, _)| *id).collect();
-            if let Some(list) = context_toggle_menu(ui, &ids, edits.contexts) {
+            let menu = context_toggle_menu(ui, &ids, edits.contexts);
+            // Keep this row's "+" shown while its menu is open; the pointer leaves the row to reach it.
+            if menu.open {
+                *edits.tag_open = Some(tx.id);
+            } else if *edits.tag_open == Some(tx.id) {
+                *edits.tag_open = None;
+            }
+            if let Some(list) = menu.changed {
                 edits
                     .pending
                     .push(Pending::Field(tx.id, TxField::Contexts(list)));

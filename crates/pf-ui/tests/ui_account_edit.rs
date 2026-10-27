@@ -319,7 +319,10 @@ fn ui_contexts_toggle_adds_and_removes() {
     {
         let mut h = harness(&mut app);
         h.run();
+        h.get_by_label("Payee Coffee").hover();
+        h.run();
         h.get_by_label("+").click();
+        h.run();
         h.run();
         h.get_by_label("trip").click();
         h.run();
@@ -331,6 +334,8 @@ fn ui_contexts_toggle_adds_and_removes() {
     }
     {
         let mut h = harness(&mut app);
+        h.run();
+        h.get_by_label("Payee Coffee").hover();
         h.run();
         h.get_by_label("+").click();
         h.run();
