@@ -76,15 +76,18 @@ fn ui_account_time_period_changes_rows() {
         let mut h = harness(&mut app);
         h.run();
         assert!(
-            h.query_by_label("Ancient Payee").is_none(),
+            h.query_by_label("Payee Ancient Payee").is_none(),
             "hidden in Past Month"
         );
-        assert!(h.query_by_label("Recent Payee").is_some());
+        assert!(h.query_by_label("Payee Recent Payee").is_some());
         h.get_by_label("Time Period").click();
         h.run();
         h.get_by_label("All").click();
         h.run();
-        assert!(h.query_by_label("Ancient Payee").is_some(), "shown in All");
+        assert!(
+            h.query_by_label("Payee Ancient Payee").is_some(),
+            "shown in All"
+        );
     }
     let shared = app.engine();
     let e = shared.lock().expect("engine lock");
@@ -168,12 +171,12 @@ fn ui_account_selection_click_and_cmd_click() {
     app.set_screen(Screen::Account(chk));
     let mut h = harness(&mut app);
     h.run();
-    h.get_by_label("Alpha Row").click();
+    h.get_by_label("Payee Alpha Row").click();
     h.run();
-    h.get_by_label("Bravo Row")
+    h.get_by_label("Payee Bravo Row")
         .click_modifiers(Modifiers::COMMAND);
     h.run();
-    h.get_by_label("Delta Row")
+    h.get_by_label("Payee Delta Row")
         .click_modifiers(Modifiers::SHIFT);
     h.run();
     drop(h);
@@ -181,7 +184,7 @@ fn ui_account_selection_click_and_cmd_click() {
 
     let mut h = harness(&mut app);
     h.run();
-    h.get_by_label("Charlie Row").click();
+    h.get_by_label("Payee Charlie Row").click();
     h.run();
     drop(h);
     assert_eq!(app.account_selection(), vec![c]);
@@ -203,9 +206,12 @@ fn ui_account_large_table_renders() {
     h.run();
     // Newest first: the last id dated 2026-03-28 (day 28) is the top row. Rows far down are
     // virtualised away, so only the top rows have labels.
-    assert!(h.query_by_label("Payee 19991").is_some(), "top row drawn");
     assert!(
-        h.query_by_label("Payee 0").is_none(),
+        h.query_by_label("Payee Payee 19991").is_some(),
+        "top row drawn"
+    );
+    assert!(
+        h.query_by_label("Payee Payee 0").is_none(),
         "oldest row is virtualised out"
     );
 }

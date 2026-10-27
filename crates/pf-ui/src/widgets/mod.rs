@@ -1,5 +1,10 @@
 //! Shared widgets and colours used across screens.
 
+pub mod amount_field;
+pub mod category;
+pub mod contexts;
+pub mod status;
+
 use egui::{Color32, Response, Ui};
 use pf_core::{color, format};
 use rust_decimal::Decimal;

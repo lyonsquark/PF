@@ -1,19 +1,25 @@
-//! The read-only transaction table (T15a): nine Swift columns drawn with `TableBuilder`. Only the
-//! visible rows are drawn. Clicks are collected while drawing and applied to the selection after
-//! the table closure, because the table closures borrow `ui`.
+//! The account transaction table (T15a read-only, T15b editable): nine Swift columns drawn with
+//! `TableBuilder`. Only the visible rows are drawn. Clicks are collected while drawing and applied
+//! to the selection after the table closure, because the table closures borrow `ui`. Edits are
+//! recorded as `Pending` commits in `Edits` and applied by the screen after drawing.
 
 use std::collections::BTreeSet;
 
 use egui::{
-    Align, Color32, Frame, Label, Layout, Margin, Modifiers, RichText, ScrollArea, Sense, Ui,
+    Align, Frame, Key, Layout, Modifiers, RichText, Role, ScrollArea, Sense, TextEdit, Ui,
+    WidgetInfo,
 };
-use egui_extras::{Column, TableBuilder};
+use egui_extras::{Column, DatePickerButton, TableBuilder};
 use pf_core::format;
-use pf_model::{TransactionId, TransactionStatus};
-use rust_decimal::Decimal;
+use pf_engine::commands::transactions::TxField;
+use pf_model::{ContextId, TransactionId};
 
+use super::edit::{CellEdit, EditCol, Edits, Pending};
 use super::rows::TxRow;
-use crate::widgets::{color_from_hex, colors};
+use crate::widgets::amount_field::amount_field;
+use crate::widgets::category::category_picker;
+use crate::widgets::contexts::{context_chips, context_toggle_menu};
+use crate::widgets::status::status_picker;
 
 /// Row height in points; it fits a ComboBox (T15b).
 const ROW_HEIGHT: f32 = 24.0;
@@ -33,12 +39,14 @@ const HEADERS: [&str; 9] = [
     "Status",
 ];
 
-/// Draws `rows` (already built and cached) and applies row clicks to `selection`.
+/// Draws `rows` (already built and cached), applies row clicks to `selection`, and records the
+/// edits the user made in `edits.pending`.
 pub fn show(
     ui: &mut Ui,
     rows: &[TxRow],
     selection: &mut BTreeSet<TransactionId>,
     anchor: &mut Option<TransactionId>,
+    edits: &mut Edits<'_>,
 ) {
     if rows.is_empty() {
         ui.add_space(24.0);
@@ -75,7 +83,7 @@ pub fn show(
                 let tx = &rows[index];
                 row.set_selected(selection.contains(&tx.id));
                 let mut row_clicked = false;
-                cells(&mut row, tx, &mut row_clicked);
+                cells(&mut row, tx, edits, &mut row_clicked);
                 if row_clicked {
                     clicked = Some(index);
                 }
@@ -117,51 +125,44 @@ fn apply_click(
     *anchor = Some(id);
 }
 
-/// Draws the nine cells of one row. A locked row renders its text weak (R-TXN-1). `clicked` is set
-/// when any cell is clicked (see `click_target`).
-fn cells(row: &mut egui_extras::TableRow<'_, '_>, tx: &TxRow, clicked: &mut bool) {
+/// Draws the nine cells of one row. Editable cells draw their own widgets (disabled when the row is
+/// locked, R-TXN-1); the other cells register a click target for row selection.
+fn cells(
+    row: &mut egui_extras::TableRow<'_, '_>,
+    tx: &TxRow,
+    edits: &mut Edits<'_>,
+    clicked: &mut bool,
+) {
     let locked = tx.locked;
-    row.col(|ui| {
-        text(ui, &tx.date.to_string(), locked);
-        click_target(ui, clicked);
-    });
-    row.col(|ui| {
-        text(ui, &tx.payee, locked);
-        click_target(ui, clicked);
-    });
+    row.col(|ui| date_cell(ui, edits, tx));
+    row.col(|ui| text_cell(ui, edits, tx, EditCol::Payee, "Payee", &tx.payee, clicked));
     row.col(|ui| {
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            let value = format::format_currency(tx.amount);
-            if tx.amount >= Decimal::ZERO {
-                ui.label(RichText::new(value).color(fade(colors::GREEN, locked)));
-            } else {
-                text(ui, &value, locked);
-            }
+            amount_cell(ui, edits, tx, clicked);
         });
-        click_target(ui, clicked);
     });
     row.col(|ui| {
-        if tx.category_id.is_none() {
-            ui.label(RichText::new(&tx.category_label).weak());
-        } else {
-            text(ui, &tx.category_label, locked);
+        if let Some(c) = category_picker(
+            ui,
+            ("category", tx.id.raw()),
+            tx.category_id,
+            edits.categories,
+            !locked,
+            &format!("Category {}", tx.payee),
+        ) {
+            edits
+                .pending
+                .push(Pending::Field(tx.id, TxField::Category(c)));
         }
-        click_target(ui, clicked);
     });
-    row.col(|ui| {
-        text(ui, &tx.memo, locked);
-        click_target(ui, clicked);
-    });
+    row.col(|ui| text_cell(ui, edits, tx, EditCol::Memo, "Memo", &tx.memo, clicked));
     row.col(|ui| {
         if tx.attachment.is_some() {
             ui.label("Yes");
         }
         click_target(ui, clicked);
     });
-    row.col(|ui| {
-        contexts(ui, tx);
-        click_target(ui, clicked);
-    });
+    row.col(|ui| contexts_cell(ui, edits, tx));
     row.col(|ui| {
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             ui.label(RichText::new(format::format_currency(tx.running)).weak());
@@ -169,14 +170,146 @@ fn cells(row: &mut egui_extras::TableRow<'_, '_>, tx: &TxRow, clicked: &mut bool
         click_target(ui, clicked);
     });
     row.col(|ui| {
-        status(ui, tx.status, locked);
-        click_target(ui, clicked);
+        if let Some(s) = status_picker(
+            ui,
+            ("status", tx.id.raw()),
+            tx.status,
+            !locked,
+            &format!("Status {}", tx.payee),
+        ) {
+            edits.pending.push(Pending::Status(tx.id, s));
+        }
     });
 }
 
-/// Registers a click target over the whole cell, after its contents. The labels inside are
-/// hover-only, so without this the cell never gets the click (egui hit-testing) and the row would
-/// not select. Sets `clicked` when the cell is clicked.
+/// The date picker (R-TXN-9 is checked by the engine). A changed date is a commit.
+fn date_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
+    let mut date = tx.date;
+    let salt = format!("date-{}", tx.id.raw());
+    let resp = ui.add_enabled(
+        !tx.locked,
+        DatePickerButton::new(&mut date)
+            .id_salt(&salt)
+            .show_icon(false),
+    );
+    resp.widget_info(|| {
+        WidgetInfo::labeled(Role::Button, !tx.locked, format!("Date {}", tx.payee))
+    });
+    if date != tx.date {
+        edits
+            .pending
+            .push(Pending::Field(tx.id, TxField::Date(date)));
+    }
+}
+
+/// The amount: a click-to-edit label (`amount_field`). The buffer lives in `edits.amount` for the
+/// row being edited.
+fn amount_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow, clicked: &mut bool) {
+    let mine = edits.amount.as_ref().is_some_and(|(id, _)| *id == tx.id);
+    let mut buf = edits
+        .amount
+        .as_ref()
+        .filter(|(id, _)| *id == tx.id)
+        .map(|(_, s)| s.clone());
+    let label = format!("Amount {}", tx.payee);
+    if let Some(v) = amount_field(ui, &label, tx.amount, tx.locked, &mut buf) {
+        edits
+            .pending
+            .push(Pending::Field(tx.id, TxField::Amount(v)));
+    }
+    // A click that starts an amount edit also selects the row (as a click on the payee does).
+    if !mine && buf.is_some() {
+        *clicked = true;
+    }
+    if buf.is_some() || mine {
+        *edits.amount = buf.map(|s| (tx.id, s));
+    }
+}
+
+/// A text cell (Payee, Memo). Its buffer lives in `edits.cell` only while the cell has focus.
+/// Enter or focus loss commits a changed value; Esc cancels (R-TXN-12). Locked rows are disabled.
+/// Gaining focus by a click also selects the row, as in the read-only table (T15a).
+fn text_cell(
+    ui: &mut Ui,
+    edits: &mut Edits<'_>,
+    tx: &TxRow,
+    col: EditCol,
+    label: &str,
+    stored: &str,
+    clicked: &mut bool,
+) {
+    let editing = edits
+        .cell
+        .as_ref()
+        .filter(|c| c.id == tx.id && c.col == col)
+        .map(|c| c.text.clone());
+    let mut text = editing.unwrap_or_else(|| stored.to_string());
+    let enabled = !tx.locked;
+    let mut edit = TextEdit::singleline(&mut text)
+        .frame(Frame::NONE)
+        .desired_width(f32::INFINITY);
+    if !enabled {
+        edit = edit.text_color(ui.visuals().weak_text_color());
+    }
+    let resp = ui.add_enabled(enabled, edit);
+    resp.widget_info(|| {
+        WidgetInfo::labeled(Role::TextInput, enabled, format!("{label} {}", tx.payee))
+    });
+    if resp.gained_focus() {
+        *clicked = true;
+    }
+    // Esc cancels. egui's TextEdit surrenders focus on Esc itself, so the key is checked whenever
+    // the field had focus this frame or just lost it.
+    let escape =
+        ui.input(|i| i.key_pressed(Key::Escape)) && (resp.has_focus() || resp.lost_focus());
+    if escape {
+        *edits.cell = None;
+        resp.surrender_focus();
+    } else if resp.has_focus() {
+        *edits.cell = Some(CellEdit {
+            id: tx.id,
+            col,
+            text,
+        });
+    } else if resp.lost_focus()
+        && let Some(c) = edits.cell.take().filter(|c| c.id == tx.id && c.col == col)
+        && c.text != stored
+    {
+        let field = match col {
+            EditCol::Payee => TxField::Payee(c.text),
+            EditCol::Memo => TxField::Memo(if c.text.is_empty() {
+                None
+            } else {
+                Some(c.text)
+            }),
+        };
+        edits.pending.push(Pending::Field(tx.id, field));
+    }
+}
+
+/// The context chips in a scroll area, then the "⊕" menu (unlocked rows only).
+fn contexts_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
+    ui.horizontal(|ui| {
+        let width = (ui.available_width() - 28.0).max(0.0);
+        ScrollArea::horizontal()
+            .id_salt(("contexts", tx.id.raw()))
+            .max_width(width)
+            .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
+            .show(ui, |ui| context_chips(ui, &tx.contexts, tx.locked));
+        if !tx.locked {
+            let ids: Vec<ContextId> = tx.contexts.iter().map(|(id, _, _)| *id).collect();
+            if let Some(list) = context_toggle_menu(ui, &ids, edits.contexts) {
+                edits
+                    .pending
+                    .push(Pending::Field(tx.id, TxField::Contexts(list)));
+            }
+        }
+    });
+}
+
+/// Registers a click target over the whole cell, after its contents. Used by the non-editable
+/// cells, whose labels are hover-only, so without this the cell never gets the click (egui
+/// hit-testing) and the row would not select. Sets `clicked` when the cell is clicked.
 fn click_target(ui: &mut Ui, clicked: &mut bool) {
     let rect = ui.max_rect();
     let id = ui.scope_id().with("row_click");
@@ -185,75 +318,12 @@ fn click_target(ui: &mut Ui, clicked: &mut bool) {
     }
 }
 
-/// Plain text, weak when the row is locked.
-fn text(ui: &mut Ui, s: &str, locked: bool) {
-    let rich = RichText::new(s);
-    if locked {
-        ui.add(Label::new(rich.weak()));
-    } else {
-        ui.add(Label::new(rich));
-    }
-}
-
-/// The colour for a locked row: 60 % alpha, as Swift's `Color.green.opacity(0.6)` (AmountEditField).
-fn fade(color: Color32, locked: bool) -> Color32 {
-    if locked {
-        color.gamma_multiply(0.6)
-    } else {
-        color
-    }
-}
-
-/// The status label and its colour (Swift `statusColor`).
-fn status(ui: &mut Ui, status: TransactionStatus, locked: bool) {
-    let (label, color) = match status {
-        TransactionStatus::Cleared => ("Cleared", None),
-        TransactionStatus::Pending => ("Pending", Some(colors::GREEN)),
-        TransactionStatus::Reconciled => ("Reconciled", Some(colors::BROWN)),
-        TransactionStatus::Future => ("Future", Some(colors::RED)),
-    };
-    match color {
-        Some(c) => {
-            ui.label(RichText::new(label).color(fade(c, locked)));
-        }
-        None => text(ui, label, locked),
-    }
-}
-
-/// The context chips in a horizontal scroll area with the bars hidden. "No Context" when none.
-fn contexts(ui: &mut Ui, tx: &TxRow) {
-    if tx.contexts.is_empty() {
-        ui.label(RichText::new("No Context").weak());
-        return;
-    }
-    ScrollArea::horizontal()
-        .id_salt(("contexts", tx.id.raw()))
-        .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
-        .show(ui, |ui| {
-            ui.horizontal(|ui| {
-                for (_, name, hex) in &tx.contexts {
-                    let color = fade(color_from_hex(hex.as_deref()), tx.locked);
-                    chip(ui, name, color);
-                }
-            });
-        });
-}
-
-/// One context chip: "#name" on a tinted rounded frame (fill at 15 % of the colour).
-fn chip(ui: &mut Ui, name: &str, color: Color32) {
-    Frame::new()
-        .fill(color.gamma_multiply(0.15))
-        .corner_radius(6.0)
-        .inner_margin(Margin::symmetric(6, 2))
-        .show(ui, |ui| {
-            ui.label(RichText::new(format!("#{name}")).small().color(color));
-        });
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pf_model::TransactionStatus;
     use pf_model::testing::d;
+    use rust_decimal::Decimal;
 
     fn row(id: i64) -> TxRow {
         TxRow {

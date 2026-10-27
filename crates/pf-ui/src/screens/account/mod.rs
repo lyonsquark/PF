@@ -2,6 +2,7 @@
 //! the balances, the scenario label and time-period picker, the action row, and the read-only
 //! transaction table. Rows come from `rows::build_rows`, cached per engine revision and `RowsKey`.
 
+mod edit;
 mod rows;
 mod table;
 
@@ -17,6 +18,7 @@ use crate::app::UiCtx;
 use crate::caches::Cached;
 use crate::widgets::colors;
 
+use edit::{CellEdit, Edits, Pending, commit, commit_status};
 pub use rows::{RowsKey, TxRow, build_rows};
 
 /// Width of the account name field in points, so the balance keeps its room on the right.
@@ -37,6 +39,10 @@ pub struct State {
     pub(crate) for_account: Option<AccountId>,
     /// Header name buffer while the name field has focus.
     pub(crate) name_edit: Option<String>,
+    /// The text cell (Payee or Memo) being edited, if any (T15b).
+    pub(crate) cell: Option<CellEdit>,
+    /// The amount cell being edited: its row and the edit text (T15b).
+    pub(crate) amount: Option<(TransactionId, String)>,
     /// The (revision, key) for which the selection was last pruned to the visible rows.
     pruned: Option<(u64, RowsKey)>,
 }
@@ -47,6 +53,8 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         st.selection.clear();
         st.anchor = None;
         st.name_edit = None;
+        st.cell = None;
+        st.amount = None;
         st.for_account = Some(id);
     }
     let Some((name, institution)) = cx
@@ -86,6 +94,8 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         selection,
         anchor,
         pruned,
+        cell,
+        amount,
         ..
     } = st;
     let rows = rows.get(revision, &key, || {
@@ -106,7 +116,25 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         }
         *pruned = Some((revision, key));
     }
-    table::show(ui, rows, selection, anchor);
+    // The table only records edits; they are applied below, once the rows are no longer borrowed.
+    let pending = {
+        let lookups = cx.caches.lookups(cx.engine);
+        let mut edits = Edits {
+            cell,
+            amount,
+            categories: &lookups.categories,
+            contexts: &lookups.contexts,
+            pending: Vec::new(),
+        };
+        table::show(ui, rows, selection, anchor, &mut edits);
+        edits.pending
+    };
+    for change in pending {
+        match change {
+            Pending::Field(row, field) => commit(cx, row, field),
+            Pending::Status(row, status) => commit_status(cx, row, status),
+        }
+    }
 }
 
 /// R-BAL-1 and R-BAL-2 for one account under the active scenario.
