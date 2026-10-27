@@ -4,7 +4,9 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
+use jiff::Timestamp;
 use jiff::civil::Date;
+use jiff::tz::TimeZone;
 use pf_model::{Change, Db, Record, RowKey, ScenarioId, TimePeriod};
 use pf_store::Store;
 
@@ -39,6 +41,10 @@ pub struct Engine {
     revision: u64,
     /// Injected local date. Tests fix it.
     clock: Box<dyn Fn() -> Date + Send>,
+    /// Injected instant. Tests fix it; production reads the system clock.
+    now_clock: Box<dyn Fn() -> Timestamp + Send>,
+    /// Injected local time zone. Tests fix it; production uses the system zone.
+    tz: TimeZone,
 }
 
 impl Engine {
@@ -74,6 +80,9 @@ impl Engine {
             },
             revision: 0,
             clock: Box::new(|| jiff::Zoned::now().date()),
+            // Production defaults: the only system clock and zone reads in the engine.
+            now_clock: Box::new(Timestamp::now),
+            tz: TimeZone::system(),
         })
     }
 
@@ -105,6 +114,26 @@ impl Engine {
     /// Replaces the clock. Tests use it to fix the day.
     pub fn set_clock(&mut self, clock: Box<dyn Fn() -> Date + Send>) {
         self.clock = clock;
+    }
+
+    /// The injected instant (creation and update stamps, backup file names).
+    pub fn now(&self) -> Timestamp {
+        (self.now_clock)()
+    }
+
+    /// Replaces the instant clock. Tests use it to fix the time.
+    pub fn set_now_clock(&mut self, clock: Box<dyn Fn() -> Timestamp + Send>) {
+        self.now_clock = clock;
+    }
+
+    /// The injected local time zone (Markdown dates, CSV dates, backup names).
+    pub fn tz(&self) -> &TimeZone {
+        &self.tz
+    }
+
+    /// Replaces the time zone. Tests use it to pin a zone other than the machine's.
+    pub fn set_tz(&mut self, tz: TimeZone) {
+        self.tz = tz;
     }
 
     /// Wraps the engine for sharing between the UI and the API thread.

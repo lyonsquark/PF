@@ -26,6 +26,16 @@ pub fn test_tz() -> TimeZone {
     TimeZone::get("America/New_York").expect("system tzdb has America/New_York")
 }
 
+/// The instant every `World` is pinned to: 09:05:07 on `TEST_TODAY` in `test_tz()`.
+pub fn test_now() -> Timestamp {
+    // Invariant: a fixed civil time in a bundled zone always resolves, so this cannot fail.
+    TEST_TODAY
+        .at(9, 5, 7, 0)
+        .to_zoned(test_tz())
+        .expect("09:05:07 on TEST_TODAY exists in test_tz")
+        .timestamp()
+}
+
 /// Parses a `YYYY-MM-DD` literal in tests.
 pub fn d(s: &str) -> Date {
     s.parse().expect("date literal")
@@ -50,10 +60,12 @@ pub struct World {
     path: PathBuf,
 }
 
-/// Opens an engine on `path` with the test clock.
+/// Opens an engine on `path` with the test clock, instant and zone.
 fn open_fixed(path: &Path) -> Engine {
     let mut engine = Engine::open(path).expect("open engine on temp file");
     engine.set_clock(Box::new(|| TEST_TODAY));
+    engine.set_now_clock(Box::new(test_now));
+    engine.set_tz(test_tz());
     engine
 }
 

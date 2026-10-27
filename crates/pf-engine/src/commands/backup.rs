@@ -6,7 +6,6 @@ use std::path::{Path, PathBuf};
 
 use jiff::Timestamp;
 use jiff::Zoned;
-use jiff::tz::TimeZone;
 use pf_core::markdown::{export_markdown as export_md, import_markdown};
 use pf_model::Db;
 
@@ -37,9 +36,9 @@ pub struct ImportCounts {
     pub import_mappings: usize,
 }
 
-/// Markdown export of the current data, in the system time zone (R-MD-1).
+/// Markdown export of the current data, in the engine's time zone (R-MD-1).
 pub fn export_markdown(e: &Engine) -> String {
-    export_md(e.db(), &TimeZone::system())
+    export_md(e.db(), e.tz())
 }
 
 /// Counts of every table in `db`.
@@ -57,16 +56,16 @@ fn counts_of(db: &Db) -> ImportCounts {
 }
 
 /// The fallback timestamp for obligation rows that lack one: noon of the injected today, in the
-/// system time zone. Keeps the engine free of clock reads.
+/// engine's time zone. Keeps the engine free of clock reads.
 fn import_fallback_now(e: &Engine) -> Result<Timestamp> {
     e.today()
         .at(12, 0, 0, 0)
-        .to_zoned(TimeZone::system())
+        .to_zoned(e.tz().clone())
         .map(|z| z.timestamp())
         .map_err(|err| EngineError::Validation(err.to_string()))
 }
 
-/// R-MD-5. Builds a fresh Db from `text` (R-MD-2, system time zone, progress strings passed
+/// R-MD-5. Builds a fresh Db from `text` (R-MD-2, the engine's time zone, progress strings passed
 /// through), then replaces all data with it. The old data is wiped only after the new Db exists,
 /// and history is cleared and the active scenario reset. Not undoable.
 pub fn import_markdown_replacing(
@@ -75,7 +74,7 @@ pub fn import_markdown_replacing(
     progress: &mut dyn FnMut(&str),
 ) -> Result<ImportCounts> {
     let now = import_fallback_now(e)?;
-    let imported = import_markdown(text, &TimeZone::system(), now, progress);
+    let imported = import_markdown(text, e.tz(), now, progress);
     let counts = counts_of(&imported.db);
     e.replace_db(imported.db)?;
     Ok(counts)
@@ -109,12 +108,14 @@ fn free_backup_name(folder: &Path, stem: &str) -> String {
     name
 }
 
-/// Cmd-S backup. Writes `export_markdown(e)` into `folder` under a free `PFBackup_*.md` name,
-/// through a `.tmp` file that is renamed into place (atomic). Returns the full path, for the toast
-/// `Backup saved to: {path}`. An I/O failure is `Store("Failed to create backup: {error}")`.
-pub fn perform_backup(e: &Engine, folder: &Path, now: &Zoned) -> Result<PathBuf> {
+/// Cmd-S backup. Writes `export_markdown(e)` into `folder` under a free `PFBackup_*.md` name
+/// stamped with the engine's instant in its time zone, through a `.tmp` file that is renamed into
+/// place (atomic). Returns the full path, for the toast `Backup saved to: {path}`. An I/O failure
+/// is `Store("Failed to create backup: {error}")`.
+pub fn perform_backup(e: &Engine, folder: &Path) -> Result<PathBuf> {
     let content = export_markdown(e);
-    let name = free_backup_name(folder, &backup_stem(now));
+    let now = e.now().to_zoned(e.tz().clone());
+    let name = free_backup_name(folder, &backup_stem(&now));
     let target = folder.join(&name);
     let tmp = folder.join(format!("{name}.tmp"));
     let written =

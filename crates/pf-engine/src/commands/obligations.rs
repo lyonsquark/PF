@@ -2,7 +2,6 @@
 //! Rules R-OBL-1..6 and BEH-OBL-01..03; the Swift sources are `Views/ObligationsView.swift`,
 //! `Views/ObligationDetailView.swift` and `Managers/ObligationManager.swift`.
 
-use jiff::Timestamp;
 use jiff::civil::Date;
 use pf_core::names::generate_context_name;
 use pf_core::obligation as core;
@@ -106,7 +105,7 @@ pub fn create_obligation(e: &mut Engine, input: NewObligation) -> Result<Obligat
         }
         _ => None,
     };
-    let now = Timestamp::now();
+    let now = e.now();
     e.apply("Add Obligation", |w| {
         let context_id = match &new_context {
             Some(context_name) => {
@@ -175,7 +174,7 @@ pub fn edit_obligation(e: &mut Engine, id: ObligationId, field: ObligationField)
         }
         other => other,
     };
-    let now = Timestamp::now();
+    let now = e.now();
     e.apply("Edit Obligation", |w| {
         w.update_obligation(id, |o| {
             match &field {

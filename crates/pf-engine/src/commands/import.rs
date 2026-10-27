@@ -36,16 +36,17 @@ pub struct CsvImportRequest {
     pub mapping_plan: MappingPlan,
 }
 
-/// Inserts the transactions of `rows` planned against the current data. Returns the counts.
-/// R-CSV-14: rows are Cleared and in Reality; contexts are created for names the plan lists.
+/// Inserts the transactions of `rows` planned against the current data, read in `tz` (the
+/// engine's zone). Returns the counts. R-CSV-14: rows are Cleared and in Reality; contexts are
+/// created for names the plan lists.
 fn import_rows(
     w: &mut Writer<'_>,
     rows: &[Vec<String>],
     mapping: &ColumnMapping,
     target: Option<AccountId>,
     allow_unmapped_payees: bool,
+    tz: &TimeZone,
 ) -> ImportResult {
-    let tz = TimeZone::system();
     let plan = plan_import(
         w.db(),
         &ImportRequest {
@@ -53,7 +54,7 @@ fn import_rows(
             mapping,
             target_account: target,
             allow_unmapped_payees,
-            tz: &tz,
+            tz,
         },
     );
     let context_ids: Vec<ContextId> = plan
@@ -91,6 +92,7 @@ fn import_step(
     mapping: &ColumnMapping,
     target: Option<AccountId>,
     allow_unmapped_payees: bool,
+    tz: &TimeZone,
 ) -> Result<ImportResult> {
     for nc in &plan.new_categories {
         let mut c = Category::new(CategoryId(0), &nc.name, CategoryType::Expense);
@@ -114,7 +116,14 @@ fn import_step(
         m.negate_amounts = nm.negate;
         w.insert_import_mapping(m);
     }
-    Ok(import_rows(w, rows, mapping, target, allow_unmapped_payees))
+    Ok(import_rows(
+        w,
+        rows,
+        mapping,
+        target,
+        allow_unmapped_payees,
+        tz,
+    ))
 }
 
 /// "Import CSV" (R-CSV-14..16). One undo step, in this order: create the new accounts; insert the
@@ -131,6 +140,7 @@ pub fn run_csv_import(e: &mut Engine, req: CsvImportRequest) -> Result<ImportRes
         .cloned()
         .map(normalize)
         .collect::<Result<Vec<AccountInput>>>()?;
+    let tz = e.tz().clone();
     e.apply("Import CSV", |w| {
         for input in &accounts {
             w.insert_account(account_from(AccountId(0), input));
@@ -142,6 +152,7 @@ pub fn run_csv_import(e: &mut Engine, req: CsvImportRequest) -> Result<ImportRes
             &req.mapping,
             req.target_account,
             !req.is_monarch,
+            &tz,
         )
     })
 }
@@ -181,7 +192,15 @@ pub fn import_csv_with_saved_mappings(
     let mut mapping = detect_columns(&parsed.headers);
     let saved = saved_column_assignments(db, &parsed.headers, Some(account), false);
     mapping.apply_assignments(&saved);
+    let tz = e.tz().clone();
     e.apply("Import CSV", |w| {
-        Ok(import_rows(w, &parsed.rows, &mapping, Some(account), true))
+        Ok(import_rows(
+            w,
+            &parsed.rows,
+            &mapping,
+            Some(account),
+            true,
+            &tz,
+        ))
     })
 }

@@ -97,7 +97,7 @@ fn beh_bak_01_backup_writes_export() {
     set_backup_folder(&mut w.engine, dir.path()).expect("set folder");
     assert_eq!(backup_folder(&w.engine).as_deref(), Some(dir.path()));
     // When
-    let path = perform_backup(&w.engine, dir.path(), &nine_oh_five()).expect("backup");
+    let path = perform_backup(&w.engine, dir.path()).expect("backup");
     // Then
     assert_eq!(
         path.file_name().and_then(|n| n.to_str()),
@@ -120,10 +120,10 @@ fn backup_never_overwrites_existing_file() {
     // Given: a backup already written for this second.
     let w = World::with_fixture("world");
     let dir = TempDir::new().expect("temp dir");
-    let first = perform_backup(&w.engine, dir.path(), &nine_oh_five()).expect("first");
+    let first = perform_backup(&w.engine, dir.path()).expect("first");
     std::fs::write(&first, "older contents").expect("mark first");
     // When
-    let second = perform_backup(&w.engine, dir.path(), &nine_oh_five()).expect("second");
+    let second = perform_backup(&w.engine, dir.path()).expect("second");
     // Then
     assert_eq!(
         second.file_name().and_then(|n| n.to_str()),
@@ -141,7 +141,7 @@ fn backup_into_missing_folder_reports_store_error() {
     let w = World::with_fixture("world");
     let dir = TempDir::new().expect("temp dir");
     let missing = dir.path().join("no-such-folder");
-    let err = perform_backup(&w.engine, &missing, &nine_oh_five()).expect_err("no folder");
+    let err = perform_backup(&w.engine, &missing).expect_err("no folder");
     match err {
         pf_engine::EngineError::Store(msg) => {
             assert!(msg.starts_with("Failed to create backup: "), "{msg}");
