@@ -29,6 +29,8 @@ const REDO: KeyboardShortcut =
     KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Z);
 /// Cmd-S (R-MD-7).
 const BACKUP: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::S);
+/// Cmd-F: the account screen's search bar (T15c).
+const SEARCH: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::F);
 
 /// Everything a screen or dialog may touch during one frame. Built fresh each frame by `ui_root`.
 pub struct UiCtx<'a> {
@@ -135,6 +137,13 @@ impl PfApp {
 
         guard_navigation(&mut cx);
         handle_shortcuts(&mut cx, ui);
+        // Cmd-F opens or closes the account search bar, but not while a dialog is open (T15c).
+        if !cx.dialogs.is_open()
+            && let Screen::Account(_) = *cx.screen
+            && ui.ctx().input_mut(|i| i.consume_shortcut(&SEARCH))
+        {
+            screens::account::toggle_search(&mut self.states.account, cx.engine.today());
+        }
 
         egui::Panel::top("menu").show(ui, |ui| menu_bar(&mut cx, ui));
         egui::Panel::top("toolbar").show(ui, |ui| toolbar(&mut cx, ui));

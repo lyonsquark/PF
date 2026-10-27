@@ -15,9 +15,11 @@ use pf_engine::commands::transactions::TxField;
 use pf_model::{ContextId, TransactionId};
 
 use super::edit::{CellEdit, EditCol, Edits, Pending};
+use super::menu;
 use super::rows::TxRow;
 use crate::widgets::amount_field::amount_field;
 use crate::widgets::category::category_picker;
+use crate::widgets::colors;
 use crate::widgets::contexts::{context_chips, context_toggle_menu};
 use crate::widgets::status::status_picker;
 
@@ -55,39 +57,59 @@ pub fn show(
     }
     let modifiers = ui.input(|i| i.modifiers);
     let mut clicked: Option<usize> = None;
-    TableBuilder::new(ui)
-        .striped(true)
-        .resizable(true)
-        .sense(Sense::click())
+    // Horizontal scroll so every column is reachable in a narrow window. The table keeps its own
+    // vertical scroll and row virtualisation (it gets the viewport height from this scroll area).
+    ScrollArea::horizontal()
         .auto_shrink([false, false])
-        .max_scroll_height(f32::INFINITY)
-        .column(Column::initial(110.0))
-        .column(Column::remainder().at_least(150.0))
-        .column(Column::initial(100.0))
-        .column(Column::initial(160.0))
-        .column(Column::initial(140.0))
-        .column(Column::initial(36.0))
-        .column(Column::initial(170.0))
-        .column(Column::initial(110.0))
-        .column(Column::initial(100.0))
-        .header(HEADER_HEIGHT, |mut header| {
-            for title in HEADERS {
-                header.col(|ui| {
-                    ui.strong(title);
+        .show(ui, |ui| {
+            TableBuilder::new(ui)
+                .striped(true)
+                .resizable(true)
+                .sense(Sense::click())
+                .auto_shrink([false, false])
+                .max_scroll_height(f32::INFINITY)
+                .column(Column::initial(110.0))
+                .column(Column::remainder().at_least(150.0))
+                .column(Column::initial(100.0))
+                .column(Column::initial(160.0))
+                .column(Column::initial(140.0))
+                .column(Column::initial(120.0))
+                .column(Column::initial(170.0))
+                .column(Column::initial(110.0))
+                .column(Column::initial(100.0))
+                .header(HEADER_HEIGHT, |mut header| {
+                    for title in HEADERS {
+                        header.col(|ui| {
+                            ui.strong(title);
+                        });
+                    }
+                })
+                .body(|body| {
+                    body.rows(ROW_HEIGHT, rows.len(), |mut row| {
+                        let index = row.index();
+                        let tx = &rows[index];
+                        row.set_selected(selection.contains(&tx.id));
+                        let mut row_clicked = false;
+                        cells(&mut row, tx, edits, &mut row_clicked);
+                        // A right-click anywhere on the row, even on an editable cell, selects the row if it was not
+                        // selected, and opens its menu (T15c).
+                        let response = row.response();
+                        if response.container_secondary_clicked() && !selection.contains(&tx.id) {
+                            selection.clear();
+                            selection.insert(tx.id);
+                        }
+                        response.container_context_menu(|ui| {
+                            let picked: Vec<&TxRow> =
+                                rows.iter().filter(|r| selection.contains(&r.id)).collect();
+                            if let Some(action) = menu::items(ui, &picked) {
+                                edits.pending.push(Pending::Menu(action));
+                            }
+                        });
+                        if row_clicked {
+                            clicked = Some(index);
+                        }
+                    });
                 });
-            }
-        })
-        .body(|body| {
-            body.rows(ROW_HEIGHT, rows.len(), |mut row| {
-                let index = row.index();
-                let tx = &rows[index];
-                row.set_selected(selection.contains(&tx.id));
-                let mut row_clicked = false;
-                cells(&mut row, tx, edits, &mut row_clicked);
-                if row_clicked {
-                    clicked = Some(index);
-                }
-            });
         });
     if let Some(index) = clicked {
         apply_click(rows, selection, anchor, index, modifiers);
@@ -156,16 +178,18 @@ fn cells(
         }
     });
     row.col(|ui| text_cell(ui, edits, tx, EditCol::Memo, "Memo", &tx.memo, clicked));
-    row.col(|ui| {
-        if tx.attachment.is_some() {
-            ui.label("Yes");
-        }
-        click_target(ui, clicked);
-    });
+    row.col(|ui| attachment_cell(ui, edits, tx));
     row.col(|ui| contexts_cell(ui, edits, tx));
     row.col(|ui| {
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            ui.label(RichText::new(format::format_currency(tx.running)).weak());
+            // R-BAL-8: the search balance is blue while a search filters the rows.
+            let shown = RichText::new(format::format_currency(tx.running));
+            let shown = if edits.searching {
+                shown.color(colors::BLUE)
+            } else {
+                shown.weak()
+            };
+            ui.label(shown);
         });
         click_target(ui, clicked);
     });
@@ -287,7 +311,39 @@ fn text_cell(
     }
 }
 
-/// The context chips in a scroll area, then the "⊕" menu (unlocked rows only).
+/// The attachment: "Open" opens it (the hover text is the path), and "×" removes it when the row is
+/// unlocked. With no attachment, an unlocked row offers "Attach" (T15c, R-TXN-14).
+fn attachment_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
+    ui.horizontal(|ui| match &tx.attachment {
+        Some(path) => {
+            if ui.button("Open").on_hover_text(path.as_str()).clicked() {
+                edits.pending.push(Pending::OpenAttachment(path.clone()));
+            }
+            if !tx.locked
+                && ui
+                    .small_button("×")
+                    .on_hover_text("Remove attachment")
+                    .clicked()
+            {
+                edits
+                    .pending
+                    .push(Pending::Field(tx.id, TxField::Attachment(None)));
+            }
+        }
+        None => {
+            if !tx.locked
+                && ui
+                    .small_button("Attach")
+                    .on_hover_text("Attach file")
+                    .clicked()
+            {
+                edits.pending.push(Pending::Attach(tx.id));
+            }
+        }
+    });
+}
+
+/// The context chips in a scroll area, then the "+" menu (unlocked rows only).
 fn contexts_cell(ui: &mut Ui, edits: &mut Edits<'_>, tx: &TxRow) {
     ui.horizontal(|ui| {
         let width = (ui.available_width() - 28.0).max(0.0);

@@ -1,14 +1,19 @@
-//! Account detail screen (Swift `AccountDetailView`, T15a): the header with the editable name and
-//! the balances, the scenario label and time-period picker, the action row, and the read-only
-//! transaction table. Rows come from `rows::build_rows`, cached per engine revision and `RowsKey`.
+//! Account detail screen (Swift `AccountDetailView`): the header with the editable name and the
+//! balances, the scenario label and time-period picker, the action row with the search toggle
+//! (T15c), the search bar, and the transaction table. Rows come from `rows::build_rows`, cached per
+//! engine revision and `RowsKey`.
 
 mod edit;
+mod menu;
 mod rows;
+mod search;
 mod table;
 
 use std::collections::{BTreeSet, HashSet};
 
 use egui::{Align, ComboBox, Frame, Layout, RichText, TextEdit, TextStyle, Ui};
+use jiff::civil::Date;
+use pf_core::filter::SearchState;
 use pf_core::{balance, format};
 use pf_engine::commands::accounts::{self, AccountInput};
 use pf_model::{AccountId, Db, ScenarioId, TimePeriod, TransactionId};
@@ -18,8 +23,12 @@ use crate::app::UiCtx;
 use crate::caches::Cached;
 use crate::widgets::colors;
 
-use edit::{CellEdit, Edits, Pending, commit, commit_status};
-pub use rows::{RowsKey, TxRow, build_rows};
+use edit::{
+    CellEdit, Edits, Pending, add_to_budget_toast, attach, commit, commit_status, delete,
+    duplicate, open_attachment,
+};
+use menu::MenuAction;
+pub use rows::{Rows, RowsKey, TxRow, build_rows};
 
 /// Width of the account name field in points, so the balance keeps its room on the right.
 const NAME_WIDTH: f32 = 260.0;
@@ -28,7 +37,7 @@ const NAME_WIDTH: f32 = 260.0;
 #[derive(Default)]
 pub struct State {
     /// Table rows, cached per engine revision and `RowsKey`.
-    pub(crate) rows: Cached<RowsKey, Vec<TxRow>>,
+    pub(crate) rows: Cached<RowsKey, Rows>,
     /// (balance R-BAL-1, cleared R-BAL-2) for the header, per account and scenario.
     pub(crate) header: Cached<(AccountId, Option<ScenarioId>), (Decimal, Decimal)>,
     /// Selected transaction ids (click, ⌘-click, ⇧-click).
@@ -43,8 +52,17 @@ pub struct State {
     pub(crate) cell: Option<CellEdit>,
     /// The amount cell being edited: its row and the edit text (T15b).
     pub(crate) amount: Option<(TransactionId, String)>,
+    /// The search bar's state; `Some` once it has been opened (T15c).
+    pub(crate) search: Option<SearchState>,
+    /// Ask the search field for focus on the next frame (set when the bar opens).
+    pub(crate) focus_search: bool,
     /// The (revision, key) for which the selection was last pruned to the visible rows.
     pruned: Option<(u64, RowsKey)>,
+}
+
+/// ⌘F on the account screen: opens the search bar, or closes it when it is open (T15c).
+pub fn toggle_search(st: &mut State, today: Date) {
+    search::toggle(&mut st.search, today, &mut st.focus_search);
 }
 
 /// Draws the account detail for `id` into the central panel.
@@ -55,6 +73,8 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         st.name_edit = None;
         st.cell = None;
         st.amount = None;
+        st.search = None;
+        st.focus_search = false;
         st.for_account = Some(id);
     }
     let Some((name, institution)) = cx
@@ -69,6 +89,21 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
 
     let active = cx.engine.state.active_scenario;
     let revision = cx.engine.revision();
+    let key = RowsKey {
+        account: id,
+        active,
+        period: cx.engine.state.time_period,
+        today: cx.engine.today(),
+        search: st.search.as_ref().filter(|s| s.is_active()).cloned(),
+    };
+    // The result count for the search bar. The table below reads the same cached rows.
+    let count = st
+        .rows
+        .get(revision, &key, || {
+            build_rows(cx.engine.db(), &cx.engine.state, &key)
+        })
+        .rows
+        .len();
     let (balance, cleared) = *st.header.get(revision, &(id, active), || {
         header_totals(cx.engine.db(), id, active)
     });
@@ -81,14 +116,8 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
     header(cx, st, ui, id, &head);
     ui.separator();
     period_row(cx, ui, active);
-    action_row(cx, st, ui, id);
+    action_row(cx, st, ui, count);
 
-    let key = RowsKey {
-        account: id,
-        active,
-        period: cx.engine.state.time_period,
-        today: cx.engine.today(),
-    };
     let State {
         rows,
         selection,
@@ -98,7 +127,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         amount,
         ..
     } = st;
-    let rows = rows.get(revision, &key, || {
+    let view = rows.get(revision, &key, || {
         build_rows(cx.engine.db(), &cx.engine.state, &key)
     });
     // Drop selected ids that are no longer visible (after deletes or a period change). Done only
@@ -108,7 +137,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         .is_some_and(|(r, k)| *r == revision && *k == key);
     if !fresh {
         if !selection.is_empty() {
-            let live: HashSet<TransactionId> = rows.iter().map(|r| r.id).collect();
+            let live: HashSet<TransactionId> = view.rows.iter().map(|r| r.id).collect();
             selection.retain(|id| live.contains(id));
             if anchor.is_some_and(|a| !live.contains(&a)) {
                 *anchor = None;
@@ -124,15 +153,28 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
             amount,
             categories: &lookups.categories,
             contexts: &lookups.contexts,
+            searching: view.searching,
             pending: Vec::new(),
         };
-        table::show(ui, rows, selection, anchor, &mut edits);
+        table::show(ui, &view.rows, selection, anchor, &mut edits);
         edits.pending
     };
     for change in pending {
         match change {
             Pending::Field(row, field) => commit(cx, row, field),
             Pending::Status(row, status) => commit_status(cx, row, status),
+            Pending::Attach(row) => attach(cx, row),
+            Pending::OpenAttachment(path) => open_attachment(cx, &path),
+            Pending::Menu(MenuAction::AddToBudget(row)) => add_to_budget_toast(cx, row),
+            Pending::Menu(MenuAction::Duplicate(ids)) => {
+                // The copies are selected, so the user can act on them (T15c).
+                if let Some(new) = duplicate(cx, &ids) {
+                    selection.clear();
+                    selection.extend(new);
+                    *anchor = None;
+                }
+            }
+            Pending::Menu(MenuAction::Delete(ids)) => delete(cx, &ids),
         }
     }
 }
@@ -260,10 +302,21 @@ fn period_row(cx: &mut UiCtx, ui: &mut Ui, active: Option<ScenarioId>) {
     });
 }
 
-/// The action row. T16 (Add Transaction), T22 (Import CSV, Reality only) and T15c (search toggle)
-/// add their buttons here.
-fn action_row(_cx: &mut UiCtx, _st: &mut State, ui: &mut Ui, _id: AccountId) {
-    ui.horizontal(|_ui| {
-        // T16/T22/T15c add buttons here
+/// The action row: the "Find" button toggles the search bar (T15c), which opens under the row.
+/// T16 (Add Transaction) and T22 (Import CSV, Reality only) add their buttons here.
+fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, count: usize) {
+    ui.horizontal(|ui| {
+        let open = st.search.as_ref().is_some_and(|s| s.open);
+        let hover = if open {
+            "Hide search"
+        } else {
+            "Search transactions"
+        };
+        if ui.button("Find").on_hover_text(hover).clicked() {
+            search::toggle(&mut st.search, cx.engine.today(), &mut st.focus_search);
+        }
     });
+    if let Some(search) = st.search.as_mut().filter(|s| s.open) {
+        search::bar(ui, search, count, &mut st.focus_search);
+    }
 }

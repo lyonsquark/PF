@@ -367,3 +367,35 @@ fn ui_category_picker_sets_category() {
     assert_eq!(e.db().transaction(tx).expect("row").category_id, Some(food));
     assert_eq!(e.undo_name(), Some("Change Category"));
 }
+
+#[test]
+/// The table scrolls sideways, so the last column (Status) is reachable in a normal window: a
+/// horizontal wheel over the table brings the picker on screen and its popup opens.
+fn ui_table_scrolls_to_status_column() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    t.tx(chk, "2026-03-01", "-4.50", "Coffee")
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Account(chk));
+    let mut h = harness(&mut app);
+    h.run();
+    let over_table = h.get_by_label("Payee Coffee").rect().center();
+    h.event(egui::Event::PointerMoved(over_table));
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::Vec2::new(-2000.0, 0.0),
+        phase: egui::TouchPhase::Move,
+        source: egui::MouseWheelSource::Unknown,
+        modifiers: Modifiers::NONE,
+    });
+    // The scroll animates over several frames; step through them.
+    h.run_steps(30);
+    h.get_by_label("Status Coffee").click();
+    h.run();
+    assert!(
+        h.query_by_label("Pending").is_some(),
+        "status popup opened after scrolling"
+    );
+}

@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 
 use jiff::civil::Date;
+use pf_core::filter::SearchState;
 use pf_core::{balance, categorize, filter};
 use pf_engine::AppState;
 use pf_engine::commands::transactions::is_locked;
@@ -44,7 +45,7 @@ pub struct TxRow {
     pub locked: bool,
 }
 
-/// Cache key for the account rows. T15c adds the search spec; keep the struct extensible.
+/// Cache key for the account rows.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RowsKey {
     /// The account shown.
@@ -55,22 +56,45 @@ pub struct RowsKey {
     pub period: TimePeriod,
     /// Injected "today" (R-FLT-1).
     pub today: Date,
+    /// The search, only when it actively filters (open, and text or a date range). `None` otherwise.
+    pub search: Option<SearchState>,
 }
 
-/// Pure. 1) visible txs of the account (R-SCN-1); 2) running balance over ALL of them, oldest→newest
-/// by (date, id) (R-BAL-7); 3) window filter (R-FLT-2, start from R-FLT-1 with `today`);
-/// 4) sort date desc, id desc (R-FLT-5).
-pub fn build_rows(db: &Db, state: &AppState, key: &RowsKey) -> Vec<TxRow> {
+/// The rows for the table, and whether they are a search result (the running column then shows
+/// the search running balance, R-BAL-8).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Rows {
+    /// Newest first.
+    pub rows: Vec<TxRow>,
+    /// True when a search filters the rows.
+    pub searching: bool,
+}
+
+/// Pure. 1) visible txs of the account (R-SCN-1); 2) window filter (R-FLT-2) and, when searching,
+/// the text and date-range filters (R-FLT-3, R-FLT-4); 3) the running balance: over ALL visible
+/// rows when not searching (R-BAL-7), or over the filtered rows when searching (R-BAL-8).
+/// Order is date desc, id desc (R-FLT-5).
+pub fn build_rows(db: &Db, state: &AppState, key: &RowsKey) -> Rows {
     // R-SCN-1 + R-FLT-5: `account_transactions` already returns the newest-first order.
     let visible = filter::account_transactions(db, key.account, key.active);
-    // R-BAL-7: computed before the window filter, so it does not move with the period.
-    let running = balance::running_balances(&visible);
-    // R-FLT-2: the window only. The search is closed, so it keeps every row of the window.
-    let search = filter::SearchState::new(key.today);
-    filter::filter_transactions(db, &visible, key.period, &search, key.today)
+    let search = key
+        .search
+        .clone()
+        .unwrap_or_else(|| SearchState::new(key.today));
+    let window = filter::filter_transactions(db, &visible, key.period, &search, key.today);
+    let searching = key.search.is_some();
+    let running = if searching {
+        // R-BAL-8: cumulative over the rows that passed the filters.
+        balance::search_running_balances(&window)
+    } else {
+        // R-BAL-7: over all visible rows, so the running balance does not move with the window.
+        balance::running_balances(&visible)
+    };
+    let rows = window
         .into_iter()
         .map(|tx| row(db, state, tx, &running))
-        .collect()
+        .collect();
+    Rows { rows, searching }
 }
 
 /// One row for a transaction. `running` holds the R-BAL-7 value for every visible row.
@@ -125,6 +149,7 @@ fn category_label(db: &Db, id: Option<CategoryId>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pf_core::filter::SearchScope;
     use pf_model::testing::{TestDb, d, m};
     use pf_model::{AccountType, CategoryType, RowKey, TimePeriod};
 
@@ -136,7 +161,25 @@ mod tests {
             active,
             period,
             today: d(TODAY),
+            search: None,
         }
+    }
+
+    /// An open search with `text` in `scope` (and no date range).
+    fn text_search(text: &str, scope: SearchScope) -> SearchState {
+        SearchState {
+            open: true,
+            text: text.to_string(),
+            scope,
+            ..SearchState::new(d(TODAY))
+        }
+    }
+
+    /// Runs `build_rows` with an open search, for the active scenario None and TimePeriod::All.
+    fn searched(db: &Db, acc: AccountId, search: SearchState) -> Rows {
+        let mut k = key(acc, None, TimePeriod::All);
+        k.search = Some(search);
+        build_rows(db, &state(None), &k)
     }
 
     fn state(active: Option<ScenarioId>) -> AppState {
@@ -158,7 +201,7 @@ mod tests {
         active: Option<ScenarioId>,
         period: TimePeriod,
     ) -> Vec<TxRow> {
-        build_rows(db, &state(active), &key(acc, active, period))
+        build_rows(db, &state(active), &key(acc, active, period)).rows
     }
 
     #[test]
@@ -309,5 +352,118 @@ mod tests {
         };
         assert_eq!(label("Stale").as_deref(), Some("None"));
         assert_eq!(label("Latte").as_deref(), Some("Food/Cafe"));
+    }
+
+    #[test]
+    /// Covers: R-FLT-3. The payee search ignores case; blank text is no search at all.
+    fn r_flt_3_search_payee_case_insensitive() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        t.tx(chk, "2026-03-01", "-4", "Coffee Shop").done();
+        t.tx(chk, "2026-03-02", "-40", "Groceries").done();
+        let db = t.build();
+
+        let found = searched(&db, chk, text_search("COFF", SearchScope::Payee));
+        assert!(found.searching);
+        assert_eq!(payees(&found.rows), vec!["Coffee Shop"]);
+
+        let blank = SearchState {
+            open: true,
+            text: "   ".into(),
+            ..SearchState::new(d(TODAY))
+        };
+        assert!(
+            !blank.is_active(),
+            "whitespace-only text is not an active search"
+        );
+    }
+
+    #[test]
+    /// Covers: R-FLT-3. The category scope matches the plain name or the "Parent/Child" name.
+    fn r_flt_3_search_category_matches_name_or_full_name() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let food = t.category("Food", CategoryType::Expense);
+        let cafe = t.child_category(food, "Cafe");
+        t.tx(chk, "2026-03-01", "-4", "Morning")
+            .category(cafe)
+            .done();
+        t.tx(chk, "2026-03-02", "-9", "Other").done();
+        let db = t.build();
+
+        for text in ["Food/Ca", "Cafe"] {
+            let found = searched(&db, chk, text_search(text, SearchScope::Category));
+            assert_eq!(payees(&found.rows), vec!["Morning"], "query {text:?}");
+        }
+    }
+
+    #[test]
+    /// Covers: R-FLT-3. The context scope matches any context name on the row.
+    fn r_flt_3_search_context_any_name() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let trip = t.context("trip");
+        let home = t.context("home");
+        t.tx(chk, "2026-03-01", "-4", "Hotel")
+            .contexts(&[trip, home])
+            .done();
+        t.tx(chk, "2026-03-02", "-9", "Rent")
+            .contexts(&[home])
+            .done();
+        let db = t.build();
+
+        let found = searched(&db, chk, text_search("tri", SearchScope::Context));
+        assert_eq!(payees(&found.rows), vec!["Hotel"]);
+    }
+
+    #[test]
+    /// Covers: R-FLT-4. The date range includes its first and last day, and excludes the day after.
+    fn r_flt_4_date_range_inclusive() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        t.tx(chk, "2026-03-01", "-1", "Before").done();
+        t.tx(chk, "2026-03-02", "-1", "Start").done();
+        t.tx(chk, "2026-03-04", "-1", "End").done();
+        t.tx(chk, "2026-03-05", "-1", "After").done();
+        let db = t.build();
+
+        let range = SearchState {
+            open: true,
+            use_date_range: true,
+            start: d("2026-03-02"),
+            end: d("2026-03-04"),
+            ..SearchState::new(d(TODAY))
+        };
+        let found = searched(&db, chk, range);
+        assert_eq!(payees(&found.rows), vec!["End", "Start"]);
+    }
+
+    #[test]
+    /// Covers: R-BAL-8. With a search, the running balance accumulates over the matching rows only,
+    /// oldest first; without one it accumulates over every row (R-BAL-7).
+    fn r_bal_8_search_running_balance_over_filtered_rows() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        t.tx(chk, "2026-03-01", "-10", "Coffee A").done();
+        t.tx(chk, "2026-03-02", "-20", "Lunch").done();
+        t.tx(chk, "2026-03-03", "-30", "Coffee B").done();
+        t.tx(chk, "2026-03-04", "-40", "Dinner").done();
+        t.tx(chk, "2026-03-05", "-50", "Coffee C").done();
+        let db = t.build();
+
+        let found = searched(&db, chk, text_search("coffee", SearchScope::Payee));
+        assert!(found.searching);
+        // Matches oldest first: A -10, B -40, C -90. Shown newest first.
+        let running: Vec<Decimal> = found.rows.iter().map(|r| r.running).collect();
+        assert_eq!(running, vec![m("-90"), m("-40"), m("-10")]);
+
+        let all = build_rows(&db, &state(None), &key(chk, None, TimePeriod::All));
+        assert!(!all.searching);
+        // All rows oldest first: -10, -30, -60, -100, -150. Shown newest first.
+        let all_running: Vec<Decimal> = all.rows.iter().map(|r| r.running).collect();
+        assert_eq!(
+            all_running,
+            vec![m("-150"), m("-100"), m("-60"), m("-30"), m("-10")]
+        );
     }
 }
