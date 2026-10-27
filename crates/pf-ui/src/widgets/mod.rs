@@ -1,5 +1,6 @@
 //! Shared widgets and colours used across screens.
 
+pub mod account_multiselect;
 pub mod amount_field;
 pub mod category;
 pub mod color;
