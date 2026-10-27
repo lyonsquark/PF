@@ -307,11 +307,13 @@ fn period_row(cx: &mut UiCtx, ui: &mut Ui, active: Option<ScenarioId>) {
 /// T16 (Add Transaction) and T22 (Import CSV, Reality only) add their buttons here.
 fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId, count: usize) {
     ui.horizontal(|ui| {
-        if ui
-            .button("+ Add Transaction")
-            .on_hover_text("Add a new transaction")
-            .clicked()
-        {
+        let add = egui::Button::new(
+            RichText::new("+ Add Transaction")
+                .color(egui::Color32::WHITE)
+                .strong(),
+        )
+        .fill(colors::BLUE);
+        if ui.add(add).on_hover_text("Add a new transaction").clicked() {
             let today = cx.engine.today();
             let scenario = cx.engine.state.active_scenario;
             cx.dialogs.open(Dialog::AddTransaction(Box::new(
