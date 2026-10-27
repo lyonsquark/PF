@@ -9,7 +9,8 @@ use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use pf_core::markdown::import_markdown;
 use pf_model::{
-    AccountId, BudgetItemId, CategoryId, ContextId, ObligationId, ScenarioId, TransactionId,
+    Account, AccountId, AccountType, BudgetItemId, Category, CategoryId, CategoryType, Context,
+    ContextId, Db, ObligationId, Record, Scenario, ScenarioId, Transaction, TransactionId,
 };
 use rust_decimal::Decimal;
 use tempfile::TempDir;
@@ -303,4 +304,173 @@ impl Default for World {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// Shape of the generated large data set (T12b). `Default` is the 100k-row perf dataset.
+#[derive(Debug, Clone, PartialEq)]
+pub struct LargeDbSpec {
+    /// LCG seed; the same seed gives the same data.
+    pub seed: u64,
+    /// Number of accounts.
+    pub accounts: usize,
+    /// Number of transactions (reality and scenario rows together).
+    pub transactions: usize,
+    /// Years back from `TEST_TODAY` that dates are spread over.
+    pub years: i16,
+    /// Number of categories.
+    pub categories: usize,
+    /// Number of contexts.
+    pub contexts: usize,
+    /// Number of scenarios.
+    pub scenarios: usize,
+}
+
+impl Default for LargeDbSpec {
+    fn default() -> Self {
+        Self {
+            seed: 42,
+            accounts: 10,
+            transactions: 100_000,
+            years: 5,
+            categories: 40,
+            contexts: 20,
+            scenarios: 3,
+        }
+    }
+}
+
+/// Deterministic 64-bit LCG. No RNG crate is needed for test data.
+struct Lcg(u64);
+
+impl Lcg {
+    /// Next value: the high 31 bits of the state.
+    fn step(&mut self) -> u64 {
+        self.0 = self
+            .0
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        self.0 >> 33
+    }
+
+    /// A value in `0..n`. `n` must be non-zero.
+    fn below(&mut self, n: u64) -> u64 {
+        self.step() % n
+    }
+}
+
+/// Payee names for generated rows: 200 names built from eight stems.
+const PAYEE_STEMS: [&str; 8] = [
+    "Abbey", "Crest", "Harbor", "Lumen", "Maple", "Orbit", "Pine", "River",
+];
+
+/// Deterministic large Db (T12b). Built directly, not through engine commands, so the
+/// generator is fast. Mix: 90% reality and 10% scenario rows. Half of the scenario rows are
+/// Future; the rest, and all reality rows, are 80% Cleared, 10% Pending and 10% Reconciled
+/// (so about 5% Future overall). Amounts are −500.00…+3000.00. About 80% of rows have a category
+/// and 20% have one or two contexts. Dates are spread over `years` years ending at `TEST_TODAY`.
+pub fn generate_large_db(spec: &LargeDbSpec) -> Db {
+    assert!(spec.accounts > 0, "a large db needs at least one account");
+    let mut db = Db::new();
+    let mut rng = Lcg(spec.seed);
+
+    let accounts: Vec<AccountId> = (0..spec.accounts)
+        .map(|i| {
+            let id = AccountId::from(db.alloc_id());
+            let kind = AccountType::ALL[i % AccountType::ALL.len()];
+            let acc = Account::new(id, &format!("Account {i:02}"), kind, &format!("Bank {i}"));
+            db.put(Record::Account(acc));
+            id
+        })
+        .collect();
+
+    let categories: Vec<CategoryId> = (0..spec.categories)
+        .map(|i| {
+            let id = CategoryId::from(db.alloc_id());
+            let kind = CategoryType::ALL[i % CategoryType::ALL.len()];
+            let mut cat = Category::new(id, &format!("Category {i:02}"), kind);
+            let patterns = 1 + rng.below(3);
+            cat.match_patterns = (0..patterns).map(|j| format!("merchant{i}-{j}")).collect();
+            db.put(Record::Category(cat));
+            id
+        })
+        .collect();
+
+    let contexts: Vec<ContextId> = (0..spec.contexts)
+        .map(|i| {
+            let id = ContextId::from(db.alloc_id());
+            db.put(Record::Context(Context::new(
+                id,
+                &format!("Context {i:02}"),
+            )));
+            id
+        })
+        .collect();
+
+    let scenarios: Vec<ScenarioId> = (0..spec.scenarios)
+        .map(|i| {
+            let id = ScenarioId::from(db.alloc_id());
+            db.put(Record::Scenario(Scenario::new(
+                id,
+                &format!("Scenario {i:02}"),
+            )));
+            id
+        })
+        .collect();
+
+    let payees: Vec<String> = (0..200)
+        .map(|k| format!("{} {k:03}", PAYEE_STEMS[k % PAYEE_STEMS.len()]))
+        .collect();
+    let span_days = u64::from(spec.years.unsigned_abs()) * 365;
+
+    for _ in 0..spec.transactions {
+        let id = TransactionId::from(db.alloc_id());
+        let offset = i64::try_from(rng.below(span_days.max(1))).unwrap_or(0);
+        let date = TEST_TODAY
+            .checked_sub(jiff::Span::new().days(offset))
+            .unwrap_or(TEST_TODAY);
+        let cents = i64::try_from(rng.below(350_001)).unwrap_or(0) - 50_000;
+        let amount = Decimal::new(cents, 2);
+        let payee = &payees[usize::try_from(rng.below(200)).unwrap_or(0)];
+        let mut tx = Transaction::new(id, date, amount, payee);
+
+        let account = accounts[usize::try_from(rng.below(accounts.len() as u64)).unwrap_or(0)];
+        tx.account_id = Some(account);
+        let in_scenario = !scenarios.is_empty() && rng.below(10) == 0;
+        if in_scenario {
+            let pick = usize::try_from(rng.below(scenarios.len() as u64)).unwrap_or(0);
+            tx.scenario_id = Some(scenarios[pick]);
+        }
+        tx.status = if in_scenario && rng.below(2) == 0 {
+            TransactionStatus::Future
+        } else {
+            match rng.below(100) {
+                0..80 => TransactionStatus::Cleared,
+                80..90 => TransactionStatus::Pending,
+                _ => TransactionStatus::Reconciled,
+            }
+        };
+        if !categories.is_empty() && rng.below(10) < 8 {
+            let pick = usize::try_from(rng.below(categories.len() as u64)).unwrap_or(0);
+            tx.category_id = Some(categories[pick]);
+        }
+        if !contexts.is_empty() && rng.below(5) == 0 {
+            for _ in 0..=rng.below(2) {
+                let pick = usize::try_from(rng.below(contexts.len() as u64)).unwrap_or(0);
+                if !tx.context_ids.contains(&contexts[pick]) {
+                    tx.context_ids.push(contexts[pick]);
+                }
+            }
+        }
+        db.put(Record::Transaction(tx));
+    }
+    db
+}
+
+/// A `World` whose file holds the large data set from `generate_large_db(spec)`.
+pub fn large_world(spec: &LargeDbSpec) -> World {
+    let mut w = World::new();
+    w.engine
+        .replace_db(generate_large_db(spec))
+        .expect("write large db to the temp file");
+    w
 }
