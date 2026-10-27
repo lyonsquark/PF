@@ -56,3 +56,55 @@ fn ui_cht_01_all_nine_render_empty_db() {
     }
     assert!(shows(&h, NOT_ENOUGH_DATA), "the empty cards say so");
 }
+
+#[test]
+/// R-CHT-6: a chart's drill-down window stays inside a narrow window: its heading and its last column
+/// are on screen, not pushed past the edge.
+fn ui_chart_drill_window_fits_narrow_window() {
+    use egui_kittest::kittest::Queryable;
+    use pf_model::testing::TestDb;
+    use pf_model::{AccountType, CategoryType, TransactionStatus};
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    let food = t.category("Food", CategoryType::Expense);
+    for i in 0..3 {
+        t.tx(chk, "2026-03-05", "-100", &format!("Market {i}"))
+            .category(food)
+            .status(TransactionStatus::Cleared)
+            .done();
+    }
+    let scn = t.scenario("Plan");
+    let mut e = pf_engine::Engine::open_in_memory().expect("engine");
+    e.replace_db(t.build()).expect("db");
+    e.set_active_scenario(Some(scn));
+    let ids: Vec<pf_model::TransactionId> = e.db().live_transactions().map(|x| x.id).collect();
+    let mut app = pf_ui::PfApp::new_for_test(e);
+    app.set_screen(pf_ui::screen::Screen::Charts);
+    app.open_dialog_for_test(pf_ui::dialogs::Dialog::ReportTransactions {
+        title: "Waterfall Test".into(),
+        ids,
+    });
+    let window = egui::Vec2::new(1000.0, 640.0);
+    let mut h = egui_kittest::Harness::builder()
+        .with_size(window)
+        .build_ui(|ui| app.ui_root(ui));
+    h.run();
+    let heading = h
+        .query_all_by_value("Waterfall Test")
+        .next()
+        .expect("drill heading")
+        .rect();
+    let last = h
+        .query_all_by_value("Scenario")
+        .next()
+        .expect("Scenario column header")
+        .rect();
+    assert!(
+        heading.left() >= 0.0,
+        "heading starts inside the window: {heading:?}"
+    );
+    assert!(
+        last.right() <= window.x,
+        "last column ends inside the window: {last:?}"
+    );
+}

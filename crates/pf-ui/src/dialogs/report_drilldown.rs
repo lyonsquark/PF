@@ -2,7 +2,7 @@
 //! and the budget items behind a budgeted figure. The rows come from `pf_core::reports`; this file lays
 //! them out.
 
-use egui::{Align, Layout, Modal, RichText, Ui};
+use egui::{Align, Id, Layout, Modal, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 use jiff::civil::Date;
 use pf_core::format;
@@ -19,6 +19,8 @@ use crate::widgets::hscroll::{self, HScroll};
 const ROW_HEIGHT: f32 = 22.0;
 /// Header height in points.
 const HEADER_HEIGHT: f32 = 20.0;
+/// The drill-down dialogs' width, in points, when the window is wide enough.
+const DIALOG_WIDTH: f32 = 900.0;
 
 /// Opens the transactions drill-down (used by the reports and, from T24b, by the charts).
 pub fn open_transactions(cx: &mut UiCtx, title: String, ids: Vec<TransactionId>) {
@@ -35,28 +37,29 @@ pub fn show_transactions(
 ) -> Outcome {
     let scenario_active = cx.engine.state.active_scenario.is_some();
     let rows = drill_rows(cx.engine.db(), ids, scenario_active);
-    let mut hscroll = HScroll::default();
     let mut close = false;
     let response = Modal::new(egui::Id::unique(("report_transactions",))).show(ui.ctx(), |ui| {
-        ui.set_min_width(900.0);
+        ui.set_width(dialog_width(ui));
         ui.heading(title);
         if rows.is_empty() {
             ui.label(RichText::new("No transactions").weak());
         } else {
-            hscroll::show(ui, &mut hscroll, |ui| {
+            with_hscroll(ui, "report_transactions_hscroll", |ui| {
+                // The memo takes the rest of the width, so the table fits the dialog and the sideways
+                // scroll is only for a scenario's extra column on a narrow window.
                 let mut table = TableBuilder::new(ui)
                     .striped(true)
                     .auto_shrink([false, false])
                     .max_scroll_height(360.0)
+                    .column(Column::initial(96.0))
                     .column(Column::initial(100.0))
+                    .column(Column::initial(150.0))
+                    .column(Column::initial(90.0))
+                    .column(Column::remainder().at_least(120.0))
                     .column(Column::initial(120.0))
-                    .column(Column::initial(180.0))
-                    .column(Column::initial(100.0))
-                    .column(Column::initial(160.0))
-                    .column(Column::initial(160.0))
-                    .column(Column::initial(100.0));
+                    .column(Column::initial(80.0));
                 if scenario_active {
-                    table = table.column(Column::initial(120.0));
+                    table = table.column(Column::initial(100.0));
                 }
                 let headers: Vec<&str> = if scenario_active {
                     vec![
@@ -137,26 +140,25 @@ pub fn show_budget_items(
     end: Date,
 ) -> Outcome {
     let rows = budget_drill_rows(cx.engine.db(), ids, start, end);
-    let mut hscroll = HScroll::default();
     let mut close = false;
     let response = Modal::new(egui::Id::unique(("report_budget_items",))).show(ui.ctx(), |ui| {
-        ui.set_min_width(860.0);
+        ui.set_width(dialog_width(ui));
         ui.heading(title);
         if rows.is_empty() {
             ui.label(RichText::new("No budget items").weak());
         } else {
-            hscroll::show(ui, &mut hscroll, |ui| {
+            with_hscroll(ui, "report_budget_items_hscroll", |ui| {
                 TableBuilder::new(ui)
                     .striped(true)
                     .auto_shrink([false, false])
                     .max_scroll_height(360.0)
-                    .column(Column::initial(180.0))
-                    .column(Column::initial(160.0))
+                    .column(Column::initial(170.0))
+                    .column(Column::initial(150.0))
                     .column(Column::initial(90.0))
-                    .column(Column::initial(120.0))
+                    .column(Column::initial(110.0))
                     .column(Column::initial(100.0))
                     .column(Column::initial(100.0))
-                    .column(Column::initial(140.0))
+                    .column(Column::initial(130.0))
                     .header(HEADER_HEIGHT, |mut header| {
                         for h in [
                             "Name",
@@ -213,6 +215,23 @@ pub fn show_budget_items(
     } else {
         Outcome::KeepOpen
     }
+}
+
+/// The width of a drill-down dialog: `DIALOG_WIDTH`, or narrower when the window is, so the dialog
+/// never extends past the window's edges.
+fn dialog_width(ui: &Ui) -> f32 {
+    (ui.ctx().content_rect().width() - 48.0).min(DIALOG_WIDTH)
+}
+
+/// Draws a drill-down table with a sideways scroll. The dialog is rebuilt every frame, so the scroll
+/// position is kept in egui's memory under `salt`.
+fn with_hscroll(ui: &mut Ui, salt: &'static str, add: impl FnOnce(&mut Ui)) {
+    let id = Id::unique(salt);
+    let mut state: HScroll = ui
+        .ctx()
+        .data_mut(|d| *d.get_temp_mut_or_default::<HScroll>(id));
+    hscroll::show(ui, &mut state, add);
+    ui.ctx().data_mut(|d| d.insert_temp(id, state));
 }
 
 /// An amount coloured by its sign: green above zero, red below (R-RPT-2).
