@@ -1,7 +1,8 @@
-//! SQLite persistence for the in-memory `Db`.
+//! SQLite persistence for the in-memory `Db`: schema, load, atomic apply, purge (R-PRG-1).
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn scaffold_compiles() {}
-}
+mod codec;
+mod rows;
+mod schema;
+mod store;
+
+pub use store::{PurgeReport, Store, StoreError, default_db_path};
