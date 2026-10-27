@@ -14,7 +14,9 @@ use pf_model::{
 use rust_decimal::Decimal;
 use tempfile::TempDir;
 
+use crate::commands::transactions::{NewTransaction, TxKind, add_transaction};
 use crate::engine::Engine;
+use pf_model::TransactionStatus;
 
 /// The day every `World` is pinned to.
 pub const TEST_TODAY: Date = jiff::civil::date(2026, 3, 15);
@@ -201,6 +203,82 @@ impl World {
             a,
             self.engine.state.active_scenario,
         )
+    }
+
+    /// Adds a Cleared deposit through `add_transaction` (R-TXN-8). `date` is `YYYY-MM-DD`.
+    pub fn add_deposit(
+        &mut self,
+        acc: AccountId,
+        date: &str,
+        amount: &str,
+        payee: &str,
+    ) -> TransactionId {
+        self.add_simple(TxKind::Deposit, acc, date, amount, payee)
+    }
+
+    /// Adds a Cleared withdrawal through `add_transaction` (R-TXN-8). The sign is forced.
+    pub fn add_withdrawal(
+        &mut self,
+        acc: AccountId,
+        date: &str,
+        amount: &str,
+        payee: &str,
+    ) -> TransactionId {
+        self.add_simple(TxKind::Withdrawal, acc, date, amount, payee)
+    }
+
+    /// Adds a Cleared transfer through `add_transaction`. Returns `(from_row, to_row)`.
+    pub fn add_transfer(
+        &mut self,
+        from: AccountId,
+        to: AccountId,
+        date: &str,
+        amount: &str,
+    ) -> (TransactionId, TransactionId) {
+        let ids = self.add(TxKind::Transfer { to }, from, date, amount, "");
+        match ids.as_slice() {
+            [out, into] => (*out, *into),
+            other => panic!("transfer made {} rows, expected 2", other.len()),
+        }
+    }
+
+    /// One Cleared, uncategorized row with the given kind.
+    fn add_simple(
+        &mut self,
+        kind: TxKind,
+        acc: AccountId,
+        date: &str,
+        amount: &str,
+        payee: &str,
+    ) -> TransactionId {
+        let ids = self.add(kind, acc, date, amount, payee);
+        match ids.as_slice() {
+            [one] => *one,
+            other => panic!("expected one new row, got {}", other.len()),
+        }
+    }
+
+    /// Runs `add_transaction` for a Cleared, uncategorized, memo-less form.
+    fn add(
+        &mut self,
+        kind: TxKind,
+        account: AccountId,
+        date: &str,
+        amount: &str,
+        payee: &str,
+    ) -> Vec<TransactionId> {
+        let form = NewTransaction {
+            kind,
+            account,
+            date: d(date),
+            amount: m(amount),
+            payee: payee.to_string(),
+            memo: String::new(),
+            status: TransactionStatus::Cleared,
+            category: None,
+            contexts: Vec::new(),
+        };
+        add_transaction(&mut self.engine, form).expect("add transaction in World")
     }
 
     /// R-BAL-3: all statuses in Reality, ignoring the active scenario.
