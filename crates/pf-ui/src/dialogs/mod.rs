@@ -9,6 +9,7 @@ pub mod obligation_add;
 pub mod obligation_detail;
 pub mod orphaned;
 pub mod projection;
+pub mod scenario_edit;
 
 use std::path::PathBuf;
 
@@ -55,6 +56,8 @@ pub enum Dialog {
     AddObligation(Box<obligation_add::AddObligationForm>),
     /// Edit Obligation (T18).
     ObligationDetail(Box<obligation_detail::ObligationDetailForm>),
+    /// New or Edit Scenario (T19).
+    ScenarioEdit(Box<scenario_edit::ScenarioForm>),
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -140,6 +143,7 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::Projection(form) => projection::show(cx, ui, form),
         Dialog::AddObligation(form) => obligation_add::show(cx, ui, form),
         Dialog::ObligationDetail(form) => obligation_detail::show(cx, ui, form),
+        Dialog::ScenarioEdit(form) => scenario_edit::show(cx, ui, form),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {

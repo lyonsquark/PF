@@ -2,12 +2,13 @@
 
 pub mod amount_field;
 pub mod category;
+pub mod color;
 pub mod contexts;
 pub mod hscroll;
 pub mod status;
 
 use egui::{Color32, Response, Ui};
-use pf_core::{color, format};
+use pf_core::{color as core_color, format};
 use rust_decimal::Decimal;
 
 /// System-like colours used across screens (match the Swift app's SwiftUI colours).
@@ -41,8 +42,8 @@ pub fn money_label(ui: &mut Ui, amount: Decimal, red_negative: bool) -> Response
 /// gives the default blue.
 pub fn color_from_hex(hex: Option<&str>) -> Color32 {
     let [r, g, b, a] = hex
-        .and_then(color::parse_hex)
-        .unwrap_or(color::DEFAULT_BLUE);
+        .and_then(core_color::parse_hex)
+        .unwrap_or(core_color::DEFAULT_BLUE);
     Color32::from_rgba_unmultiplied(r, g, b, a)
 }
 
