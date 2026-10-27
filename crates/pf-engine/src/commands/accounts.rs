@@ -50,7 +50,7 @@ pub struct StartingBalanceInfo {
 }
 
 /// Trims the name and fills the default currency. `Validation` for an empty name.
-fn normalize(input: AccountInput) -> Result<AccountInput> {
+pub(crate) fn normalize(input: AccountInput) -> Result<AccountInput> {
     let name = input.name.trim().to_string();
     if name.is_empty() {
         return Err(EngineError::Validation("Account name is required".into()));
@@ -69,7 +69,7 @@ fn normalize(input: AccountInput) -> Result<AccountInput> {
 }
 
 /// Builds an account row from normalized form values.
-fn account_from(id: AccountId, input: &AccountInput) -> Account {
+pub(crate) fn account_from(id: AccountId, input: &AccountInput) -> Account {
     Account {
         currency: input.currency.clone(),
         is_external: input.is_external,
