@@ -1,10 +1,12 @@
-//! Build automation: `cargo xtask rules` (traceability check) and `cargo xtask ci` (full gate).
+//! Build automation: `cargo xtask rules` (traceability check), `cargo xtask ci` (full gate) and
+//! `cargo xtask bundle [--install]` (the PFRust.app bundle, via `scripts/build_app.sh`).
 
 mod ci;
 mod rules;
 
-use anyhow::anyhow;
+use anyhow::{Context, anyhow};
 use std::path::Path;
+use std::process::Command;
 
 fn main() -> anyhow::Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -26,8 +28,17 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Some("ci") => ci::run_ci(root),
+        Some("bundle") => {
+            let args: Vec<String> = std::env::args().skip(2).collect();
+            let status = Command::new(root.join("scripts/build_app.sh"))
+                .args(&args)
+                .current_dir(root)
+                .status()
+                .context("running scripts/build_app.sh")?;
+            std::process::exit(status.code().unwrap_or(1));
+        }
         _ => {
-            eprintln!("usage: cargo xtask <rules|ci>");
+            eprintln!("usage: cargo xtask <rules|ci|bundle [--install]>");
             std::process::exit(2);
         }
     }
