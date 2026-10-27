@@ -80,6 +80,12 @@ impl PfApp {
         }
     }
 
+    /// Opens a dialog directly, for kittest (the editors of rows are normally opened by a double-click,
+    /// which kittest cannot send).
+    pub fn open_dialog_for_test(&mut self, d: crate::dialogs::Dialog) {
+        self.dialogs.open(d);
+    }
+
     /// Headless constructor for kittest: fake dialogs, no API server.
     pub fn new_for_test(engine: Engine) -> Self {
         Self::new(engine.shared(), Box::new(FakeDialogs::default()))

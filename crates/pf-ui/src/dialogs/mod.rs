@@ -4,6 +4,8 @@ pub mod account;
 pub mod add_transaction;
 pub mod alert;
 pub mod budget_item;
+pub mod category_edit;
+pub mod context_edit;
 pub mod csv_wizard;
 pub mod obligation_add;
 pub mod obligation_detail;
@@ -58,6 +60,10 @@ pub enum Dialog {
     ObligationDetail(Box<obligation_detail::ObligationDetailForm>),
     /// New or Edit Scenario (T19).
     ScenarioEdit(Box<scenario_edit::ScenarioForm>),
+    /// New or Edit Category (T20).
+    CategoryEdit(Box<category_edit::CategoryForm>),
+    /// New or Edit Context (T20).
+    ContextEdit(Box<context_edit::ContextForm>),
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -144,6 +150,8 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::AddObligation(form) => obligation_add::show(cx, ui, form),
         Dialog::ObligationDetail(form) => obligation_detail::show(cx, ui, form),
         Dialog::ScenarioEdit(form) => scenario_edit::show(cx, ui, form),
+        Dialog::CategoryEdit(form) => category_edit::show(cx, ui, form),
+        Dialog::ContextEdit(form) => context_edit::show(cx, ui, form),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {

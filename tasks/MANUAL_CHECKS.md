@@ -32,6 +32,14 @@ Things the tests cannot judge: how things look and feel. Tick them off as you go
 - [ ] Edit a scenario; Create a new one (purple dot).
 - [ ] Delete the active scenario, then ⌘Z.
 
+## Categories and contexts (T20)
+- [ ] Double-click a category to edit; a single click does nothing.
+- [ ] Create a child category: it sits under its parent, indented.
+- [ ] Type a bad pattern (e.g. "[bad") on Save: the alert lists it and it is removed.
+- [ ] Apply in the editor: the count message appears and the editor stays open.
+- [ ] Archive, Unarchive, and Delete a context that an obligation uses (refused with a message).
+- [ ] Emoji category icons draw (they used to crash the app; now enabled).
+
 ## Known gaps to decide on
 - Vertical scrolling may also rubber-band at the top and bottom (egui's own scroll). Tell me if it bothers you.
-- Glyphs were replaced with plain text (+, •, ×, Open/Attach, "Active"). Say if you want symbols back where the font has them.
+- Glyphs were replaced with plain text (+, •, ×, -, Open/Attach, "Active", "Edit", "Apply"). Emoji now draw. Say if you want the symbols back where the font has them.
