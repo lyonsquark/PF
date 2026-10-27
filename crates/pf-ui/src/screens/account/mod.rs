@@ -230,14 +230,16 @@ fn header(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId, head: &Hea
             }
             ui.label(big);
             if cleared != balance {
-                ui.horizontal(|ui| {
-                    ui.label(RichText::new("Cleared:").size(16.0).weak());
+                // Right to left: the amount sits at the right edge, under the balance, and the
+                // label reads "Cleared:" just before it.
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     let text = RichText::new(format::format_currency(cleared)).size(16.0);
                     if cleared < Decimal::ZERO {
                         ui.label(text.color(colors::RED));
                     } else {
                         ui.label(text.weak());
                     }
+                    ui.label(RichText::new("Cleared:").size(16.0).weak());
                 });
             }
         });

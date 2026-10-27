@@ -222,3 +222,37 @@ fn sorted(ids: &[pf_model::TransactionId]) -> Vec<pf_model::TransactionId> {
     v.sort();
     v
 }
+
+#[test]
+/// R-BAL-2: the cleared amount sits under the balance, right-aligned with it, and its "Cleared:"
+/// label comes just before it.
+fn ui_account_cleared_amount_aligns_under_balance() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    t.tx(chk, "2026-03-01", "1000", "Pay")
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.tx(chk, "2026-03-02", "-100", "Hold")
+        .status(TransactionStatus::Pending)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Account(chk));
+    let mut h = harness(&mut app);
+    h.run();
+    let balance = h
+        .query_all_by_label("$900.00")
+        .next()
+        .expect("balance")
+        .rect();
+    let cleared = h
+        .query_all_by_label("$1,000.00")
+        .next()
+        .expect("cleared amount")
+        .rect();
+    let label = h.query_by_label("Cleared:").expect("cleared label").rect();
+    assert!(
+        (balance.right() - cleared.right()).abs() < 2.0,
+        "cleared amount {cleared:?} aligns with balance {balance:?}"
+    );
+    assert!(label.right() <= cleared.left(), "label before the amount");
+}
