@@ -1,0 +1,74 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "apps/*", "xtask"]
+default-members = ["crates/*", "apps/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+# internal
+pf-model = { path = "crates/pf-model" }
+pf-core = { path = "crates/pf-core" }
+pf-store = { path = "crates/pf-store" }
+pf-engine = { path = "crates/pf-engine" }
+pf-api = { path = "crates/pf-api" }
+pf-ui = { path = "crates/pf-ui" }
+
+# foundation
+rust_decimal = { version = "1.43", features = ["serde-with-str"] }
+rust_decimal_macros = "1.40"
+jiff = { version = "0.2", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+anyhow = "1"
+log = "0.4"
+env_logger = "0.11"
+regex = "1.13"
+
+# storage / io
+rusqlite = { version = "0.41", features = ["bundled"] }
+tiny_http = "0.12"
+directories = "6"
+
+# ui
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "wgpu", "accesskit"] }
+egui = "0.37"
+egui_extras = { version = "0.37", default-features = false, features = ["datepicker"] }
+egui_plot = "0.38"
+rfd = "0.17"
+
+# tests
+proptest = "1.12"
+insta = { version = "1.49", features = ["json"] }
+pretty_assertions = "1.4"
+tempfile = "3.27"
+assert_cmd = "2.2"
+predicates = "3.1"
+egui_kittest = "0.37"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+dbg_macro = "warn"
+todo = "warn"
+unwrap_used = "warn"
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 16
