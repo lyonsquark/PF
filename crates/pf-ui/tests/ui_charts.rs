@@ -129,3 +129,32 @@ fn ui_cht_month_stepper() {
         "month A stepped back"
     );
 }
+
+#[test]
+/// R-CHT-11: a click inside a plot opens nothing and leaves the screen where it is.
+fn ui_cht_plot_charts_ignore_clicks() {
+    let mut app = PfApp::new_for_test(engine_with_fixture());
+    app.set_screen(Screen::Charts);
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        let heading = h.get_by_label("Account Balances Over Time").rect().center();
+        h.get_by_label("Account Balances Over Time").hover();
+        h.run();
+        let _ = heading;
+        h.event(egui::Event::PointerButton {
+            pos: egui::pos2(heading.x, heading.y + 120.0),
+            button: egui::PointerButton::Primary,
+            pressed: true,
+            modifiers: egui::Modifiers::NONE,
+        });
+        h.event(egui::Event::PointerButton {
+            pos: egui::pos2(heading.x, heading.y + 120.0),
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: egui::Modifiers::NONE,
+        });
+        h.run();
+    }
+    assert_eq!(app.screen(), Screen::Charts, "still on the charts screen");
+}
