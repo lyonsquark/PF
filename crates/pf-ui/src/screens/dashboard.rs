@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 
 use egui::{Align, Button, Color32, Frame, Layout, RichText, ScrollArea, Ui, vec2};
+use egui_extras::{Column, TableBuilder};
 use pf_core::{balance, format};
 use pf_model::{AccountId, Db, ScenarioId};
 use rust_decimal::Decimal;
@@ -66,8 +67,16 @@ pub struct AccountRow {
     pub reality_all: Decimal,
 }
 
-/// Width of each Cleared / All money column (Swift `frame(width: 100)`).
-const COLUMN_WIDTH: f32 = 100.0;
+/// The widest the dashboard gets, in points; a wider window keeps it in the middle.
+const MAX_WIDTH: f32 = 880.0;
+/// Width of each Cleared / All money column, in points.
+const AMOUNT_WIDTH: f32 = 130.0;
+/// Height of an account row, in points.
+const ROW_HEIGHT: f32 = 36.0;
+/// Height of an account row when a scenario shows its reality line, in points.
+const ROW_HEIGHT_REALITY: f32 = 50.0;
+/// Height of the Cleared / All header row, in points.
+const HEADER_HEIGHT: f32 = 24.0;
 
 /// Pure: builds `DashboardData` from the `Db` (unit-testable without egui). Balances come from
 /// pf-core in one pass over live transactions (R-BAL-1..3); the reserved amounts of R-BAL-6 are
@@ -129,86 +138,133 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
         build_data(cx.engine.db(), active, show_available)
     });
     let reality_lines = active.is_some();
-    ScrollArea::vertical().show(ui, |ui| {
-        Frame::NONE.inner_margin(24.0).show(ui, |ui| {
-            // 16 px between cards and sections.
-            ui.spacing_mut().item_spacing = vec2(16.0, 16.0);
-            ui.columns_const(|[left, right]| {
-                card(left, "NET WORTH", data.net_worth, colors::GREEN);
-                card(right, "ASSETS", data.assets, colors::BLUE);
+    ScrollArea::vertical()
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            ui.add_space(24.0);
+            // The content is one column of at most MAX_WIDTH, centred in the window.
+            ui.horizontal(|ui| {
+                let margin = ((ui.available_width() - MAX_WIDTH) / 2.0).max(0.0);
+                ui.add_space(margin);
+                ui.vertical(|ui| {
+                    ui.set_width(ui.available_width().min(MAX_WIDTH));
+                    ui.spacing_mut().item_spacing = vec2(16.0, 16.0);
+                    ui.columns_const(|[left, right]| {
+                        card(left, "NET WORTH", data.net_worth, colors::GREEN);
+                        card(right, "ASSETS", data.assets, colors::BLUE);
+                    });
+                    ui.columns_const(|[left, right]| {
+                        card(left, "CREDIT DEBT", data.credit_debt, colors::RED);
+                        card(right, "LOAN DEBT", data.loan_debt, colors::ORANGE);
+                    });
+                    Frame::group(ui.style())
+                        .inner_margin(12.0)
+                        .corner_radius(10.0)
+                        .show(ui, |ui| {
+                            ui.set_width(ui.available_width());
+                            let toggle = ui.checkbox(
+                                &mut st.show_available,
+                                "Show Available Balance (deduct obligations)",
+                            );
+                            if toggle.changed() {
+                                // The cached data above is for the old toggle value; draw again at once.
+                                ui.ctx().request_repaint();
+                            }
+                        });
+                    for group in &data.groups {
+                        group_section(cx, ui, group, reality_lines);
+                    }
+                    ui.add_space(24.0);
+                });
             });
-            ui.columns_const(|[left, right]| {
-                card(left, "CREDIT DEBT", data.credit_debt, colors::RED);
-                card(right, "LOAN DEBT", data.loan_debt, colors::ORANGE);
-            });
-            Frame::group(ui.style()).show(ui, |ui| {
-                ui.set_width(ui.available_width());
-                let toggle = ui.checkbox(
-                    &mut st.show_available,
-                    "Show Available Balance (deduct obligations)",
-                );
-                if toggle.changed() {
-                    // The cached data above is for the old toggle value; draw again at once.
-                    ui.ctx().request_repaint();
-                }
-            });
-            for group in &data.groups {
-                group_section(cx, ui, group, reality_lines);
-            }
         });
-    });
 }
 
-/// One summary card: uppercase title, large coloured amount (R-BAL-5).
+/// One summary card: a small uppercase title and a large coloured amount (R-BAL-5).
 fn card(ui: &mut Ui, title: &str, value: Decimal, color: Color32) {
-    Frame::group(ui.style()).show(ui, |ui| {
-        ui.set_width(ui.available_width());
-        ui.label(RichText::new(title).small().weak());
-        ui.label(
-            RichText::new(format::format_currency(value))
-                .size(28.0)
-                .strong()
-                .color(color),
-        );
-    });
-}
-
-/// One account group: the title, a Cleared / All header, then one row per account.
-fn group_section(cx: &mut UiCtx, ui: &mut Ui, group: &AccountGroup, reality_lines: bool) {
-    ui.label(RichText::new(group.title).strong().weak());
-    Frame::group(ui.style()).show(ui, |ui| {
-        ui.set_width(ui.available_width());
-        ui.horizontal(|ui| {
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                column(ui, |ui| {
-                    ui.label(RichText::new("All").small().weak());
-                });
-                column(ui, |ui| {
-                    ui.label(RichText::new("Cleared").small().weak());
-                });
-            });
+    Frame::group(ui.style())
+        .inner_margin(16.0)
+        .corner_radius(10.0)
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(RichText::new(title).size(12.0).weak());
+            ui.add_space(4.0);
+            ui.label(
+                RichText::new(format::format_currency(value))
+                    .size(30.0)
+                    .strong()
+                    .color(color),
+            );
         });
-        ui.separator();
-        for (index, row) in group.rows.iter().enumerate() {
-            if index > 0 {
-                ui.separator();
-            }
-            account_row_ui(cx, ui, row, reality_lines);
-        }
+}
+
+/// One account group: its title, then a table with a Cleared and an All column (R-BAL-9). The name
+/// column takes the rest of the width, so the header and every row share the same columns.
+fn group_section(cx: &mut UiCtx, ui: &mut Ui, group: &AccountGroup, reality_lines: bool) {
+    ui.add_space(8.0);
+    ui.label(RichText::new(group.title).size(16.0).strong());
+    ui.add_space(4.0);
+    let row_height = if reality_lines {
+        ROW_HEIGHT_REALITY
+    } else {
+        ROW_HEIGHT
+    };
+    Frame::group(ui.style())
+        .inner_margin(12.0)
+        .corner_radius(10.0)
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            TableBuilder::new(ui)
+                .striped(true)
+                .auto_shrink([false, true])
+                .column(Column::remainder().at_least(160.0))
+                .column(Column::exact(AMOUNT_WIDTH))
+                .column(Column::exact(AMOUNT_WIDTH))
+                .header(HEADER_HEIGHT, |mut header| {
+                    header.col(|_| {});
+                    header.col(|ui| amount_header(ui, "Cleared"));
+                    header.col(|ui| amount_header(ui, "All"));
+                })
+                .body(|body| {
+                    body.rows(row_height, group.rows.len(), |mut row| {
+                        let account = &group.rows[row.index()];
+                        row.col(|ui| account_name(cx, ui, account));
+                        row.col(|ui| {
+                            amount_cell(
+                                ui,
+                                account.cleared,
+                                account.reality_cleared,
+                                reality_lines,
+                                false,
+                            );
+                        });
+                        row.col(|ui| {
+                            let differs = account.all != account.cleared;
+                            amount_cell(
+                                ui,
+                                account.all,
+                                account.reality_all,
+                                reality_lines,
+                                differs,
+                            );
+                        });
+                    });
+                });
+        });
+}
+
+/// A Cleared / All column heading, right-aligned like its figures.
+fn amount_header(ui: &mut Ui, text: &str) {
+    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+        ui.label(RichText::new(text).size(13.0).weak());
     });
 }
 
-/// One clickable account row. Click opens the account (UI-NAV-02); the context menu offers Delete
-/// with the confirmation of R-ACC-1.
-fn account_row_ui(cx: &mut UiCtx, ui: &mut Ui, row: &AccountRow, reality_lines: bool) {
+/// The account's name, a clickable button, with an EXTERNAL badge for external accounts. Click opens
+/// the account (UI-NAV-02); the context menu offers Delete with the confirmation of R-ACC-1.
+fn account_name(cx: &mut UiCtx, ui: &mut Ui, row: &AccountRow) {
     ui.horizontal(|ui| {
-        // Plain-text marker: the globe glyph is not in egui's bundled fonts (see sidebar.rs).
-        let label = if row.is_external {
-            format!("{} (ext)", row.name)
-        } else {
-            row.name.clone()
-        };
-        let name = ui.add(Button::new(label).frame(false));
+        let name = ui.add(Button::new(RichText::new(&row.name).size(15.0)).frame(false));
         if name.clicked() {
             *cx.screen = Screen::Account(row.id);
         }
@@ -226,39 +282,48 @@ fn account_row_ui(cx: &mut UiCtx, ui: &mut Ui, row: &AccountRow, reality_lines: 
                 ui.close();
             }
         });
-        // Right-to-left: the first cell added is the rightmost, so All comes before Cleared.
-        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            let all_differs = row.all != row.cleared;
-            amount_cell(ui, row.all, row.reality_all, reality_lines, all_differs);
-            amount_cell(ui, row.cleared, row.reality_cleared, reality_lines, false);
-        });
+        if row.is_external {
+            external_badge(ui);
+        }
     });
+}
+
+/// A small grey badge marking an external account. Its figures stay out of the cards.
+fn external_badge(ui: &mut Ui) {
+    Frame::NONE
+        .fill(ui.visuals().faint_bg_color)
+        .corner_radius(4.0)
+        .inner_margin(vec2(6.0, 2.0))
+        .show(ui, |ui| {
+            ui.label(RichText::new("EXTERNAL").size(10.0).weak());
+        })
+        .response
+        .on_hover_text("External account: left out of the summary cards.");
 }
 
 /// A right-aligned amount with an optional reality line below it (R-BAL-3). `orange` marks an
 /// All value that differs from Cleared.
 fn amount_cell(ui: &mut Ui, value: Decimal, reality: Decimal, reality_line: bool, orange: bool) {
-    column(ui, |ui| {
-        let text = RichText::new(format::format_currency(value)).strong();
-        let text = if orange {
-            text.color(colors::ORANGE)
-        } else {
-            text
-        };
-        ui.label(text);
-        if reality_line {
-            ui.label(
-                RichText::new(format::format_currency(reality))
-                    .small()
-                    .weak(),
-            );
-        }
+    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+        ui.with_layout(Layout::top_down(Align::Max), |ui| {
+            let text = RichText::new(format::format_currency(value))
+                .size(15.0)
+                .strong();
+            let text = if orange {
+                text.color(colors::ORANGE)
+            } else {
+                text
+            };
+            ui.label(text);
+            if reality_line {
+                ui.label(
+                    RichText::new(format::format_currency(reality))
+                        .size(12.0)
+                        .weak(),
+                );
+            }
+        });
     });
-}
-
-/// A fixed-width, right-aligned column.
-fn column(ui: &mut Ui, add: impl FnOnce(&mut Ui)) {
-    ui.allocate_ui_with_layout(vec2(COLUMN_WIDTH, 0.0), Layout::top_down(Align::Max), add);
 }
 
 #[cfg(test)]

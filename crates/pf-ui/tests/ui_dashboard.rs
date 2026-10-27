@@ -232,3 +232,77 @@ fn ui_dsh_01_completed_obligation_is_ignored() {
     assert_eq!(h.query_all_by_label("$700.00").count(), 0);
     assert!(h.query_all_by_label("$1,000.00").count() > 0);
 }
+
+#[test]
+/// The Cleared and All headings sit over their figures: each heading's right edge is within a few
+/// points of the figures' right edge in the same column.
+fn ui_dsh_columns_line_up_with_headings() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    t.tx(chk, "2026-03-01", "1234.5", "Pay")
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    let mut h = harness(&mut app);
+    h.run();
+    let cleared_head = h
+        .query_all_by_value("Cleared")
+        .last()
+        .expect("Cleared heading")
+        .rect();
+    let all_head = h
+        .query_all_by_value("All")
+        .last()
+        .expect("All heading")
+        .rect();
+    // The figures in the account row sit below the headings; the cards above also show this amount.
+    let figures: Vec<_> = h
+        .query_all_by_value("$1,234.50")
+        .map(|n| n.rect())
+        .filter(|r| r.top() > cleared_head.bottom())
+        .collect::<Vec<_>>();
+    // Each value is reported by two nodes a fraction of a point apart: keep one per figure.
+    let mut kept: Vec<egui::Rect> = Vec::new();
+    for r in figures {
+        if kept.iter().all(|k| (k.left() - r.left()).abs() > 2.0) {
+            kept.push(r);
+        }
+    }
+    let figures = kept;
+    assert_eq!(
+        figures.len(),
+        2,
+        "one Cleared and one All figure in the row"
+    );
+    let (cleared_fig, all_fig) = (figures[0], figures[1]);
+    assert!(
+        (cleared_head.right() - cleared_fig.right()).abs() < 6.0,
+        "Cleared heading {cleared_head:?} over figure {cleared_fig:?}"
+    );
+    assert!(
+        (all_head.right() - all_fig.right()).abs() < 6.0,
+        "All heading {all_head:?} over figure {all_fig:?}"
+    );
+    assert!(
+        all_head.left() > cleared_head.left(),
+        "All is the right-hand column"
+    );
+}
+
+#[test]
+/// An external account carries an EXTERNAL badge; its name is still the clickable label.
+fn ui_dsh_external_account_has_badge() {
+    let mut t = TestDb::new();
+    t.external_account("Joint", AccountType::Checking);
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    let mut h = harness(&mut app);
+    h.run();
+    assert!(
+        h.query_all_by_value("EXTERNAL").count() > 0,
+        "external badge"
+    );
+    assert!(
+        h.query_all_by_label("Joint").count() > 0,
+        "name is clickable"
+    );
+}
