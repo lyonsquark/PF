@@ -3,6 +3,7 @@
 pub mod balance;
 pub mod categorize;
 pub mod color;
+pub mod csv_import;
 pub mod filter;
 pub mod format;
 pub mod markdown;

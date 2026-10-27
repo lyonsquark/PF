@@ -1,0 +1,5 @@
+Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
+2026-03-01,Starbucks,Coffee Shops,Chase Checking,STARBUCKS STORE 123,,-6.75,"vacation,work"
+2026-03-02,Employer,Paychecks,Chase Checking,PAYROLL EMPLOYER INC,March pay,4000.00,
+2026-03-03,Whole Foods,Groceries,Amex Gold,WHOLEFDS MKT 10,,-142.30,
+2026-03-04,Unknown,,Mystery Bank,SOMETHING,,-1.00,
