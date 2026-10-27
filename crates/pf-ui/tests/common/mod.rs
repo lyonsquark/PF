@@ -7,6 +7,8 @@ use pf_engine::Engine;
 use pf_engine::testing::World;
 use pf_ui::PfApp;
 
+// Not every test binary uses the fixture helper.
+#[allow(dead_code)]
 /// Engine loaded with `fixtures/world.md` (accounts, categories, contexts, scenario "Plan A").
 pub fn engine_with_fixture() -> Engine {
     World::with_fixture("world").into_engine()

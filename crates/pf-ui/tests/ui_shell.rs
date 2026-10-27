@@ -74,7 +74,10 @@ fn ui_nav_01_account_entry_opens_account_screen() {
     {
         let mut h = harness(&mut app);
         h.run();
-        h.get_by_label("Savings").click();
+        h.query_all_by_label("Savings")
+            .next()
+            .expect("sidebar entry")
+            .click();
         h.run();
     }
     assert_eq!(app.screen(), Screen::Account(id));
@@ -175,7 +178,10 @@ fn ui_shell_delete_account_from_sidebar_confirms_and_undoes() {
     {
         let mut h = harness(&mut app);
         h.run();
-        h.get_by_label("Visa").click_secondary();
+        h.query_all_by_label("Visa")
+            .next()
+            .expect("sidebar entry")
+            .click_secondary();
         h.run();
         h.get_by_label("Delete").click();
         h.run();
@@ -201,7 +207,10 @@ fn ui_shell_delete_account_from_sidebar_confirms_and_undoes() {
         h.run();
         h.get_by_label("Undo Delete Account").click();
         h.run();
-        assert!(h.query_by_label("Visa").is_some(), "back in the sidebar");
+        assert!(
+            h.query_all_by_label("Visa").next().is_some(),
+            "back in the sidebar"
+        );
     }
     assert!(
         shared
@@ -251,7 +260,10 @@ fn ui_shell_cmd_z_ignored_while_dialog_open() {
         // Open the Delete confirmation through the sidebar, but do not accept it.
         let mut h = harness(&mut app);
         h.run();
-        h.get_by_label("Keeper").click_secondary();
+        h.query_all_by_label("Keeper")
+            .next()
+            .expect("sidebar entry")
+            .click_secondary();
         h.run();
         h.get_by_label("Delete").click();
         h.run();
@@ -308,7 +320,10 @@ fn ui_shell_sidebar_grouping_institution_uses_other() {
         h.get_by_label("Institution").click();
         h.run();
         assert!(h.query_by_label("Other").is_some(), "Other header shown");
-        assert!(h.query_by_label("Loose Cash").is_some(), "account under it");
+        assert!(
+            h.query_all_by_label("Loose Cash").next().is_some(),
+            "account under it"
+        );
     }
 }
 

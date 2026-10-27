@@ -1,11 +1,427 @@
-//! Dashboard screen. Implemented in T14.
+//! Dashboard screen (Swift `DashboardView`, T14): four summary cards, the "Show Available Balance"
+//! toggle and the account groups with Cleared / All columns. Pure data comes from `build_data`,
+//! which is cached per engine revision so the home screen stays instant with 100k transactions.
+
+use std::collections::HashMap;
+
+use egui::{Align, Button, Color32, Frame, Layout, RichText, ScrollArea, Ui, vec2};
+use pf_core::{balance, format};
+use pf_model::{AccountId, Db, ScenarioId};
+use rust_decimal::Decimal;
+
 use crate::app::UiCtx;
+use crate::caches::Cached;
+use crate::dialogs::{ConfirmAction, Dialog};
+use crate::screen::Screen;
+use crate::widgets::colors;
 
-/// Per-screen UI state (filled in by T14).
+/// Per-screen UI state. `show_available` is UI-only and not persisted.
 #[derive(Default)]
-pub struct State {}
+pub struct State {
+    /// The "Show Available Balance (deduct obligations)" toggle (R-BAL-6).
+    pub show_available: bool,
+    data: Cached<(Option<ScenarioId>, bool), DashboardData>,
+}
 
-/// Draws the screen into the central panel.
-pub fn show(_cx: &mut UiCtx, _st: &mut State, ui: &mut egui::Ui) {
-    ui.heading("Dashboard");
+/// Everything the screen draws, computed in ONE pass (cache it).
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct DashboardData {
+    /// R-BAL-5: cleared, non-external, adjusted by R-BAL-6 when the toggle is on.
+    pub net_worth: Decimal,
+    /// R-BAL-5: checking, savings, cash and investment.
+    pub assets: Decimal,
+    /// R-BAL-5: credit accounts (a negative number when owed).
+    pub credit_debt: Decimal,
+    /// R-BAL-5: loan accounts.
+    pub loan_debt: Decimal,
+    /// R-BAL-9 order; empty groups omitted.
+    pub groups: Vec<AccountGroup>,
+}
+
+/// One titled group of account rows on the dashboard (R-BAL-9).
+#[derive(Debug, Clone, PartialEq)]
+pub struct AccountGroup {
+    /// Group heading, e.g. "Cash & Checking".
+    pub title: &'static str,
+    /// Accounts sorted by name.
+    pub rows: Vec<AccountRow>,
+}
+
+/// One account line on the dashboard.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AccountRow {
+    /// Account id; a click opens its detail screen.
+    pub id: AccountId,
+    /// Display name.
+    pub name: String,
+    /// External accounts are shown with a text marker and excluded from the cards.
+    pub is_external: bool,
+    /// Cleared balance under the active scenario, minus reserved if the toggle is on (R-BAL-6).
+    pub cleared: Decimal,
+    /// All-status balance under the active scenario, minus reserved if the toggle is on (R-BAL-6).
+    pub all: Decimal,
+    /// Reality cleared balance (R-BAL-3). Never adjusted.
+    pub reality_cleared: Decimal,
+    /// Reality all-status balance (R-BAL-3). Never adjusted.
+    pub reality_all: Decimal,
+}
+
+/// Width of each Cleared / All money column (Swift `frame(width: 100)`).
+const COLUMN_WIDTH: f32 = 100.0;
+
+/// Pure: builds `DashboardData` from the `Db` (unit-testable without egui). Balances come from
+/// pf-core in one pass over live transactions (R-BAL-1..3); the reserved amounts of R-BAL-6 are
+/// subtracted only when `show_available` is on.
+pub fn build_data(db: &Db, active: Option<ScenarioId>, show_available: bool) -> DashboardData {
+    let maps = balance::balance_maps(db, active);
+    let (cleared, all) = balance::displayed_balances(db, &maps, show_available);
+    // R-BAL-5: cards from the displayed cleared balances; external accounts excluded.
+    let totals = balance::dashboard_totals(db, &cleared);
+    // R-BAL-9: group order, empty groups omitted, rows sorted by name.
+    let groups = balance::dashboard_groups(db)
+        .into_iter()
+        .map(|group| AccountGroup {
+            title: group.title,
+            rows: group
+                .accounts
+                .iter()
+                .filter_map(|&id| account_row(db, id, &cleared, &all, &maps))
+                .collect(),
+        })
+        .collect();
+    DashboardData {
+        net_worth: totals.net_worth,
+        assets: totals.assets,
+        credit_debt: totals.credit_debt,
+        loan_debt: totals.loan_debt,
+        groups,
+    }
+}
+
+/// One dashboard row for a live account. `None` if the account is missing.
+fn account_row(
+    db: &Db,
+    id: AccountId,
+    cleared: &HashMap<AccountId, Decimal>,
+    all: &HashMap<AccountId, Decimal>,
+    maps: &balance::BalanceMaps,
+) -> Option<AccountRow> {
+    let account = db.account(id)?;
+    let value = |map: &HashMap<AccountId, Decimal>| map.get(&id).copied().unwrap_or(Decimal::ZERO);
+    Some(AccountRow {
+        id,
+        name: account.name.clone(),
+        is_external: account.is_external,
+        cleared: value(cleared),
+        all: value(all),
+        reality_cleared: value(&maps.reality_cleared),
+        reality_all: value(&maps.reality_all),
+    })
+}
+
+/// Draws the dashboard into the central panel. The data is cached per (revision, scenario,
+/// toggle), so frames that change nothing do no balance work.
+pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
+    let active = cx.engine.state.active_scenario;
+    let show_available = st.show_available;
+    let revision = cx.engine.revision();
+    let data = st.data.get(revision, &(active, show_available), || {
+        build_data(cx.engine.db(), active, show_available)
+    });
+    let reality_lines = active.is_some();
+    ScrollArea::vertical().show(ui, |ui| {
+        Frame::NONE.inner_margin(24.0).show(ui, |ui| {
+            // 16 px between cards and sections.
+            ui.spacing_mut().item_spacing = vec2(16.0, 16.0);
+            ui.columns_const(|[left, right]| {
+                card(left, "NET WORTH", data.net_worth, colors::GREEN);
+                card(right, "ASSETS", data.assets, colors::BLUE);
+            });
+            ui.columns_const(|[left, right]| {
+                card(left, "CREDIT DEBT", data.credit_debt, colors::RED);
+                card(right, "LOAN DEBT", data.loan_debt, colors::ORANGE);
+            });
+            Frame::group(ui.style()).show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                let toggle = ui.checkbox(
+                    &mut st.show_available,
+                    "Show Available Balance (deduct obligations)",
+                );
+                if toggle.changed() {
+                    // The cached data above is for the old toggle value; draw again at once.
+                    ui.ctx().request_repaint();
+                }
+            });
+            for group in &data.groups {
+                group_section(cx, ui, group, reality_lines);
+            }
+        });
+    });
+}
+
+/// One summary card: uppercase title, large coloured amount (R-BAL-5).
+fn card(ui: &mut Ui, title: &str, value: Decimal, color: Color32) {
+    Frame::group(ui.style()).show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        ui.label(RichText::new(title).small().weak());
+        ui.label(
+            RichText::new(format::format_currency(value))
+                .size(28.0)
+                .strong()
+                .color(color),
+        );
+    });
+}
+
+/// One account group: the title, a Cleared / All header, then one row per account.
+fn group_section(cx: &mut UiCtx, ui: &mut Ui, group: &AccountGroup, reality_lines: bool) {
+    ui.label(RichText::new(group.title).strong().weak());
+    Frame::group(ui.style()).show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        ui.horizontal(|ui| {
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                column(ui, |ui| {
+                    ui.label(RichText::new("All").small().weak());
+                });
+                column(ui, |ui| {
+                    ui.label(RichText::new("Cleared").small().weak());
+                });
+            });
+        });
+        ui.separator();
+        for (index, row) in group.rows.iter().enumerate() {
+            if index > 0 {
+                ui.separator();
+            }
+            account_row_ui(cx, ui, row, reality_lines);
+        }
+    });
+}
+
+/// One clickable account row. Click opens the account (UI-NAV-02); the context menu offers Delete
+/// with the confirmation of R-ACC-1.
+fn account_row_ui(cx: &mut UiCtx, ui: &mut Ui, row: &AccountRow, reality_lines: bool) {
+    ui.horizontal(|ui| {
+        // Plain-text marker: the globe glyph is not in egui's bundled fonts (see sidebar.rs).
+        let label = if row.is_external {
+            format!("{} (ext)", row.name)
+        } else {
+            row.name.clone()
+        };
+        let name = ui.add(Button::new(label).frame(false));
+        if name.clicked() {
+            *cx.screen = Screen::Account(row.id);
+        }
+        name.context_menu(|ui| {
+            if ui.button("Delete").clicked() {
+                cx.dialogs.open(Dialog::Confirm {
+                    title: "Delete Account".to_string(),
+                    message: format!(
+                        "Are you sure you want to delete '{}'? This action cannot be undone and will delete all associated transactions.",
+                        row.name
+                    ),
+                    confirm_label: "Delete".to_string(),
+                    action: ConfirmAction::DeleteAccount(row.id),
+                });
+                ui.close();
+            }
+        });
+        // Right-to-left: the first cell added is the rightmost, so All comes before Cleared.
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            let all_differs = row.all != row.cleared;
+            amount_cell(ui, row.all, row.reality_all, reality_lines, all_differs);
+            amount_cell(ui, row.cleared, row.reality_cleared, reality_lines, false);
+        });
+    });
+}
+
+/// A right-aligned amount with an optional reality line below it (R-BAL-3). `orange` marks an
+/// All value that differs from Cleared.
+fn amount_cell(ui: &mut Ui, value: Decimal, reality: Decimal, reality_line: bool, orange: bool) {
+    column(ui, |ui| {
+        let text = RichText::new(format::format_currency(value)).strong();
+        let text = if orange {
+            text.color(colors::ORANGE)
+        } else {
+            text
+        };
+        ui.label(text);
+        if reality_line {
+            ui.label(
+                RichText::new(format::format_currency(reality))
+                    .small()
+                    .weak(),
+            );
+        }
+    });
+}
+
+/// A fixed-width, right-aligned column.
+fn column(ui: &mut Ui, add: impl FnOnce(&mut Ui)) {
+    ui.allocate_ui_with_layout(vec2(COLUMN_WIDTH, 0.0), Layout::top_down(Align::Max), add);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pf_model::testing::{TestDb, m};
+    use pf_model::{AccountType, ObligationStatus, RowKey, TransactionStatus};
+
+    /// The dashboard row named `name`. Panics when missing (test helper).
+    fn row<'a>(d: &'a DashboardData, name: &str) -> &'a AccountRow {
+        d.groups
+            .iter()
+            .flat_map(|g| g.rows.iter())
+            .find(|r| r.name == name)
+            .expect("row present")
+    }
+
+    #[test]
+    /// Covers: R-BAL-5. Pending rows are excluded; external accounts are excluded from all four
+    /// cards; assets are checking + savings + cash + investment.
+    fn r_bal_5_summary_cards_use_cleared_non_external() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let sav = t.account("Savings", AccountType::Savings);
+        let cash = t.account("Wallet", AccountType::Cash);
+        let inv = t.account("Brokerage", AccountType::Investment);
+        let visa = t.account("Visa", AccountType::Credit);
+        let loan = t.account("Car Loan", AccountType::Loan);
+        let joint = t.external_account("Joint", AccountType::Checking);
+        t.tx(chk, "2026-01-05", "1000", "Pay")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(chk, "2026-01-06", "200", "Pending")
+            .status(TransactionStatus::Pending)
+            .done();
+        t.tx(sav, "2026-01-05", "500", "Save")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(cash, "2026-01-05", "50", "Cash")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(inv, "2026-01-05", "2000", "Buy")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(visa, "2026-01-05", "-1200", "Spend")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(loan, "2026-01-05", "-150000", "Loan")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(joint, "2026-01-05", "50000", "Joint")
+            .status(TransactionStatus::Cleared)
+            .done();
+        let db = t.build();
+        let d = build_data(&db, None, false);
+        assert_eq!(d.assets, m("3550"));
+        assert_eq!(d.credit_debt, m("-1200"));
+        assert_eq!(d.loan_debt, m("-150000"));
+        assert_eq!(d.net_worth, m("-147650"));
+    }
+
+    #[test]
+    /// Covers: R-BAL-9. Only non-empty groups, in the fixed order; cash goes in "Cash & Checking";
+    /// rows sorted by name.
+    fn r_bal_9_groups_order_and_empty_hidden() {
+        let mut t = TestDb::new();
+        t.account("Brokerage", AccountType::Investment);
+        t.account("Zeta", AccountType::Checking);
+        t.account("Alpha", AccountType::Checking);
+        t.account("Wallet", AccountType::Cash);
+        t.account("Visa", AccountType::Credit);
+        t.account("Savings", AccountType::Savings);
+        let db = t.build();
+        let d = build_data(&db, None, false);
+        let titles: Vec<&str> = d.groups.iter().map(|g| g.title).collect();
+        assert_eq!(
+            titles,
+            vec!["Cash & Checking", "Savings", "Credit Cards", "Investments"]
+        );
+        let cash_names: Vec<&str> = d.groups[0].rows.iter().map(|r| r.name.as_str()).collect();
+        assert_eq!(cash_names, vec!["Alpha", "Wallet", "Zeta"]);
+    }
+
+    #[test]
+    /// Covers: R-BAL-3. With an active scenario, `all` changes but `reality_all` does not.
+    fn r_bal_3_reality_columns_ignore_scenario() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let s = t.scenario("Plan A");
+        t.tx(chk, "2026-01-05", "100", "Real")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(chk, "2026-01-06", "-40", "Plan")
+            .status(TransactionStatus::Cleared)
+            .scenario(s)
+            .done();
+        let db = t.build();
+        let plan = build_data(&db, Some(s), false);
+        let r = row(&plan, "Checking");
+        assert_eq!(r.all, m("60"));
+        assert_eq!(r.cleared, m("60"));
+        assert_eq!(r.reality_all, m("100"));
+        assert_eq!(r.reality_cleared, m("100"));
+
+        let reality = build_data(&db, None, false);
+        let r = row(&reality, "Checking");
+        assert_eq!(r.all, m("100"));
+        assert_eq!(r.reality_all, m("100"));
+    }
+
+    #[test]
+    /// Covers: R-BAL-6, R-OBL-2. A Funding obligation of 300 lowers cleared and all by 300 and
+    /// the cards with them; a Completed obligation is ignored; reality columns are not adjusted.
+    fn r_bal_6_available_subtracts_reserved() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        t.tx(chk, "2026-01-05", "1000", "Pay")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.obligation("Trip").account(chk).balance("300").done();
+        t.obligation("Old")
+            .account(chk)
+            .balance("500")
+            .status(ObligationStatus::Completed)
+            .done();
+        let db = t.build();
+
+        let off = build_data(&db, None, false);
+        assert_eq!(row(&off, "Checking").cleared, m("1000"));
+
+        let on = build_data(&db, None, true);
+        let r = row(&on, "Checking");
+        assert_eq!(r.cleared, m("700"));
+        assert_eq!(r.all, m("700"));
+        assert_eq!(r.reality_cleared, m("1000"));
+        assert_eq!(r.reality_all, m("1000"));
+        assert_eq!(on.net_worth, m("700"));
+        assert_eq!(on.assets, m("700"));
+    }
+
+    #[test]
+    /// Covers: R-ACC-1. A soft-deleted account is absent from the rows and the cards.
+    fn dashboard_excludes_deleted_accounts() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let gone = t.account("Gone", AccountType::Savings);
+        t.tx(gone, "2026-01-05", "900", "Old")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(chk, "2026-01-05", "10", "Kept")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.delete(RowKey::Account(gone));
+        let db = t.build();
+        let d = build_data(&db, None, false);
+        assert!(
+            d.groups
+                .iter()
+                .flat_map(|g| g.rows.iter())
+                .all(|r| r.id != gone),
+            "deleted account must not appear"
+        );
+        assert_eq!(d.assets, m("10"));
+        assert_eq!(d.net_worth, m("10"));
+    }
 }
