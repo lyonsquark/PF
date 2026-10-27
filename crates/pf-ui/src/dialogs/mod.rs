@@ -5,6 +5,8 @@ pub mod add_transaction;
 pub mod alert;
 pub mod budget_item;
 pub mod csv_wizard;
+pub mod obligation_add;
+pub mod obligation_detail;
 pub mod orphaned;
 pub mod projection;
 
@@ -49,6 +51,10 @@ pub enum Dialog {
     BudgetItemEditor(Box<budget_item::BudgetItemForm>),
     /// Generate Projection (T17).
     Projection(Box<projection::ProjectionForm>),
+    /// New Obligation (T18).
+    AddObligation(Box<obligation_add::AddObligationForm>),
+    /// Edit Obligation (T18).
+    ObligationDetail(Box<obligation_detail::ObligationDetailForm>),
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -132,6 +138,8 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::EditAccount(form) => account::show_edit(cx, ui, form),
         Dialog::BudgetItemEditor(form) => budget_item::show(cx, ui, form),
         Dialog::Projection(form) => projection::show(cx, ui, form),
+        Dialog::AddObligation(form) => obligation_add::show(cx, ui, form),
+        Dialog::ObligationDetail(form) => obligation_detail::show(cx, ui, form),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {
