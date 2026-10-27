@@ -404,3 +404,39 @@ fn ui_table_scrolls_to_status_column() {
         "status popup opened after scrolling"
     );
 }
+
+#[test]
+/// Scrolling sideways stops at the end of the table: scrolling far past it must not pull the left
+/// (Date) column away from the viewport's left edge.
+fn ui_table_does_not_scroll_past_its_end() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    t.tx(chk, "2026-03-01", "-4.50", "Coffee")
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Account(chk));
+    let mut h = egui_kittest::Harness::builder()
+        .with_size(egui::Vec2::new(1000.0, 800.0))
+        .build_ui(|ui| app.ui_root(ui));
+    h.run();
+    let at_start = h.get_by_label("Payee Coffee").rect().min.x;
+    let over_table = h.get_by_label("Payee Coffee").rect().center();
+    h.event(egui::Event::PointerMoved(over_table));
+    for _ in 0..200 {
+        h.event(egui::Event::MouseWheel {
+            unit: egui::MouseWheelUnit::Point,
+            delta: egui::Vec2::new(-40.0, 0.0),
+            phase: egui::TouchPhase::Move,
+            source: egui::MouseWheelSource::Unknown,
+            modifiers: Modifiers::NONE,
+        });
+        h.run_steps(3);
+    }
+    h.run_steps(60);
+    let after = h.get_by_label("Payee Coffee").rect().min.x;
+    assert!(
+        after <= at_start + 1.0,
+        "the table moved past its end: payee x {after} is right of its start {at_start}"
+    );
+}
