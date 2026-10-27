@@ -5,6 +5,7 @@ pub mod app;
 pub mod caches;
 pub mod dialogs;
 pub mod files;
+pub mod fonts;
 pub mod scenario_menu;
 pub mod screen;
 pub mod screens;

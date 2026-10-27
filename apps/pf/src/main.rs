@@ -36,6 +36,7 @@ fn main() -> anyhow::Result<()> {
         "PF",
         options,
         Box::new(move |cc| {
+            pf_ui::fonts::install(&cc.egui_ctx);
             let ctx = cc.egui_ctx.clone();
             let repaint: Arc<dyn Fn() + Send + Sync> = Arc::new(move || ctx.request_repaint());
             let mut app =
