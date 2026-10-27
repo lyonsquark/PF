@@ -46,6 +46,12 @@ Things the tests cannot judge: how things look and feel. Tick them off as you go
 - [ ] Monarch CSV from Settings: an unknown account can be skipped or created with New….
 - [ ] Monarch: a payee left unchanged in step 2. Right now the row is dropped without a message. Decide whether the summary should count it.
 
+## Reports (T23)
+- [ ] Profit & Loss: change the dates, the quick buttons (1M, 60D, YTD, 1Y); click an actual and a budgeted figure.
+- [ ] Balance Sheet: as-of date; an obligation shows its funded balance; Net Worth and Available.
+- [ ] Monthly Matrix: each mode and the year; click a month cell (Groceries/Feb); the NET row is plain.
+- [ ] Narrow window: the tables scroll sideways and stop at both ends.
+
 ## Known gaps to decide on
 - Vertical scrolling may also rubber-band at the top and bottom (egui's own scroll). Tell me if it bothers you.
 - Glyphs were replaced with plain text (+, •, ×, -, Open/Attach, "Active", "Edit", "Apply"). Emoji now draw. Say if you want the symbols back where the font has them.

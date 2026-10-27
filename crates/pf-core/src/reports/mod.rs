@@ -141,9 +141,10 @@ pub const QUICK_SELECT: [(&str, TimePeriod); 4] = [
 ];
 
 /// The three reports, in picker order (R-RPT-3d).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ReportKind {
-    /// "Profit & Loss".
+    /// "Profit & Loss" (default).
+    #[default]
     ProfitAndLoss,
     /// "Balance Sheet".
     BalanceSheet,

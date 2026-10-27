@@ -11,12 +11,14 @@ pub mod obligation_add;
 pub mod obligation_detail;
 pub mod orphaned;
 pub mod projection;
+pub mod report_drilldown;
 pub mod scenario_edit;
 
 use std::path::PathBuf;
 
+use jiff::civil::Date;
 use pf_engine::commands;
-use pf_model::AccountId;
+use pf_model::{AccountId, BudgetItemId, TransactionId};
 
 use crate::app::UiCtx;
 use crate::screen::Screen;
@@ -66,6 +68,24 @@ pub enum Dialog {
     ContextEdit(Box<context_edit::ContextForm>),
     /// The CSV import wizard (T22).
     CsvWizard(Box<csv_wizard::CsvWizard>),
+    /// Transactions behind a report number (T23).
+    ReportTransactions {
+        /// Heading of the modal.
+        title: String,
+        /// The transactions.
+        ids: Vec<TransactionId>,
+    },
+    /// Budget items behind a budgeted figure (T23).
+    ReportBudgetItems {
+        /// Heading of the modal.
+        title: String,
+        /// The budget items.
+        ids: Vec<BudgetItemId>,
+        /// First day of the window.
+        start: Date,
+        /// Last day of the window.
+        end: Date,
+    },
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -155,6 +175,22 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::CategoryEdit(form) => category_edit::show(cx, ui, form),
         Dialog::ContextEdit(form) => context_edit::show(cx, ui, form),
         Dialog::CsvWizard(w) => csv_wizard::show(cx, ui, w),
+        Dialog::ReportTransactions { title, ids } => {
+            report_drilldown::show_transactions(cx, ui, title.as_str(), ids.as_slice())
+        }
+        Dialog::ReportBudgetItems {
+            title,
+            ids,
+            start,
+            end,
+        } => report_drilldown::show_budget_items(
+            cx,
+            ui,
+            title.as_str(),
+            ids.as_slice(),
+            *start,
+            *end,
+        ),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {
