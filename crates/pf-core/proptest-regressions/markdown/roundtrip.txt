@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 7fb41383ef24ec64f20b2f6a36ee2afdd377831fee3df7503625fa865c39c5ed # shrinks to db = Db { accounts: {}, transactions: {}, categories: {}, contexts: {}, scenarios: {}, obligations: {ObligationId(1): Obligation { id: ObligationId(1), name: "Aa", target_amount: None, current_balance: 0.00, due_date: None, notes: None, status: Funding, created_date: None, last_updated_date: None, account_id: None, context_id: None, is_deleted: false }}, budget_items: {}, import_mappings: {}, settings: {}, next_id: 2 }

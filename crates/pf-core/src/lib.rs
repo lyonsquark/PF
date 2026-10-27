@@ -5,6 +5,7 @@ pub mod categorize;
 pub mod color;
 pub mod filter;
 pub mod format;
+pub mod markdown;
 pub mod names;
 pub mod obligation;
 pub mod projector;

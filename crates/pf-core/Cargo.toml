@@ -22,4 +22,5 @@ pf-model = { workspace = true, features = ["test-support"] }
 rust_decimal_macros = { workspace = true }
 proptest = { workspace = true }
 insta = { workspace = true }
+serde_json = { workspace = true }
 pretty_assertions = { workspace = true }

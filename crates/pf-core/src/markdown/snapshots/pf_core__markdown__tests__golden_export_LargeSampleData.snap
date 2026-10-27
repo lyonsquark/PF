@@ -1,0 +1,50 @@
+---
+source: crates/pf-core/src/markdown/tests.rs
+assertion_line: 370
+expression: text
+---
+# Personal Finance Data
+
+## Contexts
+| Name | Color | Notes |
+| --- | --- | --- |
+| Reimbursable | #00FF00 | Work expenses |
+| Tax Deductible | #FF0000 | Good for EOY |
+| Vacation | #0000FF | Hawaii 2026 |
+
+## Categories
+| Name | Type | Icon | Notes | Parent | Match Patterns |
+| --- | --- | --- | --- | --- | --- |
+| Dining | expense | 🍔 | mcdonalds, starbucks, restaurant |  |  |
+| Fees | expense | 🏦 | fee, interest |  |  |
+| Groceries | expense | 🛒 | kroger, whole foods, safeway, trader |  |  |
+| Housing | expense | 🏠 | mortgage, rent |  |  |
+| Income | income | 💵 | salary, paycheck |  |  |
+| Shopping | expense | 🛍️ | amazon, target, walmart |  |  |
+| Transport | expense | 🚗 | shell, chevron, uber, lyft |  |  |
+| Utilities | expense | ⚡️ | electric, water, gas, comcast | Housing |  |
+
+## Scenarios
+| Name | Color | Notes |
+| --- | --- | --- |
+| Buying a House | #8A2BE2 | Projected costs for moving in 2027 |
+
+## Accounts
+| Name | Type | Institution | Currency | External |
+| --- | --- | --- | --- | --- |
+| Ally Savings | savings | Ally | USD | false |
+| Amex Gold | credit | Amex | USD | false |
+| Chase Checking | checking | Chase | USD | false |
+
+## Obligations
+| Name | Status | Target | Balance | Due Date | Created Date | Updated Date | Notes | Account | Context |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## BudgetItems
+| Name | Type | Amount | Start Date | End Date | Frequency | Specific Months | Notes | Category | Account |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Dining Budget | Expense | 300 | 2025-12-31T06:00:00Z |  | Monthly |  |  | Dining |  |
+| Groceries Budget | Expense | 600 | 2025-12-31T06:00:00Z |  | Monthly |  |  | Groceries |  |
+
+## ImportMappings
+## Transactions

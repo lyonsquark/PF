@@ -1,0 +1,8 @@
+{
+  "SampleData.md":             {"contexts": 3, "categories": 8, "scenarios": 2, "accounts": 4, "obligations": 3, "budget_items": 8,  "transactions": 0,   "orphans": 0, "import_mappings": 0, "settings": 0},
+  "SampleData2.md":            {"contexts": 2, "categories": 7, "scenarios": 1, "accounts": 2, "obligations": 0, "budget_items": 10, "transactions": 278, "orphans": 0, "import_mappings": 0, "settings": 0},
+  "SampleData3.md":            {"contexts": 2, "categories": 7, "scenarios": 1, "accounts": 2, "obligations": 0, "budget_items": 10, "transactions": 278, "orphans": 0, "import_mappings": 0, "settings": 0},
+  "LargeSampleData.md":        {"contexts": 3, "categories": 8, "scenarios": 1, "accounts": 3, "obligations": 0, "budget_items": 2,  "transactions": 0,   "orphans": 0, "import_mappings": 0, "settings": 0},
+  "PersonalFinance_Backup.md": {"contexts": 2, "categories": 7, "scenarios": 1, "accounts": 2, "obligations": 0, "budget_items": 0,  "transactions": 279, "orphans": 0, "import_mappings": 0, "settings": 0},
+  "small.md":                  {"contexts": 2, "categories": 6, "scenarios": 1, "accounts": 3, "obligations": 2, "budget_items": 6,  "transactions": 19,  "orphans": 1, "import_mappings": 4, "settings": 3}
+}

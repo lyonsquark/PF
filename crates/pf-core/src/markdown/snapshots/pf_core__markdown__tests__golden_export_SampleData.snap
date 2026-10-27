@@ -1,0 +1,61 @@
+---
+source: crates/pf-core/src/markdown/tests.rs
+assertion_line: 370
+expression: text
+---
+# Personal Finance Data
+
+## Contexts
+| Name | Color | Notes |
+| --- | --- | --- |
+| Home Renovation | #8B4513 | Kitchen remodel |
+| Tax Prep 2026 | #FF4500 | End of year taxes |
+| Vacation | #FFD700 | Hawaii Trip |
+
+## Categories
+| Name | Type | Icon | Notes | Parent | Match Patterns |
+| --- | --- | --- | --- | --- | --- |
+| Dining Out | expense | fork.knife | Restaurants |  |  |
+| Entertainment | expense | tv | Movies and Games |  |  |
+| Groceries | expense | cart | Food shopping |  |  |
+| Housing | expense | house | Rent/Mortgage |  |  |
+| Salary | income | dollarsign.circle | Primary Income |  |  |
+| Transportation | expense | car | Gas and Transit |  |  |
+| Bonus | income | dollarsign.circle.fill | End of year bonus | Salary |  |
+| Utilities | expense | bolt | Power and Water | Housing |  |
+
+## Scenarios
+| Name | Color | Notes |
+| --- | --- | --- |
+| Aggressive Savings | #00FF00 | Cutting back dining out |
+| Vacation Prep | #FFA500 | Saving extra for Hawaii |
+
+## Accounts
+| Name | Type | Institution | Currency | External |
+| --- | --- | --- | --- | --- |
+| Checking | checking | Chase | USD | false |
+| Mortgage | loan | Rocket | USD | false |
+| Sapphire Credit | credit | Chase | USD | false |
+| Simple Savings | savings | Ally | USD | false |
+
+## Obligations
+| Name | Status | Target | Balance | Due Date | Created Date | Updated Date | Notes | Account | Context |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Down Payment | Funding | 50000 | 12500 | 2026-11-30T06:00:00Z | 2026-01-01T00:00:00Z | 2026-02-01T00:00:00Z | New house fund | Simple Savings |  |
+| Kitchen Faucet | Spending | 250 | 0 | 2026-02-28T06:00:00Z | 2026-02-10T00:00:00Z | 2026-02-15T00:00:00Z | Fix the leak | Checking | Home Renovation |
+| Property Tax | Funding | 6000 | 3000 | 2026-10-14T05:00:00Z | 2026-01-01T00:00:00Z | 2026-02-05T00:00:00Z | Annual tax requirement | Checking | Tax Prep 2026 |
+
+## BudgetItems
+| Name | Type | Amount | Start Date | End Date | Frequency | Specific Months | Notes | Category | Account |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Annual Bonus | Income | 8000 | 2026-12-14T06:00:00Z |  | Yearly |  | Holiday bonus | Bonus | Simple Savings |
+| Apartment Rent | Expense | 2200 | 2025-12-31T06:00:00Z |  | Monthly |  | Paid on the 1st | Housing | Checking |
+| Dining Out | Expense | 300 | 2025-12-31T06:00:00Z |  | Monthly |  | Weekend treats | Dining Out | Sapphire Credit |
+| Electric Bill | Expense | 120 | 2026-01-14T06:00:00Z |  | Monthly |  | Varies | Utilities | Checking |
+| Groceries | Expense | 450 | 2025-12-31T06:00:00Z |  | Monthly |  | Target $450/month | Groceries | Sapphire Credit |
+| Tech Salary | Income | 5000 | 2025-12-31T06:00:00Z |  | Monthly |  | Direct Deposit | Salary | Checking |
+| Tech Salary | Income | 5000 | 2026-01-14T06:00:00Z |  | Monthly |  | Direct Deposit | Salary | Checking |
+| Water Bill | Expense | 50 | 2026-01-19T06:00:00Z |  | Quarterly |  | Varies | Utilities | Checking |
+
+## ImportMappings
+## Transactions
