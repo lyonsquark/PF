@@ -313,7 +313,7 @@ fn redo(cx: &mut UiCtx) {
 
 /// Cmd-S / File → Backup Data (R-MD-7). Asks for a folder when none is set; a cancelled pick does
 /// nothing. A folder that has gone missing is forgotten and reported.
-fn backup_now(cx: &mut UiCtx) {
+pub(crate) fn backup_now(cx: &mut UiCtx) {
     let folder = match backup::backup_folder(cx.engine) {
         Some(path) if !path.as_os_str().is_empty() => path,
         _ => {

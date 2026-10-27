@@ -253,3 +253,4 @@ Timestamps are stored as RFC 3339 strings (`Timestamp::to_string()`, e.g. `2026-
 | `apiPort` | integer, default `8989` | API server |
 | `sidebarGrouping` | `A-Z` \| `Institution` \| `Type` | Sidebar (Rust addition; Swift kept it as view state) |
 | `selectedTimePeriod` | TimePeriod label | Account detail |
+| `uiFont` | font key: `sf` (default), `arial`, `verdana`, `tahoma`, `trebuchet`, `geneva` | Settings → Font (UI font, not undoable) |

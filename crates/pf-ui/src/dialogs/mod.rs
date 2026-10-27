@@ -1,6 +1,10 @@
 //! Modal dialogs. At most one is open at a time (Swift alerts and confirmations).
 
 pub mod alert;
+pub mod csv_wizard;
+pub mod orphaned;
+
+use std::path::PathBuf;
 
 use pf_engine::commands;
 use pf_model::AccountId;
@@ -29,6 +33,8 @@ pub enum Dialog {
         /// What happens when the user confirms.
         action: ConfirmAction,
     },
+    /// Orphaned transactions (live rows with no account) with Delete All (T21, R-TXN-15).
+    Orphaned,
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -36,6 +42,10 @@ pub enum Dialog {
 pub enum ConfirmAction {
     /// Soft-delete an account (R-ACC-1).
     DeleteAccount(AccountId),
+    /// Wipe all data, then import this Markdown file (R-MD-5). The Settings screen runs the import.
+    WipeAndImport(PathBuf),
+    /// Hard-delete everything (Settings, Danger Zone). Not undoable.
+    DeleteAllData,
 }
 
 /// Whether a dialog stays open after a frame.
@@ -51,6 +61,8 @@ pub enum Outcome {
 #[derive(Debug, Default)]
 pub struct Dialogs {
     active: Option<Dialog>,
+    /// A confirmed Markdown import waiting for the Settings screen to run it (T21).
+    pub pending_import: Option<PathBuf>,
 }
 
 impl Dialogs {
@@ -95,9 +107,12 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
             alert::Reply::Cancel => Outcome::Close,
             alert::Reply::Accept => {
                 run_confirm(cx, action);
+                // The action may leave work for the next frame (a pending import).
+                ui.ctx().request_repaint();
                 Outcome::Close
             }
         },
+        Dialog::Orphaned => orphaned::show(cx, ui),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {
@@ -118,6 +133,16 @@ fn run_confirm(cx: &mut UiCtx, action: &ConfirmAction) {
                 Err(e) => cx.dialogs.alert("Delete Account", e.to_string()),
             }
         }
+        ConfirmAction::WipeAndImport(path) => {
+            // The Settings screen draws the progress overlay and runs the import next frame.
+            cx.dialogs.pending_import = Some(path.clone());
+        }
+        ConfirmAction::DeleteAllData => match commands::backup::wipe_all_data(cx.engine) {
+            Ok(()) => cx
+                .dialogs
+                .alert("Data Management", "All data has been deleted."),
+            Err(e) => cx.dialogs.alert("Data Management", e.to_string()),
+        },
     }
 }
 

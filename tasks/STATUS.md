@@ -33,7 +33,7 @@ Pick the lowest-numbered `todo` task whose deps are all `done` (see `PLAN.md`).
 | T18 | Obligations UI | T13 | todo | |
 | T19 | Scenarios UI | T13 | todo | |
 | T20 | Categories + Contexts UI | T13 | todo | |
-| T21 | Settings UI | T13, T10c | todo | |
+| T21 | Settings UI | T13, T10c | done | pf-ui Settings: backup folder, Backup Now, Markdown export and import, Monarch CSV entry (stub until T22), wipe, orphaned transactions dialog, font row. 10 new T21 kittest tests, workspace 522 pass. Deviations: export names use injected now and tz; orphan Delete All is undoable (spec fix; Swift hard-deletes). OPEN: the frame holds the engine lock during file dialogs, which PLAN forbids; needs an app-level restructure, to fix with T15 or as its own change. uiFont row added to docs/data-model.md. |
 | T22 | CSV import wizard UI | T15a, T10c | todo | |
 | T23 | Reports UI | T13, T08 | todo | |
 | T24a | Charts: dashboard + egui_plot charts | T13, T08b | todo | |
