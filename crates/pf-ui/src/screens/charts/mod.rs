@@ -5,30 +5,38 @@
 //! R-CHT-11: the six plot charts open no drill-down. Their plots have no click handler, so a click does
 //! nothing; only the custom charts of T24b (donut, waterfall, Sankey) respond to clicks.
 
+mod breakdown;
 mod distribution;
 mod monthly;
 mod networth;
+mod sankey;
 mod spending;
 mod style;
+mod waterfall;
 
 use std::collections::BTreeSet;
 
 use egui::{Frame, RichText, Ui};
 use jiff::civil::Date;
+use pf_core::charts::sankey::Sankey;
+use pf_core::charts::waterfall::Waterfall;
 use pf_core::charts::{CHART_TITLES, ChartFilter, default_selection};
-use pf_model::{AccountId, ScenarioId, TimePeriod};
+use pf_model::{AccountId, ScenarioId, TimePeriod, TransactionId};
 
 use crate::app::UiCtx;
 use crate::caches::Cached;
+use crate::dialogs::report_drilldown;
 use crate::scenario_menu;
 use crate::widgets::account_multiselect::account_multiselect;
-use crate::widgets::colors;
 
 /// Height of a plot in points.
 const PLOT_HEIGHT: f32 = 250.0;
 
 /// The filter key used by every cache: the accounts, the scenario and today.
 type FilterKey = (BTreeSet<AccountId>, Option<ScenarioId>, Date);
+
+/// A drill-down a click asked for: the heading and the transactions (opened after the cards are drawn).
+pub(crate) type Drill = Option<(String, Vec<TransactionId>)>;
 
 /// Chart state. The selections live here (not in the engine); the caches are keyed by the filter.
 pub struct State {
@@ -48,12 +56,21 @@ pub struct State {
     pub distribution_period: TimePeriod,
     /// The income and expense trend's period.
     pub trend_period: TimePeriod,
+    /// The categorical breakdown's period (T24b).
+    pub breakdown_period: TimePeriod,
+    /// The waterfall's month (`None` is this month).
+    pub waterfall_date: Option<Date>,
+    /// The money flow's month (`None` is this month).
+    pub sankey_date: Option<Date>,
     networth: Cached<(FilterKey, TimePeriod), Vec<pf_core::charts::balance::BalancePoint>>,
     comparison: Cached<(FilterKey, Date, Date), pf_core::charts::spending::SpendingComparison>,
     pacing: Cached<(FilterKey, Date), pf_core::charts::spending::BudgetPacing>,
     profit_loss: Cached<(FilterKey, u8), Vec<pf_core::charts::monthly::MonthSummary>>,
     distribution: Cached<(FilterKey, TimePeriod), Vec<pf_core::charts::Slice>>,
     trend: Cached<(FilterKey, TimePeriod), Vec<pf_core::charts::monthly::MonthSummary>>,
+    breakdown: Cached<(FilterKey, TimePeriod), Vec<pf_core::charts::Slice>>,
+    waterfall: Cached<(FilterKey, Date), Waterfall>,
+    sankey: Cached<(FilterKey, Date), Sankey>,
 }
 
 impl Default for State {
@@ -67,12 +84,18 @@ impl Default for State {
             pl_months: 6,
             distribution_period: TimePeriod::PastYear,
             trend_period: TimePeriod::PastYear,
+            breakdown_period: TimePeriod::PastMonth,
+            waterfall_date: None,
+            sankey_date: None,
             networth: Cached::default(),
             comparison: Cached::default(),
             pacing: Cached::default(),
             profit_loss: Cached::default(),
             distribution: Cached::default(),
             trend: Cached::default(),
+            breakdown: Cached::default(),
+            waterfall: Cached::default(),
+            sankey: Cached::default(),
         }
     }
 }
@@ -97,31 +120,29 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
         scenario: cx.engine.state.active_scenario,
         today: cx.engine.today(),
     };
+    let mut drill: Drill = None;
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            let cards: [fn(&mut Ui, &UiCtx, &mut State, &ChartFilter); 6] = [
-                networth::card,
-                spending::comparison_card,
-                spending::pacing_card,
-                monthly::profit_loss_card,
-                distribution::card,
-                monthly::trend_card,
-            ];
-            let mut cards = cards.into_iter();
             for (i, title) in CHART_TITLES.iter().enumerate() {
                 ui.add_space(8.0);
-                match i {
-                    4 | 5 | 8 => chart_card(ui, title, placeholder),
-                    _ => {
-                        let draw = cards.next();
-                        if let Some(draw) = draw {
-                            chart_card(ui, title, |ui| draw(ui, &*cx, st, &filter));
-                        }
-                    }
-                }
+                chart_card(ui, title, |ui| match i {
+                    0 => networth::card(ui, &*cx, st, &filter),
+                    1 => spending::comparison_card(ui, &*cx, st, &filter),
+                    2 => spending::pacing_card(ui, &*cx, st, &filter),
+                    3 => monthly::profit_loss_card(ui, &*cx, st, &filter),
+                    4 => breakdown::card(ui, &*cx, st, &filter),
+                    5 => waterfall::card(ui, &*cx, st, &filter, &mut drill),
+                    6 => distribution::card(ui, &*cx, st, &filter),
+                    7 => monthly::trend_card(ui, &*cx, st, &filter),
+                    _ => sankey::card(ui, &*cx, st, &filter, &mut drill),
+                });
             }
         });
+    // A click asked for a drill-down: open it now that the cards are drawn (R-CHT-5, R-CHT-9).
+    if let Some((title, ids)) = drill {
+        report_drilldown::open_transactions(cx, title, ids);
+    }
 }
 
 /// One card: a framed group with the title as its heading.
@@ -135,9 +156,4 @@ pub(crate) fn chart_card(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui)) {
             ui.add_space(4.0);
             add(ui);
         });
-}
-
-/// The text of a card that T24b fills in.
-fn placeholder(ui: &mut Ui) {
-    ui.label(RichText::new("Coming in T24b").color(colors::BLUE));
 }
