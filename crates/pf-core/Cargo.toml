@@ -18,6 +18,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
+pf-model = { workspace = true, features = ["test-support"] }
 rust_decimal_macros = { workspace = true }
 proptest = { workspace = true }
 insta = { workspace = true }

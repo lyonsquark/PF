@@ -23,6 +23,7 @@ jiff = { workspace = true }
 log = { workspace = true }
 
 [dev-dependencies]
+pf-model = { workspace = true, features = ["test-support"] }
 egui_kittest = { workspace = true }
 rust_decimal_macros = { workspace = true }
 tempfile = { workspace = true }

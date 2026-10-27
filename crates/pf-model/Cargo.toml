@@ -9,8 +9,12 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+test-support = ["dep:rust_decimal_macros"]
+
 [dependencies]
 rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true, optional = true }
 jiff = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
