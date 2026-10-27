@@ -64,6 +64,8 @@ pub enum Dialog {
     CategoryEdit(Box<category_edit::CategoryForm>),
     /// New or Edit Context (T20).
     ContextEdit(Box<context_edit::ContextForm>),
+    /// The CSV import wizard (T22).
+    CsvWizard(Box<csv_wizard::CsvWizard>),
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -152,6 +154,7 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::ScenarioEdit(form) => scenario_edit::show(cx, ui, form),
         Dialog::CategoryEdit(form) => category_edit::show(cx, ui, form),
         Dialog::ContextEdit(form) => context_edit::show(cx, ui, form),
+        Dialog::CsvWizard(w) => csv_wizard::show(cx, ui, w),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {

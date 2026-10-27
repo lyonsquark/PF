@@ -40,6 +40,12 @@ Things the tests cannot judge: how things look and feel. Tick them off as you go
 - [ ] Archive, Unarchive, and Delete a context that an obligation uses (refused with a message).
 - [ ] Emoji category icons draw (they used to crash the app; now enabled).
 
+## CSV import (T22)
+- [ ] Import `../PFApp/HSATransactionsAsOf_03022026.csv` into a test account: columns, step 2, summary. Undo removes the rows.
+- [ ] Negate amounts; reimport the same file (duplicates count).
+- [ ] Monarch CSV from Settings: an unknown account can be skipped or created with New….
+- [ ] Monarch: a payee left unchanged in step 2. Right now the row is dropped without a message. Decide whether the summary should count it.
+
 ## Known gaps to decide on
 - Vertical scrolling may also rubber-band at the top and bottom (egui's own scroll). Tell me if it bothers you.
 - Glyphs were replaced with plain text (+, •, ×, -, Open/Attach, "Active", "Edit", "Apply"). Emoji now draw. Say if you want the symbols back where the font has them.

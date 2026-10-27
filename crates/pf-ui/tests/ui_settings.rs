@@ -343,7 +343,7 @@ fn ui_set_orphaned_delete_all_undoable() {
 }
 
 #[test]
-/// Import from Monarch CSV: the chosen file goes to the CSV wizard in Monarch mode (stub until T22).
+/// Import from Monarch CSV: the chosen file goes to the CSV wizard in Monarch mode.
 fn ui_set_monarch_opens_wizard() {
     let dir = tempfile::tempdir().expect("temp dir");
     let csv = dir.path().join("monarch.csv");
@@ -358,9 +358,8 @@ fn ui_set_monarch_opens_wizard() {
         h.get_by_label("Import from Monarch CSV").click();
         h.run();
         assert!(
-            h.query_by_label("CSV import is not available yet")
-                .is_some(),
-            "wizard stub opened"
+            h.query_by_label("Map CSV Columns").is_some(),
+            "the CSV wizard opened at its first step"
         );
     }
     assert!(

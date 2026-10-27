@@ -329,6 +329,15 @@ fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId, count:
                 crate::dialogs::add_transaction::TxForm::new(Some(id), scenario, today),
             )));
         }
+        // Import is for Reality only (T16 note).
+        if cx.engine.state.active_scenario.is_none()
+            && ui
+                .button("Import CSV…")
+                .on_hover_text("Import transactions from a bank CSV")
+                .clicked()
+        {
+            crate::dialogs::csv_wizard::pick_bank_csv(cx, id);
+        }
         let open = st.search.as_ref().is_some_and(|s| s.open);
         let hover = if open {
             "Hide search"

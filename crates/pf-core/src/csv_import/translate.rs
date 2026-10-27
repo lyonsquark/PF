@@ -23,7 +23,7 @@ pub enum CategoryChoice {
 }
 
 /// The user's answers on the translation screen.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct TranslationChoices {
     /// Source account name to existing account name. An empty target means skip.
     pub accounts: Vec<(String, String)>,
