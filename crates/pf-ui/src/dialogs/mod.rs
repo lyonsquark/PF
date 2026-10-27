@@ -3,8 +3,10 @@
 pub mod account;
 pub mod add_transaction;
 pub mod alert;
+pub mod budget_item;
 pub mod csv_wizard;
 pub mod orphaned;
+pub mod projection;
 
 use std::path::PathBuf;
 
@@ -43,6 +45,10 @@ pub enum Dialog {
     AddAccount(account::AccountForm),
     /// Edit Account, with its starting balance (T16).
     EditAccount(Box<account::EditAccountForm>),
+    /// Add or edit a budget item (T17).
+    BudgetItemEditor(Box<budget_item::BudgetItemForm>),
+    /// Generate Projection (T17).
+    Projection(Box<projection::ProjectionForm>),
 }
 
 /// What a confirmation does when accepted. Later tasks add variants.
@@ -124,6 +130,8 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::AddTransaction(form) => add_transaction::show(cx, ui, form),
         Dialog::AddAccount(form) => account::show_add(cx, ui, form),
         Dialog::EditAccount(form) => account::show_edit(cx, ui, form),
+        Dialog::BudgetItemEditor(form) => budget_item::show(cx, ui, form),
+        Dialog::Projection(form) => projection::show(cx, ui, form),
     };
     // Put it back unless the action already opened a different dialog.
     if outcome == Outcome::KeepOpen && cx.dialogs.active.is_none() {
