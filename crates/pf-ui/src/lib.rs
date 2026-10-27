@@ -1,20 +1,15 @@
-//! The egui user interface.
+//! The egui user interface: app shell, screens, dialogs, and shared widgets (T13).
+//! Writes go through `pf_engine::commands`; this crate never touches SQLite or `Db` fields mutably.
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn scaffold_compiles() {}
-}
+pub mod app;
+pub mod caches;
+pub mod dialogs;
+pub mod files;
+pub mod scenario_menu;
+pub mod screen;
+pub mod screens;
+pub mod sidebar;
+pub mod toasts;
+pub mod widgets;
 
-/// Placeholder app; replaced in T13.
-#[derive(Default)]
-pub struct PfApp;
-
-impl eframe::App for PfApp {
-    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading("PFRust");
-            ui.label("Scaffold OK");
-        });
-    }
-}
+pub use app::PfApp;

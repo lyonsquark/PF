@@ -23,7 +23,7 @@ Pick the lowest-numbered `todo` task whose deps are all `done` (see `PLAN.md`).
 | T11 | pf-cli | T10c | done | pf-cli commands on the engine, plus pf-core api_format (shared response formatting). 16 CLI tests and 12 api_format tests pass, workspace 436 pass. Tests use temp databases only. Decisions: unknown --format exits 2; pad width follows the 12-char rule, not the spec example; apiPort setting with 8989 fallback. Remaining R-API-1, 2, 5, 9, 10 belong to T12. |
 | T12 | pf-api | T10c | done | pf-api: tiny_http router and server, same routes and bodies as the Swift API. 13 router unit tests and 19 API tests pass, all on port 0 with tempfile databases. Parity test is #[ignore] until T26. Deviations (needed for tiny_http): replies are written as raw HTTP bytes; some body-error replies lack Connection: close; keep-alive clients must read by Content-Length. Followed Swift: format=JSON gives a text error body; empty query pairs are dropped; negative n falls back to 10. FOLLOW-UP: import no-mapping error uses the stored account name, Swift uses the requested name (case only). |
 | T12b | Perf suite | T10c | todo | |
-| T13 | UI shell | T10a, T10b, T10c | todo | |
+| T13 | UI shell | T10a, T10b, T10c | done | pf-ui shell: app, sidebar, scenario menu, menu bar, toasts, FileDialogs fake, caches, placeholder screens; apps/pf wires engine and API. 24 pf-ui tests (12 kittest) pass, workspace 490 pass. Smoke run OK; API port taken shows a toast, not a crash. Deviations: egui default fonts lack some glyphs (shortcut symbols, scenario marks), so plain text is used (Cmd-S etc.). Missing UI IDs belong to T14 to T24b. |
 | T14 | Dashboard | T13 | todo | |
 | T15a | Account detail + read-only table | T13 | todo | |
 | T15b | Table inline editing | T15a | todo | |
