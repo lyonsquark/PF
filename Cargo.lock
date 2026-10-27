@@ -2546,6 +2546,7 @@ dependencies = [
  "pf-store",
  "pretty_assertions",
  "proptest",
+ "rusqlite",
  "rust_decimal",
  "rust_decimal_macros",
  "tempfile",

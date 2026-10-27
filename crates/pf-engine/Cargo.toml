@@ -17,6 +17,7 @@ rust_decimal = { workspace = true }
 jiff = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
+tempfile = { workspace = true }
 
 [dev-dependencies]
 pf-model = { workspace = true, features = ["test-support"] }
@@ -24,3 +25,4 @@ rust_decimal_macros = { workspace = true }
 proptest = { workspace = true }
 tempfile = { workspace = true }
 pretty_assertions = { workspace = true }
+rusqlite = { workspace = true }
