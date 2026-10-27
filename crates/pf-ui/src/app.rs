@@ -106,6 +106,11 @@ impl PfApp {
         self.toasts.info(msg);
     }
 
+    /// The selected transaction ids on the account screen, in id order (kittest accessor).
+    pub fn account_selection(&self) -> Vec<pf_model::TransactionId> {
+        self.states.account.selection.iter().copied().collect()
+    }
+
     /// Keeps `h` alive for as long as the app runs (the API server handle).
     pub fn keep_alive(&mut self, h: Box<dyn Any>) {
         self.keep_alive.push(h);

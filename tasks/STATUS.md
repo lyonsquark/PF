@@ -25,7 +25,7 @@ Pick the lowest-numbered `todo` task whose deps are all `done` (see `PLAN.md`).
 | T12b | Perf suite | T10c | todo | |
 | T13 | UI shell | T10a, T10b, T10c | done | pf-ui shell: app, sidebar, scenario menu, menu bar, toasts, FileDialogs fake, caches, placeholder screens; apps/pf wires engine and API. 24 pf-ui tests (12 kittest) pass, workspace 490 pass. Smoke run OK; API port taken shows a toast, not a crash. Deviations: egui default fonts lack some glyphs (shortcut symbols, scenario marks), so plain text is used (Cmd-S etc.). Missing UI IDs belong to T14 to T24b. |
 | T14 | Dashboard | T13 | done | pf-ui dashboard: balances, totals, groups, scenario and available toggle, row navigation, delete confirm. 35 pf-ui tests pass (6 new dashboard kittest), workspace green. Visual check on real data not done. Deviations: ext marker is a " (ext)" suffix, not a globe glyph; sidebar delete text differs from Swift (title Delete Account? with other wording), to fix in T15 or T21. Remaining UI IDs belong to T15b onward. |
-| T15a | Account detail + read-only table | T13 | todo | |
+| T15a | Account detail + read-only table | T13 | done | pf-ui account screen: header balances, period picker, virtualised read-only table with running balance and selection. 6 ui_account kittest and 9 unit tests pass, workspace green. Deviations: paperclip column shown as "Att." and "Yes" (no glyph in default fonts); shift-click replaces the selection with the range; name field width fixed at 260 pt. Manual scroll check with real data not done. Remaining UI-TXN-01..05 and UI-UND-01 belong to T15b, T15c and T16. |
 | T15b | Table inline editing | T15a | todo | |
 | T15c | Table search, context menu, attachments | T15b | todo | |
 | T16 | Add Transaction / Account dialogs | T13 | todo | |
