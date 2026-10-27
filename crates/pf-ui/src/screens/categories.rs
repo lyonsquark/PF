@@ -1,5 +1,6 @@
 //! Categories screen (T20, Swift `CategoriesView`): the categories by type (Income, Expense, Transfer),
-//! as a tree (parents first, children indented). Double-click edits, right-click deletes (R-CAT-7).
+//! as a tree (parents first, children indented). Double-click or right-click Edit opens the editor;
+//! right-click Delete deletes (R-CAT-7).
 
 use egui::{Align, Layout, RichText, Sense, Ui};
 use pf_engine::commands::categories::{category_tree, delete_category};
@@ -125,8 +126,8 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     }
 }
 
-/// One tree row: indented by depth, a "- " before children, the emoji, the name, notes, and a weak
-/// "Edit" hint. A double-click opens the editor (a single click does nothing, as in Swift).
+/// One tree row: indented by depth, a "- " before children, the emoji, the name and notes. A double-click
+/// or the context menu's Edit opens the editor (a single click does nothing, as in Swift).
 fn category_row(ui: &mut Ui, row: &CategoryRow, action: &mut Option<Action>) {
     let resp = ui
         .horizontal(|ui| {
@@ -143,9 +144,6 @@ fn category_row(ui: &mut Ui, row: &CategoryRow, action: &mut Option<Action>) {
                     ui.label(RichText::new(notes).small().weak());
                 }
             });
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                ui.label(RichText::new("Edit").small().weak());
-            });
         })
         .response;
     let click = ui.interact(
@@ -157,6 +155,10 @@ fn category_row(ui: &mut Ui, row: &CategoryRow, action: &mut Option<Action>) {
         *action = Some(Action::Edit(row.id));
     }
     click.context_menu(|ui| {
+        if ui.button("Edit").clicked() {
+            *action = Some(Action::Edit(row.id));
+            ui.close();
+        }
         if ui.button("Delete").clicked() {
             *action = Some(Action::Delete(row.id));
             ui.close();

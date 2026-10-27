@@ -244,3 +244,28 @@ fn ui_cat_delete_cascades_undo() {
     );
     assert_eq!(e.db().transaction(tx).expect("tx").category_id, Some(food));
 }
+
+#[test]
+/// R-CAT-7: the right-click menu offers Edit, which opens the category editor (the row has no edit button).
+fn ui_cat_context_menu_edit_opens_editor() {
+    let mut t = TestDb::new();
+    t.category("Food", CategoryType::Expense);
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Categories);
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        h.get_by_label("Food").click_secondary();
+        h.run();
+        // The app's own top-bar "Edit" menu is drawn first; the row's menu item comes last.
+        h.get_all_by_role_and_label(Role::Button, "Edit")
+            .last()
+            .expect("Edit in the row menu")
+            .click();
+        h.run();
+        assert!(
+            h.query_by_label("Edit Category").is_some()
+                || h.query_by_value("Edit Category").is_some()
+        );
+    }
+}

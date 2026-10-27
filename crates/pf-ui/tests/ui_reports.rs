@@ -228,3 +228,37 @@ fn ui_rpt_scenario_column_only_when_active() {
     h.run();
     assert!(shows(&h, "Scenario"), "scenario column while active");
 }
+
+#[test]
+/// R-RPT-4: the balance sheet's Pending figures sit in their own column next to Balance, not at the
+/// frame's right edge.
+fn ui_rpt_bs_pending_column_next_to_balance() {
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    t.tx(chk, "2026-03-01", "100", "Pay")
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.tx(chk, "2026-03-02", "-264.66", "Chase")
+        .status(TransactionStatus::Pending)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Reports);
+    let mut h = harness(&mut app);
+    h.run();
+    h.get_by_label("Balance Sheet").click();
+    h.run();
+    // The first match of each figure is the account row (the total rows and net worth come later).
+    let balance = h
+        .query_all_by_value("-$164.66")
+        .next()
+        .expect("balance figure");
+    let pending = h
+        .query_all_by_value("-$264.66")
+        .next()
+        .expect("pending figure");
+    let gap = pending.rect().right() - balance.rect().right();
+    assert!(
+        gap.abs() < 160.0,
+        "pending figure is {gap} points from the balance figure's right edge"
+    );
+}

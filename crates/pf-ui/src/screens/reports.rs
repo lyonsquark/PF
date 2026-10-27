@@ -28,6 +28,13 @@ const MATRIX_LABEL_WIDTH: f32 = 140.0;
 const MATRIX_CELL_WIDTH: f32 = 90.0;
 /// Width of the balance sheet, in points.
 const BS_WIDTH: f32 = 700.0;
+/// Width of a money column in the balance sheet, in points. Fixed so that a column does not grow to
+/// the frame edge, which would push its figures away from the header.
+const BS_MONEY_WIDTH: f32 = 120.0;
+/// Height of an account row (two lines: name and institution), in points.
+const BS_ACCOUNT_ROW_HEIGHT: f32 = 40.0;
+/// Height of a single-line balance sheet row, in points.
+const BS_ROW_HEIGHT: f32 = 22.0;
 
 /// The report state. It lives in `ScreenStates.reports`, so it survives switching screens.
 #[derive(Default)]
@@ -295,65 +302,106 @@ fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
     ui.set_max_width(BS_WIDTH);
     ui.label(RichText::new(format!("As of {}", format_date(sheet.as_of))).weak());
     Frame::group(ui.style()).show(ui, |ui| {
-        egui::Grid::new("bs_accounts")
-            .num_columns(3)
-            .spacing([24.0, 6.0])
-            .show(ui, |ui| {
-                ui.strong("Account");
-                ui.strong("Balance");
-                ui.strong("Pending");
-                ui.end_row();
-                for a in &sheet.accounts {
-                    ui.vertical(|ui| {
-                        ui.label(&a.name);
-                        if !a.institution.is_empty() {
-                            ui.label(RichText::new(&a.institution).small().weak());
-                        }
-                    });
-                    with_right(ui, |ui| money(ui, a.total, false));
+        TableBuilder::new(ui)
+            .auto_shrink([false, true])
+            .column(Column::remainder().at_least(160.0))
+            .column(Column::initial(BS_MONEY_WIDTH))
+            .column(Column::initial(BS_MONEY_WIDTH))
+            .header(20.0, |mut header| {
+                header.col(|ui| {
+                    ui.strong("Account");
+                });
+                header.col(|ui| {
                     with_right(ui, |ui| {
-                        if a.pending.is_zero() {
-                            ui.label("");
-                        } else {
-                            ui.label(
-                                RichText::new(format::format_currency(a.pending))
-                                    .color(colors::ORANGE),
-                            );
-                        }
-                    });
-                    ui.end_row();
-                }
-                ui.strong("Total");
-                with_right(ui, |ui| money(ui, sheet.total, true));
-                with_right(ui, |ui| money(ui, sheet.pending_total, true));
-                ui.end_row();
+                        ui.strong("Balance");
+                    })
+                });
+                header.col(|ui| {
+                    with_right(ui, |ui| {
+                        ui.strong("Pending");
+                    })
+                });
+            })
+            .body(|body| {
+                body.rows(
+                    BS_ACCOUNT_ROW_HEIGHT,
+                    sheet.accounts.len() + 1,
+                    |mut row| {
+                        let Some(a) = sheet.accounts.get(row.index()) else {
+                            row.col(|ui| {
+                                ui.strong("Total");
+                            });
+                            row.col(|ui| with_right(ui, |ui| money(ui, sheet.total, true)));
+                            row.col(|ui| with_right(ui, |ui| money(ui, sheet.pending_total, true)));
+                            return;
+                        };
+                        row.col(|ui| {
+                            ui.vertical(|ui| {
+                                ui.label(&a.name);
+                                if !a.institution.is_empty() {
+                                    ui.label(RichText::new(&a.institution).small().weak());
+                                }
+                            });
+                        });
+                        row.col(|ui| with_right(ui, |ui| money(ui, a.total, false)));
+                        row.col(|ui| {
+                            with_right(ui, |ui| {
+                                if a.pending.is_zero() {
+                                    ui.label("");
+                                } else {
+                                    ui.label(
+                                        RichText::new(format::format_currency(a.pending))
+                                            .color(colors::ORANGE),
+                                    );
+                                }
+                            });
+                        });
+                    },
+                );
             });
     });
     if !sheet.obligations.is_empty() {
         ui.add_space(8.0);
         Frame::group(ui.style()).show(ui, |ui| {
-            egui::Grid::new("bs_obligations")
-                .num_columns(2)
-                .spacing([24.0, 6.0])
-                .show(ui, |ui| {
-                    ui.strong("Obligation");
-                    ui.strong("Balance");
-                    ui.end_row();
-                    for o in &sheet.obligations {
-                        ui.label(&o.name);
+            TableBuilder::new(ui)
+                .auto_shrink([false, true])
+                .column(Column::remainder().at_least(160.0))
+                .column(Column::initial(BS_MONEY_WIDTH))
+                .header(20.0, |mut header| {
+                    header.col(|ui| {
+                        ui.strong("Obligation");
+                    });
+                    header.col(|ui| {
                         with_right(ui, |ui| {
-                            let text = RichText::new(format::format_currency(o.balance));
-                            if o.is_funding {
-                                ui.label(text);
-                            } else {
-                                ui.label(text.color(colors::RED));
-                            }
+                            ui.strong("Balance");
+                        })
+                    });
+                })
+                .body(|body| {
+                    body.rows(BS_ROW_HEIGHT, sheet.obligations.len() + 1, |mut row| {
+                        let Some(o) = sheet.obligations.get(row.index()) else {
+                            row.col(|ui| {
+                                ui.strong("Total Obligations");
+                            });
+                            row.col(|ui| {
+                                with_right(ui, |ui| money(ui, sheet.total_obligations, true))
+                            });
+                            return;
+                        };
+                        row.col(|ui| {
+                            ui.label(&o.name);
                         });
-                        ui.end_row();
-                    }
-                    ui.strong("Total Obligations");
-                    with_right(ui, |ui| money(ui, sheet.total_obligations, true));
-                    ui.end_row();
+                        row.col(|ui| {
+                            with_right(ui, |ui| {
+                                let text = RichText::new(format::format_currency(o.balance));
+                                if o.is_funding {
+                                    ui.label(text);
+                                } else {
+                                    ui.label(text.color(colors::RED));
+                                }
+                            });
+                        });
+                    });
                 });
         });
     }
