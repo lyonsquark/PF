@@ -3,6 +3,7 @@
 pub mod amount_field;
 pub mod category;
 pub mod contexts;
+pub mod hscroll;
 pub mod status;
 
 use egui::{Color32, Response, Ui};

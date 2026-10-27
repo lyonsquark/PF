@@ -53,6 +53,8 @@ pub struct State {
     pub(crate) cell: Option<CellEdit>,
     /// The amount cell being edited: its row and the edit text (T15b).
     pub(crate) amount: Option<(TransactionId, String)>,
+    /// The table's sideways scroll (clamped at both ends).
+    pub(crate) hscroll: crate::widgets::hscroll::HScroll,
     /// The row whose tag "+" menu is open, so its button stays shown while the menu is (T16).
     pub(crate) tag_open: Option<TransactionId>,
     /// The search bar's state; `Some` once it has been opened (T15c).
@@ -79,6 +81,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         st.search = None;
         st.focus_search = false;
         st.tag_open = None;
+        st.hscroll = Default::default();
         st.for_account = Some(id);
     }
     let Some((name, institution)) = cx
@@ -130,6 +133,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         cell,
         amount,
         tag_open,
+        hscroll,
         ..
     } = st;
     let view = rows.get(revision, &key, || {
@@ -162,7 +166,7 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
             tag_open,
             pending: Vec::new(),
         };
-        table::show(ui, &view.rows, selection, anchor, &mut edits);
+        table::show(ui, &view.rows, selection, anchor, hscroll, &mut edits);
         edits.pending
     };
     for change in pending {

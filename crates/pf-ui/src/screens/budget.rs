@@ -30,6 +30,8 @@ pub struct State {
     pub tab: BudgetItemType,
     /// Selected items (click, ⌘-click).
     pub selection: BTreeSet<BudgetItemId>,
+    /// The table's sideways scroll (clamped at both ends).
+    pub hscroll: crate::widgets::hscroll::HScroll,
     /// The rows of the current tab, cached per engine revision and tab.
     rows: Cached<BudgetItemType, Vec<BudgetRow>>,
 }
@@ -39,6 +41,7 @@ impl Default for State {
         Self {
             tab: BudgetItemType::Bill,
             selection: BTreeSet::new(),
+            hscroll: Default::default(),
             rows: Cached::default(),
         }
     }
@@ -163,7 +166,14 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
         ui.add_space(24.0);
         ui.vertical_centered(|ui| ui.label(RichText::new("No budget items").weak()));
     } else {
-        table(ui, rows, tab, &mut st.selection, &mut actions);
+        table(
+            ui,
+            rows,
+            tab,
+            &mut st.selection,
+            &mut actions,
+            &mut st.hscroll,
+        );
     }
 
     for action in actions {
@@ -204,110 +214,109 @@ fn table(
     tab: BudgetItemType,
     selection: &mut BTreeSet<BudgetItemId>,
     actions: &mut Vec<Action>,
+    hscroll: &mut crate::widgets::hscroll::HScroll,
 ) {
     let modifiers = ui.input(|i| i.modifiers);
     let mut clicked: Option<BudgetItemId> = None;
     let mut double: Option<BudgetItemId> = None;
     let name_title = name_header(tab);
-    egui::ScrollArea::horizontal()
-        .auto_shrink([false, false])
-        .show(ui, |ui| {
-            TableBuilder::new(ui)
-                .striped(true)
-                .resizable(true)
-                .sense(Sense::click())
-                .auto_shrink([false, false])
-                .max_scroll_height(f32::INFINITY)
-                .column(Column::remainder().at_least(160.0))
-                .column(Column::initial(180.0))
-                .column(Column::initial(110.0))
-                .column(Column::initial(170.0))
-                .column(Column::initial(120.0))
-                .column(Column::initial(140.0))
-                .header(HEADER_HEIGHT, |mut header| {
-                    for title in [
-                        name_title,
-                        "Category",
-                        "Amount",
-                        "Frequency",
-                        "Start Date",
-                        "Account",
-                    ] {
-                        header.col(|ui| {
-                            ui.strong(title);
-                        });
-                    }
-                })
-                .body(|body| {
-                    body.rows(ROW_HEIGHT, rows.len(), |mut row| {
-                        let r = &rows[row.index()];
-                        row.set_selected(selection.contains(&r.id));
-                        row.col(|ui| {
-                            ui.label(&r.name);
-                        });
-                        row.col(|ui| match &r.category_label {
-                            Some(name) => {
-                                ui.label(name);
-                            }
-                            None => {
-                                ui.label(RichText::new("Uncategorized").weak());
-                            }
-                        });
-                        row.col(|ui| {
-                            // Top-aligned, like the other cells; right-aligned as money.
-                            ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                                // Income is green (Swift).
-                                let text = RichText::new(format::format_currency(r.amount));
-                                if r.is_income {
-                                    ui.label(text.color(colors::GREEN));
-                                } else {
-                                    ui.label(text);
-                                }
-                            });
-                        });
-                        row.col(|ui| {
-                            ui.label(&r.frequency_label);
-                        });
-                        row.col(|ui| {
-                            ui.label(format_date(r.start));
-                        });
-                        row.col(|ui| match &r.account {
-                            Some(name) => {
-                                ui.label(name);
-                            }
-                            None => {
-                                ui.label(RichText::new("—").weak());
-                            }
-                        });
-                        let response = row.response();
-                        if response.double_clicked() {
-                            double = Some(r.id);
-                        } else if response.clicked() {
-                            clicked = Some(r.id);
+    crate::widgets::hscroll::show(ui, hscroll, |ui| {
+        TableBuilder::new(ui)
+            .striped(true)
+            .resizable(true)
+            .sense(Sense::click())
+            .auto_shrink([false, false])
+            .max_scroll_height(f32::INFINITY)
+            .column(Column::remainder().at_least(160.0))
+            .column(Column::initial(180.0))
+            .column(Column::initial(110.0))
+            .column(Column::initial(170.0))
+            .column(Column::initial(120.0))
+            .column(Column::initial(140.0))
+            .header(HEADER_HEIGHT, |mut header| {
+                for title in [
+                    name_title,
+                    "Category",
+                    "Amount",
+                    "Frequency",
+                    "Start Date",
+                    "Account",
+                ] {
+                    header.col(|ui| {
+                        ui.strong(title);
+                    });
+                }
+            })
+            .body(|body| {
+                body.rows(ROW_HEIGHT, rows.len(), |mut row| {
+                    let r = &rows[row.index()];
+                    row.set_selected(selection.contains(&r.id));
+                    row.col(|ui| {
+                        ui.label(&r.name);
+                    });
+                    row.col(|ui| match &r.category_label {
+                        Some(name) => {
+                            ui.label(name);
                         }
-                        if response.container_secondary_clicked() && !selection.contains(&r.id) {
-                            selection.clear();
-                            selection.insert(r.id);
+                        None => {
+                            ui.label(RichText::new("Uncategorized").weak());
                         }
-                        response.container_context_menu(|ui| {
-                            let one = selection.len() == 1;
-                            if ui
-                                .add_enabled(one, egui::Button::new("Edit"))
-                                .on_disabled_hover_text("Select one item to edit")
-                                .clicked()
-                                && let Some(id) = selection.iter().next().copied()
-                            {
-                                actions.push(Action::Edit(id));
-                                ui.close();
-                            }
-                            if ui.button("Delete").clicked() {
-                                actions.push(Action::Delete(selection.iter().copied().collect()));
-                                ui.close();
+                    });
+                    row.col(|ui| {
+                        // Top-aligned, like the other cells; right-aligned as money.
+                        ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            // Income is green (Swift).
+                            let text = RichText::new(format::format_currency(r.amount));
+                            if r.is_income {
+                                ui.label(text.color(colors::GREEN));
+                            } else {
+                                ui.label(text);
                             }
                         });
                     });
+                    row.col(|ui| {
+                        ui.label(&r.frequency_label);
+                    });
+                    row.col(|ui| {
+                        ui.label(format_date(r.start));
+                    });
+                    row.col(|ui| match &r.account {
+                        Some(name) => {
+                            ui.label(name);
+                        }
+                        None => {
+                            ui.label(RichText::new("—").weak());
+                        }
+                    });
+                    let response = row.response();
+                    if response.double_clicked() {
+                        double = Some(r.id);
+                    } else if response.clicked() {
+                        clicked = Some(r.id);
+                    }
+                    if response.container_secondary_clicked() && !selection.contains(&r.id) {
+                        selection.clear();
+                        selection.insert(r.id);
+                    }
+                    response.container_context_menu(|ui| {
+                        let one = selection.len() == 1;
+                        if ui
+                            .add_enabled(one, egui::Button::new("Edit"))
+                            .on_disabled_hover_text("Select one item to edit")
+                            .clicked()
+                            && let Some(id) = selection.iter().next().copied()
+                        {
+                            actions.push(Action::Edit(id));
+                            ui.close();
+                        }
+                        if ui.button("Delete").clicked() {
+                            actions.push(Action::Delete(selection.iter().copied().collect()));
+                            ui.close();
+                        }
+                    });
                 });
-        });
+            });
+    });
     if let Some(id) = double {
         selection.clear();
         selection.insert(id);

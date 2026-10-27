@@ -21,6 +21,7 @@ use crate::widgets::amount_field::amount_field;
 use crate::widgets::category::category_picker;
 use crate::widgets::colors;
 use crate::widgets::contexts::{context_chips, context_toggle_menu};
+use crate::widgets::hscroll::{self, HScroll};
 use crate::widgets::status::status_picker;
 
 /// Row height in points; it fits a ComboBox (T15b).
@@ -48,6 +49,7 @@ pub fn show(
     rows: &[TxRow],
     selection: &mut BTreeSet<TransactionId>,
     anchor: &mut Option<TransactionId>,
+    hscroll: &mut HScroll,
     edits: &mut Edits<'_>,
 ) {
     if rows.is_empty() {
@@ -58,60 +60,58 @@ pub fn show(
     // A tag menu's row is remembered only while some popup is open (see `contexts_cell`).
     let modifiers = ui.input(|i| i.modifiers);
     let mut clicked: Option<usize> = None;
-    // Horizontal scroll so every column is reachable in a narrow window. The table keeps its own
-    // vertical scroll and row virtualisation (it gets the viewport height from this scroll area).
-    ScrollArea::horizontal()
-        .auto_shrink([false, false])
-        .show(ui, |ui| {
-            TableBuilder::new(ui)
-                .striped(true)
-                .resizable(true)
-                .sense(Sense::click())
-                .auto_shrink([false, false])
-                .max_scroll_height(f32::INFINITY)
-                .column(Column::initial(110.0))
-                .column(Column::remainder().at_least(150.0))
-                .column(Column::initial(100.0))
-                .column(Column::initial(160.0))
-                .column(Column::initial(140.0))
-                .column(Column::initial(120.0))
-                .column(Column::initial(170.0))
-                .column(Column::initial(110.0))
-                .column(Column::initial(100.0))
-                .header(HEADER_HEIGHT, |mut header| {
-                    for title in HEADERS {
-                        header.col(|ui| {
-                            ui.strong(title);
-                        });
+    // Sideways scroll so every column is reachable in a narrow window (clamped, no rubber band).
+    // The table keeps its own vertical scroll and row virtualisation (it gets the viewport height).
+    hscroll::show(ui, hscroll, |ui| {
+        TableBuilder::new(ui)
+            .striped(true)
+            .resizable(true)
+            .sense(Sense::click())
+            .auto_shrink([false, false])
+            .max_scroll_height(f32::INFINITY)
+            .column(Column::initial(110.0))
+            .column(Column::remainder().at_least(150.0))
+            .column(Column::initial(100.0))
+            .column(Column::initial(160.0))
+            .column(Column::initial(140.0))
+            .column(Column::initial(120.0))
+            .column(Column::initial(170.0))
+            .column(Column::initial(110.0))
+            .column(Column::initial(100.0))
+            .header(HEADER_HEIGHT, |mut header| {
+                for title in HEADERS {
+                    header.col(|ui| {
+                        ui.strong(title);
+                    });
+                }
+            })
+            .body(|body| {
+                body.rows(ROW_HEIGHT, rows.len(), |mut row| {
+                    let index = row.index();
+                    let tx = &rows[index];
+                    row.set_selected(selection.contains(&tx.id));
+                    let mut row_clicked = false;
+                    cells(&mut row, tx, edits, &mut row_clicked);
+                    // A right-click anywhere on the row, even on an editable cell, selects the row if it was not
+                    // selected, and opens its menu (T15c).
+                    let response = row.response();
+                    if response.container_secondary_clicked() && !selection.contains(&tx.id) {
+                        selection.clear();
+                        selection.insert(tx.id);
                     }
-                })
-                .body(|body| {
-                    body.rows(ROW_HEIGHT, rows.len(), |mut row| {
-                        let index = row.index();
-                        let tx = &rows[index];
-                        row.set_selected(selection.contains(&tx.id));
-                        let mut row_clicked = false;
-                        cells(&mut row, tx, edits, &mut row_clicked);
-                        // A right-click anywhere on the row, even on an editable cell, selects the row if it was not
-                        // selected, and opens its menu (T15c).
-                        let response = row.response();
-                        if response.container_secondary_clicked() && !selection.contains(&tx.id) {
-                            selection.clear();
-                            selection.insert(tx.id);
-                        }
-                        response.container_context_menu(|ui| {
-                            let picked: Vec<&TxRow> =
-                                rows.iter().filter(|r| selection.contains(&r.id)).collect();
-                            if let Some(action) = menu::items(ui, &picked) {
-                                edits.pending.push(Pending::Menu(action));
-                            }
-                        });
-                        if row_clicked {
-                            clicked = Some(index);
+                    response.container_context_menu(|ui| {
+                        let picked: Vec<&TxRow> =
+                            rows.iter().filter(|r| selection.contains(&r.id)).collect();
+                        if let Some(action) = menu::items(ui, &picked) {
+                            edits.pending.push(Pending::Menu(action));
                         }
                     });
+                    if row_clicked {
+                        clicked = Some(index);
+                    }
                 });
-        });
+            });
+    });
     if let Some(index) = clicked {
         apply_click(rows, selection, anchor, index, modifiers);
     }

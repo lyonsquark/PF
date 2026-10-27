@@ -440,3 +440,37 @@ fn ui_table_does_not_scroll_past_its_end() {
         "the table moved past its end: payee x {after} is right of its start {at_start}"
     );
 }
+
+#[test]
+/// A trackpad scroll toward the left end must not leave a gap there: the table springs back at most
+/// to its start, never past it (the rubber band seen on macOS).
+fn ui_table_trackpad_does_not_bounce_past_left_end() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    t.tx(chk, "2026-03-01", "-4.50", "Coffee")
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Account(chk));
+    let mut h = egui_kittest::Harness::builder()
+        .with_size(egui::Vec2::new(1000.0, 800.0))
+        .build_ui(|ui| app.ui_root(ui));
+    h.run();
+    let at_start = h.get_by_label("Payee Coffee").rect().min.x;
+    h.event(egui::Event::PointerMoved(
+        h.get_by_label("Payee Coffee").rect().center(),
+    ));
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::Vec2::new(400.0, 0.0),
+        phase: egui::TouchPhase::Move,
+        source: egui::MouseWheelSource::Trackpad,
+        modifiers: Modifiers::NONE,
+    });
+    h.run_steps(2);
+    let during = h.get_by_label("Payee Coffee").rect().min.x;
+    assert!(
+        during <= at_start + 0.5,
+        "the table moved past its left end: payee x {during}, start {at_start}"
+    );
+}
