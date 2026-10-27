@@ -6,7 +6,7 @@ Pick the lowest-numbered `todo` task whose deps are all `done` (see `PLAN.md`).
 | Task | Title | Deps | Status | Notes |
 |---|---|---|---|---|
 | T00 | Workspace scaffold | – | done | Files created verbatim from T00 spec. build, test, clippy -D warnings and fmt --check all clean with zero warnings. `cargo run -p pf` launched without errors; the visual "Scaffold OK" window check is still for the user to confirm. Nothing committed. |
-| T00b | xtask rules / ci | T00 | todo | |
+| T00b | xtask rules / ci | T00 | done | rules.rs and ci.rs added with the 11 spec tests plus one extra (12 pass). Clippy and fmt clean. `rules` prints 0/208 and exits 1, as expected until tests exist. `ci` runs fmt, clippy, tests, then rules. Regexes are LazyLock<Result>, so no expect in non-test code. Note: testing.md says test names match lowercased with - to _; the implementation follows the spec regex, which is more lenient. Nothing committed. |
 | T01 | pf-model | T00 | todo | |
 | T02 | Budget projector | T01 | todo | |
 | T03 | Balances, visibility, filters, obligations | T01 | todo | |
