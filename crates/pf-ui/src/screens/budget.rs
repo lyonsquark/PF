@@ -254,7 +254,8 @@ fn table(
                             }
                         });
                         row.col(|ui| {
-                            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            // Top-aligned, like the other cells; right-aligned as money.
+                            ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
                                 // Income is green (Swift).
                                 let text = RichText::new(format::format_currency(r.amount));
                                 if r.is_income {
