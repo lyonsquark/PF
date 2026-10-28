@@ -69,6 +69,7 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
     let labels = rows.clone();
     let hover_rows = rows.clone();
     Plot::new(("chart_profit_loss", super::plot_key(f, st.pl_months)))
+        .set_margin_fraction(egui::Vec2::new(0.05, 0.15))
         .cursor_color(egui::Color32::TRANSPARENT)
         .label_formatter(move |pos| {
             super::style::hover_label(pos, |x| label_at(&hover_rows, x), super::style::money_exact)
