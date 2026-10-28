@@ -62,8 +62,8 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .map(|p| [day_number(p.date), to_f64(p.balance)])
         .collect();
     Plot::new("chart_networth")
-        .x_grid_spacer(grid::major_only)
-        .y_grid_spacer(grid::major_only)
+        .x_grid_spacer(grid::major_x)
+        .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(true)
         .allow_drag(true)

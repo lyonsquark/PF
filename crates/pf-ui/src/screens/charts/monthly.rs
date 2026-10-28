@@ -68,8 +68,8 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .collect();
     let labels = rows.clone();
     Plot::new("chart_profit_loss")
-        .x_grid_spacer(grid::major_only)
-        .y_grid_spacer(grid::major_only)
+        .x_grid_spacer(grid::major_x)
+        .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(false)
         .allow_drag(false)
@@ -127,8 +127,8 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .collect();
     let labels = rows.clone();
     Plot::new("chart_trend")
-        .x_grid_spacer(grid::major_only)
-        .y_grid_spacer(grid::major_only)
+        .x_grid_spacer(grid::major_x)
+        .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)

@@ -5,17 +5,29 @@ use egui_plot::{GridInput, GridMark, log_grid_spacer};
 
 /// egui_plot's grid spacing in points; its spacer's base step is this many points of the axis.
 const SPACING_MIN: f64 = 8.0;
-/// The least distance between two major lines, in points: enough room for a value's label.
-const MAJOR_SPACING: f64 = 60.0;
+/// The least distance between two major lines on a horizontal axis, in points: room for a date or amount.
+const MAJOR_SPACING_X: f64 = 60.0;
+/// The least distance between two major lines on a vertical axis, in points: room for one line of text.
+const MAJOR_SPACING_Y: f64 = 28.0;
 
-/// The grid spacer of the value axes: egui_plot's levels, keeping only lines `MAJOR_SPACING` apart.
-pub(crate) fn major_only(input: GridInput) -> Vec<GridMark> {
+/// The grid spacer of a horizontal value axis: egui_plot's levels, keeping lines `MAJOR_SPACING_X` apart.
+pub(crate) fn major_x(input: GridInput) -> Vec<GridMark> {
+    major_spaced(input, MAJOR_SPACING_X)
+}
+
+/// The grid spacer of a vertical value axis: egui_plot's levels, keeping lines `MAJOR_SPACING_Y` apart.
+pub(crate) fn major_y(input: GridInput) -> Vec<GridMark> {
+    major_spaced(input, MAJOR_SPACING_Y)
+}
+
+/// egui_plot's levels, keeping the lines at least `min_spacing` points apart.
+fn major_spaced(input: GridInput, min_spacing: f64) -> Vec<GridMark> {
     let Some(points_per_value) = points_per_value(&input) else {
         return Vec::new();
     };
     log_grid_spacer(10)(input)
         .into_iter()
-        .filter(|m| points_per_value * m.step_size >= MAJOR_SPACING)
+        .filter(|m| points_per_value * m.step_size >= min_spacing)
         .collect()
 }
 
@@ -46,13 +58,19 @@ mod tests {
     #[test]
     /// Every line of the value axes is at least `MAJOR_SPACING` points from the next one.
     fn major_lines_are_spaced_for_labels() {
-        let input = GridInput {
+        // One point per unit.
+        let input = || GridInput {
             bounds: (0.0, 1000.0),
-            base_step_size: SPACING_MIN, // one point per unit
+            base_step_size: SPACING_MIN,
         };
-        let marks = major_only(input);
+        let marks = major_y(input());
         assert!(marks.len() >= 3, "a few lines: {}", marks.len());
-        assert!(marks.iter().all(|m| m.step_size >= MAJOR_SPACING));
+        assert!(marks.iter().all(|m| m.step_size >= MAJOR_SPACING_Y));
+        assert!(
+            major_x(input())
+                .iter()
+                .all(|m| m.step_size >= MAJOR_SPACING_X)
+        );
     }
 
     #[test]
