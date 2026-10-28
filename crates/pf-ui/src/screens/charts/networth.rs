@@ -61,12 +61,9 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|p| [day_number(p.date), to_f64(p.balance)])
         .collect();
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_networth")
-        .show_grid(false)
-        .show_background(false)
+    Plot::new("chart_networth")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(true)
         .allow_drag(true)
@@ -81,14 +78,6 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                     .fill(0.0),
             );
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
 }
 
 /// The label of a period in the picker.

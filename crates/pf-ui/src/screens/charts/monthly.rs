@@ -67,12 +67,9 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .map(|(i, r)| [i as f64, to_f64(r.net())])
         .collect();
     let labels = rows.clone();
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_profit_loss")
-        .show_grid(false)
-        .show_background(false)
+    Plot::new("chart_profit_loss")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(false)
         .allow_drag(false)
@@ -89,14 +86,6 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
                     .width(2.0),
             );
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
     legend_row(ui);
 }
 
@@ -137,12 +126,9 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .map(|(i, r)| [i as f64, to_f64(r.expenses)])
         .collect();
     let labels = rows.clone();
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_trend")
-        .show_grid(false)
-        .show_background(false)
+    Plot::new("chart_trend")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
@@ -165,14 +151,6 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                     .fill(0.1),
             );
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
 }
 
 /// The month label at the x position (rounded), or nothing past the end.

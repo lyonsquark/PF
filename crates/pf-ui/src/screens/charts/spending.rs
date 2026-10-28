@@ -71,12 +71,9 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_spending")
-        .show_grid(false)
-        .show_background(false)
+    Plot::new("chart_spending")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
@@ -98,14 +95,6 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
                     .width(3.0),
             );
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
 }
 
 /// The budget pacing card: what has been spent against the budget so far this month.
@@ -159,12 +148,9 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_pacing")
-        .show_grid(false)
-        .show_background(false)
+    Plot::new("chart_pacing")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
@@ -187,14 +173,6 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                     .fill(0.0),
             );
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
 }
 
 /// "Mar 2026", the label of a comparison month.

@@ -85,12 +85,9 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
         return;
     }
     let names: Vec<String> = w.bars.iter().map(|b| b.label.clone()).collect();
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_waterfall")
-        .show_grid(false)
-        .show_background(false)
+    let plot = Plot::new("chart_waterfall")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(PLOT_HEIGHT)
         .allow_zoom(false)
         .allow_drag(false)
@@ -110,17 +107,9 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
             }
             plot_ui.pointer_coordinate()
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
     // A click inside a bar opens the transactions behind it (R-CHT-6).
-    if plot_response.response.clicked()
-        && let Some(pc) = plot_response.inner
+    if plot.response.clicked()
+        && let Some(pc) = plot.inner
         && let Some(b) = usize::try_from(pc.x.round() as i64)
             .ok()
             .and_then(|i| w.bars.get(i))
@@ -131,15 +120,15 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
             *drill = Some(waterfall_drill(db, f, base, &b.label));
         }
     }
-    if plot_response.response.hovered()
-        && let Some(pc) = plot_response.inner
+    if plot.response.hovered()
+        && let Some(pc) = plot.inner
     {
         let bar = usize::try_from(pc.x.round() as i64)
             .ok()
             .and_then(|i| w.bars.get(i))
             .cloned();
         if let Some(b) = bar {
-            plot_response.response.on_hover_ui_at_pointer(|ui| {
+            plot.response.on_hover_ui_at_pointer(|ui| {
                 ui.label(RichText::new(&b.label).strong());
                 ui.label(step_label(&b));
             });

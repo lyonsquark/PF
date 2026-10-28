@@ -69,12 +69,9 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         })
         .collect();
     let height = distribution_height(slices.len());
-    let grid_base = ui.visuals().text_color();
-    let grid_minor = st.grid_minor;
-    let grid_slot = grid::reserve(ui);
-    let plot_response = Plot::new("chart_distribution")
-        .show_grid(false)
-        .show_background(false)
+    Plot::new("chart_distribution")
+        .x_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::major_only)
         .height(height)
         .allow_zoom(false)
         .allow_drag(false)
@@ -90,12 +87,4 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .show(ui, |plot| {
             plot.bar_chart(BarChart::new("Expenses", bars).horizontal());
         });
-    grid::paint(
-        ui,
-        grid_slot,
-        plot_response.response.rect,
-        &plot_response.transform,
-        grid_base,
-        grid_minor,
-    );
 }
