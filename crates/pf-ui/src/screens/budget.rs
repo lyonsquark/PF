@@ -17,10 +17,13 @@ use crate::caches::Cached;
 use crate::dialogs::Dialog;
 use crate::dialogs::budget_item::BudgetItemForm;
 use crate::dialogs::projection::ProjectionForm;
-use crate::widgets::col_fit::{fit, longest};
+use crate::widgets::col_fit::fit;
 use crate::widgets::colors;
 
 /// Row height in points.
+/// Width of the name, category and account columns, in points.
+const NAME_WIDTH: f32 = 160.0;
+const TEXT_WIDTH: f32 = 140.0;
 const ROW_HEIGHT: f32 = 24.0;
 /// Header row height in points.
 const HEADER_HEIGHT: f32 = 20.0;
@@ -222,19 +225,11 @@ fn table(
     let mut double: Option<BudgetItemId> = None;
     let name_title = name_header(tab);
     // Each column starts as wide as its widest text (see `widgets::col_fit`).
-    let category_w = fit(
-        ui,
-        "Category",
-        &longest(rows.iter().filter_map(|r| r.category_label.as_deref())),
-    );
+    let category_w = TEXT_WIDTH;
     let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
     let frequency_w = fit(ui, "Frequency", &["Specific Months (12)"]);
     let start_w = fit(ui, "Start Date", &["Sep 30, 2026"]);
-    let account_w = fit(
-        ui,
-        "Account",
-        &longest(rows.iter().filter_map(|r| r.account.as_deref())),
-    );
+    let account_w = TEXT_WIDTH;
     crate::widgets::hscroll::show(ui, hscroll, |ui| {
         TableBuilder::new(ui)
             .striped(true)
@@ -242,7 +237,7 @@ fn table(
             .sense(Sense::click())
             .auto_shrink([false, false])
             .max_scroll_height(f32::INFINITY)
-            .column(Column::remainder().at_least(160.0))
+            .column(Column::initial(NAME_WIDTH))
             .column(Column::initial(category_w))
             .column(Column::initial(amount_w))
             .column(Column::initial(frequency_w))

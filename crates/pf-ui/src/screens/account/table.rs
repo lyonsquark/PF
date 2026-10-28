@@ -30,6 +30,10 @@ use crate::widgets::status::{PICKER_WIDTH, status_picker};
 const ROW_HEIGHT: f32 = 24.0;
 /// Header row height in points.
 const HEADER_HEIGHT: f32 = 20.0;
+/// Width of the Payee column, in points.
+const PAYEE_WIDTH: f32 = 160.0;
+/// Width of the Memo column, in points.
+const MEMO_WIDTH: f32 = 120.0;
 /// The header labels, in column order. The paperclip (T15a spec) is not in egui's fonts, so the
 /// attachment column uses plain text (user decision: no glyphs the default fonts lack).
 const HEADERS: [&str; 9] = [
@@ -74,7 +78,8 @@ pub fn show(
         &longest(rows.iter().map(|r| r.category_label.as_str())),
     )
     .max(CATEGORY_PICKER_WIDTH + 16.0);
-    let memo_w = fit(ui, "Memo", &longest(rows.iter().map(|r| r.memo.as_str())));
+    // A small fixed width; the user can widen it by dragging.
+    let memo_w = MEMO_WIDTH;
     let att_w = fit(ui, "Att.", &["Attach"]);
     let context_w = fit(
         ui,
@@ -95,7 +100,7 @@ pub fn show(
             .auto_shrink([false, false])
             .max_scroll_height(f32::INFINITY)
             .column(Column::initial(date_w))
-            .column(Column::remainder().at_least(150.0))
+            .column(Column::initial(PAYEE_WIDTH))
             .column(Column::initial(amount_w))
             .column(Column::initial(category_w))
             .column(Column::initial(memo_w))
