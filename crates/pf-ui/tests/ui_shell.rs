@@ -396,3 +396,31 @@ fn ui_shell_backup_cancelled_folder_does_nothing() {
     let e = shared.lock().expect("lock");
     assert!(backup::backup_folder(&e).is_none(), "no folder stored");
 }
+
+#[test]
+/// Cmd-\ hides the sidebar and shows it again; the View menu item says which one it will do.
+fn ui_shell_cmd_backslash_toggles_sidebar() {
+    let mut t = pf_model::testing::TestDb::new();
+    t.account("Everyday", pf_model::AccountType::Checking);
+    let mut e = common::empty_engine();
+    e.replace_db(t.build()).expect("write the test database");
+    let mut app = PfApp::new_for_test(e);
+    let mut h = harness(&mut app);
+    h.run();
+    assert!(
+        h.query_all_by_value("ACCOUNTS").count() > 0,
+        "sidebar shown at first"
+    );
+    h.key_press_modifiers(Modifiers::COMMAND, Key::Backslash);
+    h.run_steps(60);
+    assert!(
+        h.query_all_by_value("ACCOUNTS").count() == 0,
+        "sidebar hidden"
+    );
+    h.key_press_modifiers(Modifiers::COMMAND, Key::Backslash);
+    h.run_steps(60);
+    assert!(
+        h.query_all_by_value("ACCOUNTS").count() > 0,
+        "sidebar shown again"
+    );
+}

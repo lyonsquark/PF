@@ -33,6 +33,8 @@ const BACKUP: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::
 const NEW_TX: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::N);
 /// Cmd-F: the account screen's search bar (T15c).
 const SEARCH: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::F);
+/// Cmd-\: show or hide the sidebar.
+const TOGGLE_SIDEBAR: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::Backslash);
 
 /// Everything a screen or dialog may touch during one frame. Built fresh each frame by `ui_root`.
 pub struct UiCtx<'a> {
@@ -56,6 +58,8 @@ pub struct PfApp {
     screen: Screen,
     states: ScreenStates,
     sidebar: sidebar::State,
+    /// Whether the sidebar is shown (View > Hide Sidebar, Cmd-\\).
+    sidebar_open: bool,
     dialogs: Dialogs,
     toasts: Toasts,
     caches: ViewCaches,
@@ -72,6 +76,7 @@ impl PfApp {
             screen: Screen::Dashboard,
             states: ScreenStates::default(),
             sidebar: sidebar::State::default(),
+            sidebar_open: true,
             dialogs: Dialogs::default(),
             toasts: Toasts::default(),
             caches: ViewCaches::default(),
@@ -164,12 +169,18 @@ impl PfApp {
             )));
         }
 
-        egui::Panel::top("menu").show(ui, |ui| menu_bar(&mut cx, ui));
+        if !cx.dialogs.is_open() && ui.ctx().input_mut(|i| i.consume_shortcut(&TOGGLE_SIDEBAR)) {
+            self.sidebar_open = !self.sidebar_open;
+        }
+        egui::Panel::top("menu").show(ui, |ui| menu_bar(&mut cx, ui, &mut self.sidebar_open));
         egui::Panel::top("toolbar").show(ui, |ui| toolbar(&mut cx, ui));
         egui::Panel::left("sidebar")
             .resizable(true)
-            .default_size(220.0)
-            .show(ui, |ui| sidebar::show(&mut cx, &mut self.sidebar, ui));
+            .default_size(180.0)
+            .min_size(150.0)
+            .show_collapsible(ui, &mut self.sidebar_open, |ui| {
+                sidebar::show(&mut cx, &mut self.sidebar, ui)
+            });
         egui::CentralPanel::default().show(ui, |ui| {
             let states = &mut self.states;
             match *cx.screen {
@@ -231,7 +242,7 @@ fn handle_shortcuts(cx: &mut UiCtx, ui: &mut Ui) {
 }
 
 /// The top menu bar: File, Edit, View.
-fn menu_bar(cx: &mut UiCtx, ui: &mut Ui) {
+fn menu_bar(cx: &mut UiCtx, ui: &mut Ui, sidebar_open: &mut bool) {
     egui::MenuBar::new().ui(ui, |ui| {
         ui.menu_button("File", |ui| {
             if shortcut_item(ui, "Backup Data", "Cmd-S", true) {
@@ -260,6 +271,16 @@ fn menu_bar(cx: &mut UiCtx, ui: &mut Ui) {
             }
         });
         ui.menu_button("View", |ui| {
+            let label = if *sidebar_open {
+                "Hide Sidebar"
+            } else {
+                "Show Sidebar"
+            };
+            if shortcut_item(ui, label, "Cmd-\\", true) {
+                *sidebar_open = !*sidebar_open;
+                ui.close();
+            }
+            ui.separator();
             view_item(cx, ui, "Dashboard", Screen::Dashboard);
             ui.separator();
             view_item(cx, ui, "Budget", Screen::Budget);

@@ -128,7 +128,7 @@ fn accounts_section(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     }
 }
 
-/// The "ACCOUNTS" title, the grouping menu, and "+" to add an account (T16).
+/// The "ACCOUNTS" title and "+" to add an account (T16), with the grouping menu on the line below.
 fn accounts_header(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("ACCOUNTS").small().strong());
@@ -139,9 +139,11 @@ fn accounts_header(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
                 crate::dialogs::account::AccountForm::default(),
             ));
         }
+    });
+    ui.horizontal(|ui| {
         let combo = ComboBox::from_id_salt("sidebar_grouping")
             .selected_text(st.grouping.label())
-            .width(100.0)
+            .width(ui.available_width())
             .show_ui(ui, |ui| {
                 for g in Grouping::ALL {
                     ui.selectable_value(&mut st.grouping, g, g.label());
