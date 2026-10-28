@@ -97,8 +97,13 @@ fn ui_scn_01_dashboard_numbers_follow_scenario() {
         h.run();
         h.get_by_label("Plan A").click();
         h.run();
-        // Plan A: cleared 700 (cards and Cleared column), all 900, plus reality lines 1,000 and 1,200.
-        assert_eq!(h.query_all_by_label("$900.00").count(), 1, "All column");
+        // Plan A: cleared 700 (Cleared column), all 900 (cards and All column), plus reality lines 1,000 and 1,200.
+        // Net worth and assets cards (all rows under a scenario) and the All column.
+        assert_eq!(
+            h.query_all_by_label("$900.00").count(),
+            3,
+            "cards and All column"
+        );
         assert_eq!(
             h.query_all_by_label("$1,000.00").count(),
             1,
@@ -308,7 +313,8 @@ fn ui_dsh_external_account_has_badge() {
 }
 
 #[test]
-/// The summary cards follow the active scenario, as the account balances do.
+/// The summary cards follow the active scenario, as the account balances do, and the line under them says
+/// which transactions they add up.
 fn ui_dsh_cards_follow_scenario() {
     let mut t = TestDb::new();
     let chk = t.account("Everyday", AccountType::Checking);
@@ -324,13 +330,27 @@ fn ui_dsh_cards_follow_scenario() {
     {
         let mut h = harness(&mut app);
         h.run();
+        assert!(
+            h.query_all_by_value(
+                "The cards show cleared transactions only, excluding external accounts."
+            )
+            .next()
+            .is_some(),
+            "in Reality the line says the cards are cleared only"
+        );
         h.get_by_label("Reality").click();
         h.run();
         h.get_by_label("Plan A").click();
         h.run();
         assert!(
+            h.query_all_by_value("The cards show all transactions in the scenario (pending and future included), excluding external accounts.")
+                .next()
+                .is_some(),
+            "under a scenario the line says the cards show all transactions"
+        );
+        assert!(
             h.query_all_by_value("$700.00").next().is_some(),
-            "the cards show the Plan A cleared total"
+            "the cards show the Plan A total"
         );
     }
 }

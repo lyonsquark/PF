@@ -28,7 +28,8 @@ pub struct State {
 /// Everything the screen draws, computed in ONE pass (cache it).
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct DashboardData {
-    /// R-BAL-5: cleared, non-external, adjusted by R-BAL-6 when the toggle is on.
+    /// R-BAL-5: non-external; cleared in Reality, all visible when a scenario is active; adjusted by
+    /// R-BAL-6 when the toggle is on.
     pub net_worth: Decimal,
     /// R-BAL-5: checking, savings, cash and investment.
     pub assets: Decimal,
@@ -83,8 +84,10 @@ const HEADER_HEIGHT: f32 = 24.0;
 pub fn build_data(db: &Db, active: Option<ScenarioId>, show_available: bool) -> DashboardData {
     let maps = balance::balance_maps(db, active);
     let (cleared, all) = balance::displayed_balances(db, &maps, show_available);
-    // R-BAL-5: cards from the displayed cleared balances; external accounts excluded.
-    let totals = balance::dashboard_totals(db, &cleared);
+    // R-BAL-5: the cards add up the cleared balances in Reality, and all visible balances (the scenario's
+    // pending and future rows too) when a scenario is active. External accounts are excluded.
+    let card_basis = if active.is_some() { &all } else { &cleared };
+    let totals = balance::dashboard_totals(db, card_basis);
     // R-BAL-9: group order, empty groups omitted, rows sorted by name.
     let groups = balance::dashboard_groups(db)
         .into_iter()
@@ -156,6 +159,11 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
                         card(left, "CREDIT DEBT", data.credit_debt, colors::RED);
                         card(right, "LOAN DEBT", data.loan_debt, colors::ORANGE);
                     });
+                    ui.label(
+                        RichText::new(card_explanation(reality_lines))
+                            .small()
+                            .weak(),
+                    );
                     Frame::group(ui.style())
                         .inner_margin(12.0)
                         .corner_radius(10.0)
@@ -177,6 +185,15 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
                 });
             });
         });
+}
+
+/// The line under the summary cards: which transactions they add up.
+pub(crate) fn card_explanation(scenario_active: bool) -> &'static str {
+    if scenario_active {
+        "The cards show all transactions in the scenario (pending and future included), excluding external accounts."
+    } else {
+        "The cards show cleared transactions only, excluding external accounts."
+    }
 }
 
 /// One summary card: a small uppercase title and a large coloured amount (R-BAL-5).
@@ -355,6 +372,28 @@ mod tests {
             .flat_map(|g| g.rows.iter())
             .find(|r| r.name == name)
             .expect("row present")
+    }
+
+    #[test]
+    /// Covers: R-BAL-5. With a scenario active the cards add up all visible rows, pending and future
+    /// included; in Reality they add up cleared rows only.
+    fn r_bal_5_cards_use_all_rows_under_a_scenario() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let plan = t.scenario("Plan");
+        t.tx(chk, "2026-01-05", "100", "Cleared")
+            .status(TransactionStatus::Cleared)
+            .done();
+        t.tx(chk, "2026-01-06", "50", "Pending")
+            .status(TransactionStatus::Pending)
+            .done();
+        t.tx(chk, "2026-04-06", "-30", "Future plan")
+            .status(TransactionStatus::Future)
+            .scenario(plan)
+            .done();
+        let db = t.build();
+        assert_eq!(build_data(&db, None, false).net_worth, m("100"));
+        assert_eq!(build_data(&db, Some(plan), false).net_worth, m("120"));
     }
 
     #[test]
