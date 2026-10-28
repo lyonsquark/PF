@@ -31,9 +31,11 @@ Re-capture when the Swift app's API or export format changes. Do not capture fro
 - Text and Markdown bodies must match byte for byte after line endings are normalised.
 - `/api/export/markdown` is compared after removing the whole `## Settings` section from both sides,
   because the bookmark values differ.
-- Same-day transaction order in Swift is not specified. If a capture shows a different order for rows
-  on the same day, the transactions test fails and names the line. Decide then whether to compare those
-  rows as a set, and document the choice here.
+- Swift does not order transactions that fall on the same day, and a row's running balance depends on that
+  order. For the transaction lists (JSON, text and Markdown), each run of same-day rows is compared as a set.
+  The first row of a run keeps its running balance, which is the balance after the whole day and does not
+  depend on the order; the other rows' balances are not compared.
+- The Markdown export's trailing blank lines are ignored.
 
 ## Not captured
 

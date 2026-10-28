@@ -1,7 +1,7 @@
 //! Parity tests against the Swift app (T26, L6). `fixtures/parity/` holds the replies the running
 //! Swift app gave for `fixtures/SampleData2.md` (see its README). Each manifest line is one request.
 //! These tests replay every line against PFRust and compare the status, the content type and the body.
-//! They are `#[ignore]` until the captures exist; `scripts/capture_swift_parity.sh` makes them.
+//! The captures come from `scripts/capture_swift_parity.sh`.
 
 mod common;
 
@@ -185,6 +185,142 @@ fn without_settings(text: &str) -> String {
     out
 }
 
+/// Markdown transaction rows ("| 2026-01-03T06:00:00Z | ...") with the same date may come in either order
+/// (Swift does not order same-day rows, T26): each run of same-date rows is sorted, on both sides.
+fn same_day_rows_sorted(text: &str) -> String {
+    let date_of = |line: &str| -> Option<String> {
+        line.starts_with("| 20")
+            .then(|| line.split('|').nth(1).unwrap_or("").trim().to_string())
+    };
+    let mut out: Vec<String> = Vec::new();
+    let mut run: Vec<String> = Vec::new();
+    let mut run_date: Option<String> = None;
+    for line in text.split('\n') {
+        match (date_of(line), &run_date) {
+            (Some(d), Some(r)) if &d == r => run.push(line.to_string()),
+            (date, _) => {
+                run.sort();
+                out.append(&mut run);
+                run_date = date;
+                if run_date.is_some() {
+                    run.push(line.to_string());
+                } else {
+                    out.push(line.to_string());
+                }
+            }
+        }
+    }
+    run.sort();
+    out.append(&mut run);
+    out.join("\n")
+}
+
+/// The JSON transaction list with each run of same-date transactions compared as a set. Swift does not
+/// order same-day rows, so their order is not compared, and a row's running balance depends on that order.
+/// The first row of a run carries the balance after the whole day, which does not depend on the order, so
+/// it is kept on the run's first row; the other rows lose their running balance.
+fn same_day_transactions_sorted(v: &mut Value) {
+    let Some(Value::Array(list)) = v.get_mut("transactions") else {
+        return;
+    };
+    let date = |t: &Value| {
+        t.get("date")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_string()
+    };
+    let mut start = 0;
+    while start < list.len() {
+        let day = date(&list[start]);
+        let end = (start..list.len())
+            .find(|&i| date(&list[i]) != day)
+            .unwrap_or(list.len());
+        let day_end = list[start].get("runningBalance").cloned();
+        let run = &mut list[start..end];
+        for t in run.iter_mut() {
+            if let Some(obj) = t.as_object_mut() {
+                obj.remove("runningBalance");
+            }
+        }
+        run.sort_by_key(|t| t.to_string());
+        if let (Some(first), Some(balance)) = (run.first_mut(), day_end) {
+            first["runningBalance"] = balance;
+        }
+        start = end;
+    }
+}
+
+/// The text and Markdown transaction lists with each run of same-date rows compared as a set, as
+/// `same_day_transactions_sorted` does for JSON: the first row of a run keeps its running balance (the
+/// balance after the whole day), the others lose it, and the rows are sorted. The balance is the third
+/// field of a text row (`date  amount  balance ...`) and the fourth cell of a Markdown row.
+fn same_day_text_rows(text: &str, markdown: bool) -> String {
+    // (date, fields without the balance, balance) for a transaction row, else None.
+    let parse = |line: &str| -> Option<(String, Vec<String>, String)> {
+        let (date, mut fields, balance_at) = if markdown {
+            let cells: Vec<String> = line
+                .split('|')
+                .map(|c| c.trim().to_string())
+                .filter(|c| !c.is_empty())
+                .collect();
+            (cells.first()?.clone(), cells.clone(), 3)
+        } else {
+            let fields: Vec<String> = line
+                .split("  ")
+                .map(|f| f.trim().to_string())
+                .filter(|f| !f.is_empty())
+                .collect();
+            (fields.first()?.clone(), fields.clone(), 2)
+        };
+        let is_date = date.len() == 10
+            && date.bytes().enumerate().all(|(i, b)| {
+                if i == 4 || i == 7 {
+                    b == b'-'
+                } else {
+                    b.is_ascii_digit()
+                }
+            });
+        if !is_date || fields.len() <= balance_at {
+            return None;
+        }
+        let balance = fields.remove(balance_at);
+        Some((date, fields, balance))
+    };
+    let mut out: Vec<String> = Vec::new();
+    let mut run: Vec<(String, Vec<String>, String)> = Vec::new();
+    let flush = |run: &mut Vec<(String, Vec<String>, String)>, out: &mut Vec<String>| {
+        if run.is_empty() {
+            return;
+        }
+        let day_end = run[0].2.clone();
+        run.sort_by_key(|(_, fields, _)| fields.join("\u{1}"));
+        for (i, (date, fields, _)) in run.drain(..).enumerate() {
+            let balance = if i == 0 {
+                day_end.clone()
+            } else {
+                String::new()
+            };
+            out.push(format!("{date}\u{1}{}\u{1}{balance}", fields.join("\u{1}")));
+        }
+    };
+    for line in text.split('\n') {
+        match parse(line) {
+            Some(row) => {
+                if run.last().is_some_and(|last| last.0 != row.0) {
+                    flush(&mut run, &mut out);
+                }
+                run.push(row);
+            }
+            None => {
+                flush(&mut run, &mut out);
+                out.push(line.to_string());
+            }
+        }
+    }
+    flush(&mut run, &mut out);
+    out.join("\n")
+}
+
 /// Checks one capture against the live reply. A mismatch names the manifest line.
 fn check_capture(port: u16, c: &Capture) {
     let (status, content_type, body) = get(port, &c.path);
@@ -196,10 +332,12 @@ fn check_capture(port: u16, c: &Capture) {
         c.name
     );
     if normal_type(&c.content_type).contains("json") {
-        let ours: Value = serde_json::from_str(&body)
+        let mut ours: Value = serde_json::from_str(&body)
             .unwrap_or_else(|e| panic!("{}: our body is not JSON: {e}", c.name));
-        let theirs: Value = serde_json::from_str(&c.body)
+        let mut theirs: Value = serde_json::from_str(&c.body)
             .unwrap_or_else(|e| panic!("{}: captured body is not JSON: {e}", c.name));
+        same_day_transactions_sorted(&mut ours);
+        same_day_transactions_sorted(&mut theirs);
         if !same_json(&ours, &theirs) {
             assert_eq!(
                 serde_json::to_string_pretty(&ours).expect("pretty JSON"),
@@ -212,7 +350,17 @@ fn check_capture(port: u16, c: &Capture) {
     } else {
         let (ours, theirs) = (normal_lines(&body), normal_lines(&c.body));
         let (ours, theirs) = if c.name == "export_markdown" {
-            (without_settings(&ours), without_settings(&theirs))
+            (
+                same_day_rows_sorted(without_settings(&ours).trim_end()),
+                same_day_rows_sorted(without_settings(&theirs).trim_end()),
+            )
+        } else if c.name.starts_with("tx_") {
+            // Markdown captures start with a "## " heading; the text ones do not.
+            let markdown = c.body.trim_start().starts_with("## ");
+            (
+                same_day_text_rows(&ours, markdown),
+                same_day_text_rows(&theirs, markdown),
+            )
         } else {
             (ours, theirs)
         };
@@ -221,49 +369,42 @@ fn check_capture(port: u16, c: &Capture) {
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Covers: R-API-2, R-API-3
 fn parity_scenarios() {
     run_group("scenarios");
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Covers: R-API-4, R-API-6
 fn parity_balances() {
     run_group("balances");
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Covers: R-API-5
 fn parity_balance_single() {
     run_group("balance_single");
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Covers: R-API-7
 fn parity_transactions() {
     run_group("transactions");
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Covers: R-API-2
 fn parity_errors() {
     run_group("errors");
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Covers: R-MD-1
 fn parity_export_markdown() {
     run_group("export_markdown");
 }
 
 #[test]
-#[ignore = "needs captures from the Swift app (T26)"]
 /// Every manifest line is covered by a test group, and every `.body` file is listed in the manifest.
 fn parity_manifest_complete() {
     let captures = load_captures();

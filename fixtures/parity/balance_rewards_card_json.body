@@ -1,0 +1,12 @@
+{
+  "accounts" : [
+    {
+      "balance" : -583.29999999999995,
+      "external" : false,
+      "institution" : "Amex",
+      "name" : "Rewards Card",
+      "type" : "credit"
+    }
+  ],
+  "total" : -583.29999999999995
+}

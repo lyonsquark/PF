@@ -1,0 +1,19 @@
+{
+  "accounts" : [
+    {
+      "balance" : 37283.779999999999,
+      "external" : false,
+      "institution" : "Chase",
+      "name" : "Main Checking",
+      "type" : "checking"
+    },
+    {
+      "balance" : -583.29999999999995,
+      "external" : false,
+      "institution" : "Amex",
+      "name" : "Rewards Card",
+      "type" : "credit"
+    }
+  ],
+  "total" : 36700.479999999996
+}

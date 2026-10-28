@@ -1,0 +1,14 @@
+Main Checking — Last 10 transactions
+
+Date        Amount        Balance       Status      Payee
+-----------------------------------------------------------------------------
+2026-02-15  -$209.00      $37,283.78    Cleared     Internet Provider  [Utilities]
+2026-02-03  -$219.10      $37,492.78    Cleared     Cell Phone  [Utilities]
+2026-02-03  -$1,383.44    $37,711.88    Cleared     Credit Card Payment  [Credit Card Payment]  // CC Payoff (Transfer from checking to CC)
+2026-02-01  -$2,700.00    $39,095.32    Cleared     Mortgage  [Housing]
+2026-01-29  -$181.51      $41,795.32    Cleared     City Power  [Utilities]
+2026-01-25  $8,000.00     $41,976.83    Cleared     Employer Corp  [Income]
+2026-01-17  -$85.03       $33,976.83    Cleared     City Water  [Utilities]
+2026-01-15  -$209.00      $34,061.86    Cleared     Internet Provider  [Utilities]
+2026-01-03  -$1,364.52    $34,270.86    Cleared     Credit Card Payment  [Credit Card Payment]  // CC Payoff (Transfer from checking to CC)
+2026-01-03  -$219.10      $35,635.38    Cleared     Cell Phone  [Utilities]

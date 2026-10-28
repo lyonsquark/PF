@@ -1,0 +1,9 @@
+{
+  "scenarios" : [
+    {
+      "notes" : null,
+      "name" : "New Car Savings",
+      "colorHex" : "#FF0000"
+    }
+  ]
+}

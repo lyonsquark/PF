@@ -1,0 +1,4 @@
+captured=2026-10-27
+tz=America/Chicago
+swift_commit=2bc36aa
+fixture=SampleData2

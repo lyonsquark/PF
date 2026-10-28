@@ -1,0 +1,14 @@
+## Main Checking — Last 10 Transactions
+
+| Date | Payee | Amount | Balance | Status | Category | Contexts | Memo |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| 2026-02-15 | Internet Provider | -$209.00 | $37,283.78 | Cleared | Utilities |  |  |
+| 2026-02-03 | Cell Phone | -$219.10 | $37,492.78 | Cleared | Utilities |  |  |
+| 2026-02-03 | Credit Card Payment | -$1,383.44 | $37,711.88 | Cleared | Credit Card Payment |  | CC Payoff (Transfer from checking to CC) |
+| 2026-02-01 | Mortgage | -$2,700.00 | $39,095.32 | Cleared | Housing |  |  |
+| 2026-01-29 | City Power | -$181.51 | $41,795.32 | Cleared | Utilities |  |  |
+| 2026-01-25 | Employer Corp | $8,000.00 | $41,976.83 | Cleared | Income |  |  |
+| 2026-01-17 | City Water | -$85.03 | $33,976.83 | Cleared | Utilities |  |  |
+| 2026-01-15 | Internet Provider | -$209.00 | $34,061.86 | Cleared | Utilities |  |  |
+| 2026-01-03 | Credit Card Payment | -$1,364.52 | $34,270.86 | Cleared | Credit Card Payment |  | CC Payoff (Transfer from checking to CC) |
+| 2026-01-03 | Cell Phone | -$219.10 | $35,635.38 | Cleared | Utilities |  |  |

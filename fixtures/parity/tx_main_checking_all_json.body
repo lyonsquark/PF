@@ -1,0 +1,715 @@
+{
+  "account" : "Main Checking",
+  "count" : 87,
+  "transactions" : [
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2026-02-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 37283.779999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2026-02-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 37492.779999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1383.4400000000001,
+      "category" : "Credit Card Payment",
+      "date" : "2026-02-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 37711.879999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2026-02-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 39095.32,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -181.50999999999999,
+      "category" : "Utilities",
+      "date" : "2026-01-29",
+      "payee" : "City Power",
+      "runningBalance" : 41795.32,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2026-01-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 41976.830000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -85.030000000000001,
+      "category" : "Utilities",
+      "date" : "2026-01-17",
+      "payee" : "City Water",
+      "runningBalance" : 33976.830000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2026-01-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 34061.860000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1364.52,
+      "category" : "Credit Card Payment",
+      "date" : "2026-01-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 34270.860000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2026-01-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 35635.379999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2026-01-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 35854.479999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -102.03,
+      "category" : "Utilities",
+      "date" : "2025-12-29",
+      "payee" : "City Power",
+      "runningBalance" : 38554.479999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-12-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 38656.509999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-12-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 30656.509999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1508.03,
+      "category" : "Credit Card Payment",
+      "date" : "2025-12-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 30865.509999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-12-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 32373.540000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-12-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 32592.640000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -159.03,
+      "category" : "Utilities",
+      "date" : "2025-11-29",
+      "payee" : "City Power",
+      "runningBalance" : 35292.639999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-11-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 35451.669999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -91.77000000000001,
+      "category" : "Utilities",
+      "date" : "2025-11-17",
+      "payee" : "City Water",
+      "runningBalance" : 27451.670000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-11-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 27543.440000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1686.5799999999999,
+      "category" : "Credit Card Payment",
+      "date" : "2025-11-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 27752.440000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-11-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 29439.02,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-11-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 29658.120000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -135.19,
+      "category" : "Utilities",
+      "date" : "2025-10-29",
+      "payee" : "City Power",
+      "runningBalance" : 32358.120000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-10-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 32493.309999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-10-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 24493.310000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-10-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 24702.310000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1640.27,
+      "category" : "Credit Card Payment",
+      "date" : "2025-10-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 24921.41,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-10-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 26561.68,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -147.65000000000001,
+      "category" : "Utilities",
+      "date" : "2025-09-29",
+      "payee" : "City Power",
+      "runningBalance" : 29261.68,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-09-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 29409.329999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -97.150000000000006,
+      "category" : "Utilities",
+      "date" : "2025-09-17",
+      "payee" : "City Water",
+      "runningBalance" : 21409.329999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-09-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 21506.48,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1555.48,
+      "category" : "Credit Card Payment",
+      "date" : "2025-09-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 21715.48,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-09-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 23270.959999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-09-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 23490.060000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -180.50999999999999,
+      "category" : "Utilities",
+      "date" : "2025-08-29",
+      "payee" : "City Power",
+      "runningBalance" : 26190.060000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-08-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 26370.57,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-08-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 18370.57,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1947.4599999999998,
+      "category" : "Credit Card Payment",
+      "date" : "2025-08-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 18579.57,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-08-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 20527.029999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-08-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 20746.129999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -134.79000000000002,
+      "category" : "Utilities",
+      "date" : "2025-07-29",
+      "payee" : "City Power",
+      "runningBalance" : 23446.129999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-07-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 23580.920000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -109.55999999999999,
+      "category" : "Utilities",
+      "date" : "2025-07-17",
+      "payee" : "City Water",
+      "runningBalance" : 15580.920000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-07-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 15690.48,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-07-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 15899.48,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1606.55,
+      "category" : "Credit Card Payment",
+      "date" : "2025-07-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 16118.579999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-07-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 17725.129999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -102.75999999999999,
+      "category" : "Utilities",
+      "date" : "2025-06-29",
+      "payee" : "City Power",
+      "runningBalance" : 20425.129999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-06-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 20527.889999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-06-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 12527.889999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-06-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 12736.889999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1782.3,
+      "category" : "Credit Card Payment",
+      "date" : "2025-06-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 12955.99,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-06-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 14738.289999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -116.38,
+      "category" : "Utilities",
+      "date" : "2025-05-29",
+      "payee" : "City Power",
+      "runningBalance" : 17438.290000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-05-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 17554.670000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -74.829999999999998,
+      "category" : "Utilities",
+      "date" : "2025-05-17",
+      "payee" : "City Water",
+      "runningBalance" : 9554.6700000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-05-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 9629.5,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-05-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 9838.5,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1172.2,
+      "category" : "Credit Card Payment",
+      "date" : "2025-05-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 10057.6,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-05-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 11229.799999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -116.27000000000001,
+      "category" : "Utilities",
+      "date" : "2025-04-29",
+      "payee" : "City Power",
+      "runningBalance" : 13929.799999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-04-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 14046.070000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-04-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 6046.0699999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1471.7,
+      "category" : "Credit Card Payment",
+      "date" : "2025-04-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 6255.0699999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-04-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 7726.7699999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-04-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 7945.8699999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -181.45999999999998,
+      "category" : "Utilities",
+      "date" : "2025-03-29",
+      "payee" : "City Power",
+      "runningBalance" : 10645.869999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-03-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 10827.33,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -102.03,
+      "category" : "Utilities",
+      "date" : "2025-03-17",
+      "payee" : "City Water",
+      "runningBalance" : 2827.3299999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-03-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : 2929.3599999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -1265.79,
+      "category" : "Credit Card Payment",
+      "date" : "2025-03-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : 3138.3599999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-03-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : 4404.1499999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-03-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 4623.25,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-02-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 7323.25,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-02-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : -676.75,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-02-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : -467.75,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2218.4099999999999,
+      "category" : "Credit Card Payment",
+      "date" : "2025-02-03",
+      "memo" : "CC Payoff (Transfer from checking to CC)",
+      "payee" : "Credit Card Payment",
+      "runningBalance" : -248.65000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-02-01",
+      "payee" : "Mortgage",
+      "runningBalance" : 1969.7599999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110.33,
+      "category" : "Utilities",
+      "date" : "2025-01-29",
+      "payee" : "City Power",
+      "runningBalance" : 4669.7600000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 8000,
+      "category" : "Income",
+      "date" : "2025-01-25",
+      "payee" : "Employer Corp",
+      "runningBalance" : 4780.0900000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -91.810000000000002,
+      "category" : "Utilities",
+      "date" : "2025-01-17",
+      "payee" : "City Water",
+      "runningBalance" : -3219.9099999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209,
+      "category" : "Utilities",
+      "date" : "2025-01-15",
+      "payee" : "Internet Provider",
+      "runningBalance" : -3128.0999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -219.09999999999999,
+      "category" : "Utilities",
+      "date" : "2025-01-03",
+      "payee" : "Cell Phone",
+      "runningBalance" : -2919.0999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -2700,
+      "category" : "Housing",
+      "date" : "2025-01-01",
+      "payee" : "Mortgage",
+      "runningBalance" : -2700,
+      "status" : "cleared"
+    }
+  ]
+}

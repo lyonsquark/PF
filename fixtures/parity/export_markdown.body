@@ -1,0 +1,343 @@
+# Personal Finance Data
+
+## Contexts
+| Name | Color | Notes |
+| --- | --- | --- |
+| home-repair |  | #FFA500 |
+| vacation-2026 | saving for hawaii | #008080 |
+
+## Categories
+| Name | Type | Icon | Notes | Parent | Match Patterns |
+| --- | --- | --- | --- | --- | --- |
+| Credit Card Payment | transfer | 🏦 | paying off cards |  |  |
+| Dining | expense | 🍔 | mcdonalds, starbucks, restaurant |  |  |
+| Groceries | expense | 🛒 | kroger, whole foods, safeway, trader |  |  |
+| Housing | expense | 🏠 | mortgage, rent |  |  |
+| Income | income | 💵 | salary, paycheck |  |  |
+| Shopping | expense | 🛍️ | amazon, target, walmart |  |  |
+| Utilities | expense | ⚡️ | electric, water, gas, comcast | Housing |  |
+
+## Scenarios
+| Name | Color | Notes |
+| --- | --- | --- |
+| New Car Savings | #FF0000 |  |
+
+## Accounts
+| Name | Type | Institution | Currency | External |
+| --- | --- | --- | --- | --- |
+| Main Checking | checking | Chase | USD | false |
+| Rewards Card | credit | Amex | USD | false |
+
+## Obligations
+| Name | Status | Target | Balance | Due Date | Created Date | Updated Date | Notes | Account | Context |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## BudgetItems
+| Name | Type | Amount | Start Date | End Date | Frequency | Specific Months | Notes | Category | Account |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Amazon | Expense | 400 | 2025-01-10T06:00:00Z |  | Monthly |  | Average monthly estimate | Shopping | Rewards Card |
+| CC Internet | Bill | 110 | 2025-01-08T06:00:00Z |  | Monthly |  |  | Utilities | Rewards Card |
+| Cell Phone | Bill | 219.1 | 2025-01-03T06:00:00Z |  | Monthly |  |  | Utilities | Main Checking |
+| Dining Out | Expense | 90 | 2025-01-02T06:00:00Z |  | Weekly |  | Average weekly estimate | Dining | Rewards Card |
+| Electricity | Bill | 145 | 2025-01-29T06:00:00Z |  | Monthly |  | Average estimated cost | Utilities | Main Checking |
+| Groceries | Expense | 150 | 2025-01-05T06:00:00Z |  | Weekly |  | Average weekly estimate | Groceries | Rewards Card |
+| Internet | Bill | 209 | 2025-01-15T06:00:00Z |  | Monthly |  |  | Utilities | Main Checking |
+| Mortgage | Bill | 2700 | 2025-01-01T06:00:00Z |  | Monthly |  |  | Housing | Main Checking |
+| Salary | Income | 8000 | 2025-01-25T06:00:00Z |  | Monthly |  |  | Income | Main Checking |
+| Water | Bill | 90 | 2025-01-17T06:00:00Z |  | Specific Months | 1,3,5,7,9,11 | Bi-monthly | Utilities | Main Checking |
+
+## ImportMappings
+## Transactions
+### Main Checking
+| Date | Payee | Category | Amount | Memo | Scenario | Contexts | Status | Attachment |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-04-18T05:00:00Z | Car Dealership | Shopping | -25000 | Down payment and fees | New Car Savings |  | cleared |  |
+| 2026-04-10T05:00:00Z | Mechanic Inspection | Shopping | -150 | Pre-purchase inspection | New Car Savings |  | cleared |  |
+| 2026-02-15T06:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2026-02-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2026-02-03T06:00:00Z | Credit Card Payment | Credit Card Payment | -1383.44 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2026-02-01T06:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2026-01-29T06:00:00Z | City Power | Utilities | -181.51 |  |  |  | cleared |  |
+| 2026-01-25T06:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2026-01-17T06:00:00Z | City Water | Utilities | -85.03 |  |  |  | cleared |  |
+| 2026-01-15T06:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2026-01-03T06:00:00Z | Credit Card Payment | Credit Card Payment | -1364.52 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2026-01-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2026-01-01T06:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-12-29T06:00:00Z | City Power | Utilities | -102.03 |  |  |  | cleared |  |
+| 2025-12-25T06:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-12-15T06:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-12-03T06:00:00Z | Credit Card Payment | Credit Card Payment | -1508.03 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-12-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-12-01T06:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-11-29T06:00:00Z | City Power | Utilities | -159.03 |  |  |  | cleared |  |
+| 2025-11-25T06:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-11-17T06:00:00Z | City Water | Utilities | -91.77 |  |  |  | cleared |  |
+| 2025-11-15T06:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-11-03T06:00:00Z | Credit Card Payment | Credit Card Payment | -1686.58 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-11-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-11-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-10-29T05:00:00Z | City Power | Utilities | -135.19 |  |  |  | cleared |  |
+| 2025-10-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-10-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-10-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-10-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1640.27 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-10-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-09-29T05:00:00Z | City Power | Utilities | -147.65 |  |  |  | cleared |  |
+| 2025-09-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-09-17T05:00:00Z | City Water | Utilities | -97.15 |  |  |  | cleared |  |
+| 2025-09-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-09-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1555.48 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-09-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-09-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-08-29T05:00:00Z | City Power | Utilities | -180.51 |  |  |  | cleared |  |
+| 2025-08-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-08-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-08-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1947.46 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-08-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-08-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-07-29T05:00:00Z | City Power | Utilities | -134.79 |  |  |  | cleared |  |
+| 2025-07-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-07-17T05:00:00Z | City Water | Utilities | -109.56 |  |  |  | cleared |  |
+| 2025-07-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-07-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-07-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1606.55 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-07-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-06-29T05:00:00Z | City Power | Utilities | -102.76 |  |  |  | cleared |  |
+| 2025-06-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-06-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-06-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-06-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1782.3 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-06-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-05-29T05:00:00Z | City Power | Utilities | -116.38 |  |  |  | cleared |  |
+| 2025-05-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-05-17T05:00:00Z | City Water | Utilities | -74.83 |  |  |  | cleared |  |
+| 2025-05-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-05-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-05-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1172.2 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-05-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-04-29T05:00:00Z | City Power | Utilities | -116.27 |  |  |  | cleared |  |
+| 2025-04-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-04-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-04-03T05:00:00Z | Credit Card Payment | Credit Card Payment | -1471.7 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-04-03T05:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-04-01T05:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-03-29T05:00:00Z | City Power | Utilities | -181.46 |  |  |  | cleared |  |
+| 2025-03-25T05:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-03-17T05:00:00Z | City Water | Utilities | -102.03 |  |  |  | cleared |  |
+| 2025-03-15T05:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-03-03T06:00:00Z | Credit Card Payment | Credit Card Payment | -1265.79 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-03-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-03-01T06:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-02-25T06:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-02-15T06:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-02-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-02-03T06:00:00Z | Credit Card Payment | Credit Card Payment | -2218.41 | CC Payoff (Transfer from checking to CC) |  |  | cleared |  |
+| 2025-02-01T06:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+| 2025-01-29T06:00:00Z | City Power | Utilities | -110.33 |  |  |  | cleared |  |
+| 2025-01-25T06:00:00Z | Employer Corp | Income | 8000 |  |  |  | cleared |  |
+| 2025-01-17T06:00:00Z | City Water | Utilities | -91.81 |  |  |  | cleared |  |
+| 2025-01-15T06:00:00Z | Internet Provider | Utilities | -209 |  |  |  | cleared |  |
+| 2025-01-03T06:00:00Z | Cell Phone | Utilities | -219.1 |  |  |  | cleared |  |
+| 2025-01-01T06:00:00Z | Mortgage | Housing | -2700 |  |  |  | cleared |  |
+
+### Rewards Card
+| Date | Payee | Category | Amount | Memo | Scenario | Contexts | Status | Attachment |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-02-17T06:00:00Z | Local Restaurant | Dining | -89.07 |  |  |  | cleared |  |
+| 2026-02-15T06:00:00Z | Whole Foods | Groceries | -159.12 |  |  |  | cleared |  |
+| 2026-02-10T06:00:00Z | Local Restaurant | Dining | -113.38 |  |  |  | cleared |  |
+| 2026-02-08T06:00:00Z | Whole Foods | Groceries | -111.73 |  |  |  | cleared |  |
+| 2026-02-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2026-02-05T06:00:00Z | Local Restaurant | Dining | -119.35 |  |  |  | cleared |  |
+| 2026-02-04T06:00:00Z | Amazon | Shopping | -126.13 |  |  |  | cleared |  |
+| 2026-02-03T06:00:00Z | Payment Received | Credit Card Payment | 1383.44 |  |  |  | cleared |  |
+| 2026-02-01T06:00:00Z | Whole Foods | Groceries | -115.17 |  |  |  | cleared |  |
+| 2026-01-28T06:00:00Z | Local Restaurant | Dining | -89.63 |  |  |  | cleared |  |
+| 2026-01-26T06:00:00Z | Amazon | Shopping | -102.01 |  |  |  | cleared |  |
+| 2026-01-25T06:00:00Z | Whole Foods | Groceries | -118.3 |  |  |  | cleared |  |
+| 2026-01-24T06:00:00Z | Local Restaurant | Dining | -62.17 |  |  |  | cleared |  |
+| 2026-01-19T06:00:00Z | Amazon | Shopping | -81.42 |  |  |  | cleared |  |
+| 2026-01-18T06:00:00Z | Whole Foods | Groceries | -166.66 |  |  |  | cleared |  |
+| 2026-01-14T06:00:00Z | Local Restaurant | Dining | -70.01 |  |  |  | cleared |  |
+| 2026-01-12T06:00:00Z | Amazon | Shopping | -173.57 |  |  |  | cleared |  |
+| 2026-01-11T06:00:00Z | Whole Foods | Groceries | -132.16 |  |  |  | cleared |  |
+| 2026-01-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2026-01-07T06:00:00Z | Local Restaurant | Dining | -89.79 |  |  |  | cleared |  |
+| 2026-01-04T06:00:00Z | Amazon | Shopping | -74.11 |  |  |  | cleared |  |
+| 2026-01-04T06:00:00Z | Whole Foods | Groceries | -184.07 |  |  |  | cleared |  |
+| 2026-01-03T06:00:00Z | Payment Received | Credit Card Payment | 1364.52 |  |  |  | cleared |  |
+| 2025-12-31T06:00:00Z | Local Restaurant | Dining | -74.29 |  |  |  | cleared |  |
+| 2025-12-28T06:00:00Z | Whole Foods | Groceries | -138.2 |  |  |  | cleared |  |
+| 2025-12-25T06:00:00Z | Local Restaurant | Dining | -60.76 |  |  |  | cleared |  |
+| 2025-12-21T06:00:00Z | Whole Foods | Groceries | -158.02 |  |  |  | cleared |  |
+| 2025-12-18T06:00:00Z | Amazon | Shopping | -129.04 |  |  |  | cleared |  |
+| 2025-12-15T06:00:00Z | Local Restaurant | Dining | -64.93 |  |  |  | cleared |  |
+| 2025-12-14T06:00:00Z | Local Restaurant | Dining | -65.55 |  |  |  | cleared |  |
+| 2025-12-14T06:00:00Z | Whole Foods | Groceries | -113.97 |  |  |  | cleared |  |
+| 2025-12-11T06:00:00Z | Amazon | Shopping | -191.58 |  |  |  | cleared |  |
+| 2025-12-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-12-08T06:00:00Z | Amazon | Shopping | -70.37 |  |  |  | cleared |  |
+| 2025-12-07T06:00:00Z | Whole Foods | Groceries | -147.69 |  |  |  | cleared |  |
+| 2025-12-03T06:00:00Z | Payment Received | Credit Card Payment | 1508.03 |  |  |  | cleared |  |
+| 2025-12-01T06:00:00Z | Local Restaurant | Dining | -97.86 |  |  |  | cleared |  |
+| 2025-11-30T06:00:00Z | Whole Foods | Groceries | -144.92 |  |  |  | cleared |  |
+| 2025-11-27T06:00:00Z | Local Restaurant | Dining | -88.87 |  |  |  | cleared |  |
+| 2025-11-23T06:00:00Z | Whole Foods | Groceries | -157.06 |  |  |  | cleared |  |
+| 2025-11-20T06:00:00Z | Local Restaurant | Dining | -108.01 |  |  |  | cleared |  |
+| 2025-11-16T06:00:00Z | Whole Foods | Groceries | -155.99 |  |  |  | cleared |  |
+| 2025-11-16T06:00:00Z | Amazon | Shopping | -166.44 |  |  |  | cleared |  |
+| 2025-11-10T06:00:00Z | Local Restaurant | Dining | -107.87 |  |  |  | cleared |  |
+| 2025-11-09T06:00:00Z | Whole Foods | Groceries | -146.46 |  |  |  | cleared |  |
+| 2025-11-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-11-07T06:00:00Z | Amazon | Shopping | -113.12 |  |  |  | cleared |  |
+| 2025-11-05T06:00:00Z | Local Restaurant | Dining | -86.85 |  |  |  | cleared |  |
+| 2025-11-03T06:00:00Z | Payment Received | Credit Card Payment | 1686.58 |  |  |  | cleared |  |
+| 2025-11-02T05:00:00Z | Whole Foods | Groceries | -133.27 |  |  |  | cleared |  |
+| 2025-11-02T05:00:00Z | Amazon | Shopping | -156.09 |  |  |  | cleared |  |
+| 2025-10-28T05:00:00Z | Local Restaurant | Dining | -61.54 |  |  |  | cleared |  |
+| 2025-10-26T05:00:00Z | Whole Foods | Groceries | -177.42 |  |  |  | cleared |  |
+| 2025-10-26T05:00:00Z | Amazon | Shopping | -132.64 |  |  |  | cleared |  |
+| 2025-10-25T05:00:00Z | Local Restaurant | Dining | -87.44 |  |  |  | cleared |  |
+| 2025-10-19T05:00:00Z | Whole Foods | Groceries | -182.07 |  |  |  | cleared |  |
+| 2025-10-16T05:00:00Z | Local Restaurant | Dining | -64.16 |  |  |  | cleared |  |
+| 2025-10-12T05:00:00Z | Whole Foods | Groceries | -125.93 |  |  |  | cleared |  |
+| 2025-10-11T05:00:00Z | Local Restaurant | Dining | -118.03 |  |  |  | cleared |  |
+| 2025-10-10T05:00:00Z | Amazon | Shopping | -164.78 |  |  |  | cleared |  |
+| 2025-10-09T05:00:00Z | Amazon | Shopping | -177.25 |  |  |  | cleared |  |
+| 2025-10-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-10-05T05:00:00Z | Whole Foods | Groceries | -104.22 |  |  |  | cleared |  |
+| 2025-10-03T05:00:00Z | Payment Received | Credit Card Payment | 1640.27 |  |  |  | cleared |  |
+| 2025-10-02T05:00:00Z | Local Restaurant | Dining | -87.07 |  |  |  | cleared |  |
+| 2025-10-02T05:00:00Z | Amazon | Shopping | -128.42 |  |  |  | cleared |  |
+| 2025-09-28T05:00:00Z | Local Restaurant | Dining | -71.53 |  |  |  | cleared |  |
+| 2025-09-28T05:00:00Z | Whole Foods | Groceries | -144.76 |  |  |  | cleared |  |
+| 2025-09-21T05:00:00Z | Whole Foods | Groceries | -159.09 |  |  |  | cleared |  |
+| 2025-09-20T05:00:00Z | Local Restaurant | Dining | -96.79 |  |  |  | cleared |  |
+| 2025-09-19T05:00:00Z | Amazon | Shopping | -50.44 |  |  |  | cleared |  |
+| 2025-09-14T05:00:00Z | Whole Foods | Groceries | -131.44 |  |  |  | cleared |  |
+| 2025-09-12T05:00:00Z | Amazon | Shopping | -108.87 |  |  |  | cleared |  |
+| 2025-09-09T05:00:00Z | Amazon | Shopping | -165.89 |  |  |  | cleared |  |
+| 2025-09-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-09-08T05:00:00Z | Local Restaurant | Dining | -69.96 |  |  |  | cleared |  |
+| 2025-09-07T05:00:00Z | Whole Foods | Groceries | -166.54 |  |  |  | cleared |  |
+| 2025-09-06T05:00:00Z | Local Restaurant | Dining | -119.27 |  |  |  | cleared |  |
+| 2025-09-03T05:00:00Z | Payment Received | Credit Card Payment | 1555.48 |  |  |  | cleared |  |
+| 2025-08-31T05:00:00Z | Whole Foods | Groceries | -143.01 |  |  |  | cleared |  |
+| 2025-08-25T05:00:00Z | Local Restaurant | Dining | -92.7 |  |  |  | cleared |  |
+| 2025-08-24T05:00:00Z | Whole Foods | Groceries | -186.11 |  |  |  | cleared |  |
+| 2025-08-19T05:00:00Z | Local Restaurant | Dining | -93 |  |  |  | cleared |  |
+| 2025-08-17T05:00:00Z | Amazon | Shopping | -195.26 |  |  |  | cleared |  |
+| 2025-08-17T05:00:00Z | Whole Foods | Groceries | -146.57 |  |  |  | cleared |  |
+| 2025-08-14T05:00:00Z | Local Restaurant | Dining | -102.72 |  |  |  | cleared |  |
+| 2025-08-13T05:00:00Z | Amazon | Shopping | -83.86 |  |  |  | cleared |  |
+| 2025-08-12T05:00:00Z | Amazon | Shopping | -51.43 |  |  |  | cleared |  |
+| 2025-08-10T05:00:00Z | Whole Foods | Groceries | -121.52 |  |  |  | cleared |  |
+| 2025-08-09T05:00:00Z | Local Restaurant | Dining | -115.38 |  |  |  | cleared |  |
+| 2025-08-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-08-03T05:00:00Z | Payment Received | Credit Card Payment | 1947.46 |  |  |  | cleared |  |
+| 2025-08-03T05:00:00Z | Whole Foods | Groceries | -207.32 |  |  |  | cleared |  |
+| 2025-08-03T05:00:00Z | Amazon | Shopping | -160.56 |  |  |  | cleared |  |
+| 2025-08-01T05:00:00Z | Local Restaurant | Dining | -94.59 |  |  |  | cleared |  |
+| 2025-07-28T05:00:00Z | Amazon | Shopping | -61.87 |  |  |  | cleared |  |
+| 2025-07-27T05:00:00Z | Whole Foods | Groceries | -167.7 |  |  |  | cleared |  |
+| 2025-07-26T05:00:00Z | Amazon | Shopping | -188.14 |  |  |  | cleared |  |
+| 2025-07-23T05:00:00Z | Local Restaurant | Dining | -112.71 |  |  |  | cleared |  |
+| 2025-07-20T05:00:00Z | Whole Foods | Groceries | -209.76 |  |  |  | cleared |  |
+| 2025-07-20T05:00:00Z | Amazon | Shopping | -170.34 |  |  |  | cleared |  |
+| 2025-07-14T05:00:00Z | Local Restaurant | Dining | -109.03 |  |  |  | cleared |  |
+| 2025-07-13T05:00:00Z | Whole Foods | Groceries | -205.02 |  |  |  | cleared |  |
+| 2025-07-10T05:00:00Z | Local Restaurant | Dining | -106.91 |  |  |  | cleared |  |
+| 2025-07-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-07-06T05:00:00Z | Whole Foods | Groceries | -133.31 |  |  |  | cleared |  |
+| 2025-07-04T05:00:00Z | Local Restaurant | Dining | -80.9 |  |  |  | cleared |  |
+| 2025-07-03T05:00:00Z | Payment Received | Credit Card Payment | 1606.55 |  |  |  | cleared |  |
+| 2025-07-01T05:00:00Z | Amazon | Shopping | -177.1 |  |  |  | cleared |  |
+| 2025-06-30T05:00:00Z | Amazon | Shopping | -146.29 |  |  |  | cleared |  |
+| 2025-06-29T05:00:00Z | Whole Foods | Groceries | -151.17 |  |  |  | cleared |  |
+| 2025-06-27T05:00:00Z | Amazon | Shopping | -77.92 |  |  |  | cleared |  |
+| 2025-06-23T05:00:00Z | Local Restaurant | Dining | -101.44 |  |  |  | cleared |  |
+| 2025-06-22T05:00:00Z | Whole Foods | Groceries | -133.69 |  |  |  | cleared |  |
+| 2025-06-18T05:00:00Z | Local Restaurant | Dining | -104.09 |  |  |  | cleared |  |
+| 2025-06-15T05:00:00Z | Whole Foods | Groceries | -113.12 |  |  |  | cleared |  |
+| 2025-06-13T05:00:00Z | Amazon | Shopping | -173.35 |  |  |  | cleared |  |
+| 2025-06-09T05:00:00Z | Local Restaurant | Dining | -111.66 |  |  |  | cleared |  |
+| 2025-06-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-06-08T05:00:00Z | Whole Foods | Groceries | -103.03 |  |  |  | cleared |  |
+| 2025-06-05T05:00:00Z | Local Restaurant | Dining | -78.89 |  |  |  | cleared |  |
+| 2025-06-03T05:00:00Z | Payment Received | Credit Card Payment | 1782.3 |  |  |  | cleared |  |
+| 2025-06-01T05:00:00Z | Whole Foods | Groceries | -131.54 |  |  |  | cleared |  |
+| 2025-05-29T05:00:00Z | Local Restaurant | Dining | -84.89 |  |  |  | cleared |  |
+| 2025-05-26T05:00:00Z | Amazon | Shopping | -120.58 |  |  |  | cleared |  |
+| 2025-05-25T05:00:00Z | Whole Foods | Groceries | -179.49 |  |  |  | cleared |  |
+| 2025-05-24T05:00:00Z | Local Restaurant | Dining | -89.89 |  |  |  | cleared |  |
+| 2025-05-19T05:00:00Z | Amazon | Shopping | -63.12 |  |  |  | cleared |  |
+| 2025-05-18T05:00:00Z | Whole Foods | Groceries | -112.12 |  |  |  | cleared |  |
+| 2025-05-18T05:00:00Z | Local Restaurant | Dining | -87.04 |  |  |  | cleared |  |
+| 2025-05-16T05:00:00Z | Amazon | Shopping | -50.71 |  |  |  | cleared |  |
+| 2025-05-11T05:00:00Z | Whole Foods | Groceries | -206.92 |  |  |  | cleared |  |
+| 2025-05-09T05:00:00Z | Local Restaurant | Dining | -119.4 |  |  |  | cleared |  |
+| 2025-05-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-05-04T05:00:00Z | Whole Foods | Groceries | -184.56 |  |  |  | cleared |  |
+| 2025-05-03T05:00:00Z | Local Restaurant | Dining | -85.79 |  |  |  | cleared |  |
+| 2025-05-03T05:00:00Z | Payment Received | Credit Card Payment | 1172.2 |  |  |  | cleared |  |
+| 2025-04-27T05:00:00Z | Whole Foods | Groceries | -103.57 |  |  |  | cleared |  |
+| 2025-04-26T05:00:00Z | Local Restaurant | Dining | -66.33 |  |  |  | cleared |  |
+| 2025-04-20T05:00:00Z | Whole Foods | Groceries | -112.41 |  |  |  | cleared |  |
+| 2025-04-14T05:00:00Z | Local Restaurant | Dining | -88.23 |  |  |  | cleared |  |
+| 2025-04-13T05:00:00Z | Whole Foods | Groceries | -95.46 |  |  |  | cleared |  |
+| 2025-04-08T05:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-04-08T05:00:00Z | Amazon | Shopping | -91.42 |  |  |  | cleared |  |
+| 2025-04-07T05:00:00Z | Local Restaurant | Dining | -87.99 |  |  |  | cleared |  |
+| 2025-04-06T05:00:00Z | Whole Foods | Groceries | -188.01 |  |  |  | cleared |  |
+| 2025-04-03T05:00:00Z | Payment Received | Credit Card Payment | 1471.7 |  |  |  | cleared |  |
+| 2025-04-03T05:00:00Z | Amazon | Shopping | -90.47 |  |  |  | cleared |  |
+| 2025-04-02T05:00:00Z | Local Restaurant | Dining | -87.39 |  |  |  | cleared |  |
+| 2025-04-01T05:00:00Z | Amazon | Shopping | -113.12 |  |  |  | cleared |  |
+| 2025-03-30T05:00:00Z | Whole Foods | Groceries | -184.59 |  |  |  | cleared |  |
+| 2025-03-29T05:00:00Z | Local Restaurant | Dining | -74.8 |  |  |  | cleared |  |
+| 2025-03-28T05:00:00Z | Amazon | Shopping | -145.69 |  |  |  | cleared |  |
+| 2025-03-23T05:00:00Z | Whole Foods | Groceries | -162.46 |  |  |  | cleared |  |
+| 2025-03-20T05:00:00Z | Amazon | Shopping | -59.15 |  |  |  | cleared |  |
+| 2025-03-18T05:00:00Z | Local Restaurant | Dining | -65.07 |  |  |  | cleared |  |
+| 2025-03-16T05:00:00Z | Whole Foods | Groceries | -204.59 |  |  |  | cleared |  |
+| 2025-03-11T05:00:00Z | Local Restaurant | Dining | -94.07 |  |  |  | cleared |  |
+| 2025-03-09T06:00:00Z | Whole Foods | Groceries | -193.72 |  |  |  | cleared |  |
+| 2025-03-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-03-07T06:00:00Z | Local Restaurant | Dining | -99.77 |  |  |  | cleared |  |
+| 2025-03-06T06:00:00Z | Amazon | Shopping | -111.08 |  |  |  | cleared |  |
+| 2025-03-03T06:00:00Z | Payment Received | Credit Card Payment | 1265.79 |  |  |  | cleared |  |
+| 2025-03-02T06:00:00Z | Whole Foods | Groceries | -137.97 |  |  |  | cleared |  |
+| 2025-02-27T06:00:00Z | Amazon | Shopping | -115.22 |  |  |  | cleared |  |
+| 2025-02-25T06:00:00Z | Local Restaurant | Dining | -78.43 |  |  |  | cleared |  |
+| 2025-02-23T06:00:00Z | Whole Foods | Groceries | -112.07 |  |  |  | cleared |  |
+| 2025-02-23T06:00:00Z | Amazon | Shopping | -189.93 |  |  |  | cleared |  |
+| 2025-02-22T06:00:00Z | Local Restaurant | Dining | -74.32 |  |  |  | cleared |  |
+| 2025-02-18T06:00:00Z | Amazon | Shopping | -62.13 |  |  |  | cleared |  |
+| 2025-02-16T06:00:00Z | Whole Foods | Groceries | -100.43 |  |  |  | cleared |  |
+| 2025-02-14T06:00:00Z | Local Restaurant | Dining | -106.12 |  |  |  | cleared |  |
+| 2025-02-09T06:00:00Z | Whole Foods | Groceries | -130.76 |  |  |  | cleared |  |
+| 2025-02-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-02-07T06:00:00Z | Local Restaurant | Dining | -112.58 |  |  |  | cleared |  |
+| 2025-02-03T06:00:00Z | Payment Received | Credit Card Payment | 2218.41 |  |  |  | cleared |  |
+| 2025-02-02T06:00:00Z | Whole Foods | Groceries | -100.72 |  |  |  | cleared |  |
+| 2025-02-01T06:00:00Z | Local Restaurant | Dining | -70.19 |  |  |  | cleared |  |
+| 2025-01-26T06:00:00Z | Whole Foods | Groceries | -206.97 |  |  |  | cleared |  |
+| 2025-01-26T06:00:00Z | Local Restaurant | Dining | -81.61 |  |  |  | cleared |  |
+| 2025-01-21T06:00:00Z | Amazon | Shopping | -196.39 |  |  |  | cleared |  |
+| 2025-01-19T06:00:00Z | Whole Foods | Groceries | -141.48 |  |  |  | cleared |  |
+| 2025-01-16T06:00:00Z | Local Restaurant | Dining | -60.14 |  |  |  | cleared |  |
+| 2025-01-13T06:00:00Z | Amazon | Shopping | -161.13 |  |  |  | cleared |  |
+| 2025-01-12T06:00:00Z | Whole Foods | Groceries | -166.32 |  |  |  | cleared |  |
+| 2025-01-10T06:00:00Z | Local Restaurant | Dining | -104.78 |  |  |  | cleared |  |
+| 2025-01-08T06:00:00Z | CC Internet | Utilities | -110 |  |  |  | cleared |  |
+| 2025-01-05T06:00:00Z | Whole Foods | Groceries | -156.91 |  |  |  | cleared |  |
+| 2025-01-05T06:00:00Z | Amazon | Shopping | -181.91 |  |  |  | cleared |  |
+
+## Settings
+| Key | Value |
+| --- | --- |
+| lastProjectionScenario | Future planning |
+| lastProjectionStartDate | 2026-08-17T01:54:14Z |
+| lastProjectionEndDate | 2026-11-04T02:54:14Z |
+

@@ -1,0 +1,86 @@
+{
+  "account" : "Rewards Card",
+  "count" : 10,
+  "transactions" : [
+    {
+      "amount" : -89.070000000000007,
+      "category" : "Dining",
+      "date" : "2026-02-17",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -583.29999999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -159.12,
+      "category" : "Groceries",
+      "date" : "2026-02-15",
+      "payee" : "Whole Foods",
+      "runningBalance" : -494.23000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -113.38,
+      "category" : "Dining",
+      "date" : "2026-02-10",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -335.11000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -111.72999999999999,
+      "category" : "Groceries",
+      "date" : "2026-02-08",
+      "payee" : "Whole Foods",
+      "runningBalance" : -221.73000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2026-02-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -110,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -119.34999999999999,
+      "category" : "Dining",
+      "date" : "2026-02-05",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 0,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -126.13,
+      "category" : "Shopping",
+      "date" : "2026-02-04",
+      "payee" : "Amazon",
+      "runningBalance" : 119.34999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1383.4400000000001,
+      "category" : "Credit Card Payment",
+      "date" : "2026-02-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 245.48000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -115.17,
+      "category" : "Groceries",
+      "date" : "2026-02-01",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1137.96,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -89.629999999999995,
+      "category" : "Dining",
+      "date" : "2026-01-28",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1022.79,
+      "status" : "cleared"
+    }
+  ]
+}

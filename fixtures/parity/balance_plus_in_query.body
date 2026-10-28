@@ -1,0 +1,12 @@
+{
+  "accounts" : [
+    {
+      "balance" : 12133.780000000001,
+      "external" : false,
+      "institution" : "Chase",
+      "name" : "Main Checking",
+      "type" : "checking"
+    }
+  ],
+  "total" : 12133.780000000001
+}

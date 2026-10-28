@@ -1,0 +1,14 @@
+## Rewards Card — Last 10 Transactions
+
+| Date | Payee | Amount | Balance | Status | Category | Contexts | Memo |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| 2026-02-17 | Local Restaurant | -$89.07 | -$583.30 | Cleared | Dining |  |  |
+| 2026-02-15 | Whole Foods | -$159.12 | -$494.23 | Cleared | Groceries |  |  |
+| 2026-02-10 | Local Restaurant | -$113.38 | -$335.11 | Cleared | Dining |  |  |
+| 2026-02-08 | Whole Foods | -$111.73 | -$221.73 | Cleared | Groceries |  |  |
+| 2026-02-08 | CC Internet | -$110.00 | -$110.00 | Cleared | Utilities |  |  |
+| 2026-02-05 | Local Restaurant | -$119.35 | $0.00 | Cleared | Dining |  |  |
+| 2026-02-04 | Amazon | -$126.13 | $119.35 | Cleared | Shopping |  |  |
+| 2026-02-03 | Payment Received | $1,383.44 | $245.48 | Cleared | Credit Card Payment |  |  |
+| 2026-02-01 | Whole Foods | -$115.17 | -$1,137.96 | Cleared | Groceries |  |  |
+| 2026-01-28 | Local Restaurant | -$89.63 | -$1,022.79 | Cleared | Dining |  |  |

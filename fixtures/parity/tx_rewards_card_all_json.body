@@ -1,0 +1,1518 @@
+{
+  "account" : "Rewards Card",
+  "count" : 189,
+  "transactions" : [
+    {
+      "amount" : -89.070000000000007,
+      "category" : "Dining",
+      "date" : "2026-02-17",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -583.29999999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -159.12,
+      "category" : "Groceries",
+      "date" : "2026-02-15",
+      "payee" : "Whole Foods",
+      "runningBalance" : -494.23000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -113.38,
+      "category" : "Dining",
+      "date" : "2026-02-10",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -335.11000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -111.72999999999999,
+      "category" : "Groceries",
+      "date" : "2026-02-08",
+      "payee" : "Whole Foods",
+      "runningBalance" : -221.73000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2026-02-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -110,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -119.34999999999999,
+      "category" : "Dining",
+      "date" : "2026-02-05",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 0,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -126.13,
+      "category" : "Shopping",
+      "date" : "2026-02-04",
+      "payee" : "Amazon",
+      "runningBalance" : 119.34999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1383.4400000000001,
+      "category" : "Credit Card Payment",
+      "date" : "2026-02-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 245.48000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -115.17,
+      "category" : "Groceries",
+      "date" : "2026-02-01",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1137.96,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -89.629999999999995,
+      "category" : "Dining",
+      "date" : "2026-01-28",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1022.79,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -102.01000000000001,
+      "category" : "Shopping",
+      "date" : "2026-01-26",
+      "payee" : "Amazon",
+      "runningBalance" : -933.16000000000008,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -118.3,
+      "category" : "Groceries",
+      "date" : "2026-01-25",
+      "payee" : "Whole Foods",
+      "runningBalance" : -831.14999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -62.170000000000002,
+      "category" : "Dining",
+      "date" : "2026-01-24",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -712.85000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -81.420000000000002,
+      "category" : "Shopping",
+      "date" : "2026-01-19",
+      "payee" : "Amazon",
+      "runningBalance" : -650.68000000000006,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -166.66,
+      "category" : "Groceries",
+      "date" : "2026-01-18",
+      "payee" : "Whole Foods",
+      "runningBalance" : -569.25999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -70.010000000000005,
+      "category" : "Dining",
+      "date" : "2026-01-14",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -402.60000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -173.56999999999999,
+      "category" : "Shopping",
+      "date" : "2026-01-12",
+      "payee" : "Amazon",
+      "runningBalance" : -332.59000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -132.16,
+      "category" : "Groceries",
+      "date" : "2026-01-11",
+      "payee" : "Whole Foods",
+      "runningBalance" : -159.02000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2026-01-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -26.860000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -89.789999999999992,
+      "category" : "Dining",
+      "date" : "2026-01-07",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 83.140000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -74.109999999999999,
+      "category" : "Shopping",
+      "date" : "2026-01-04",
+      "payee" : "Amazon",
+      "runningBalance" : 172.93000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -184.06999999999999,
+      "category" : "Groceries",
+      "date" : "2026-01-04",
+      "payee" : "Whole Foods",
+      "runningBalance" : 247.04000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1364.52,
+      "category" : "Credit Card Payment",
+      "date" : "2026-01-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 431.11000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -74.289999999999992,
+      "category" : "Dining",
+      "date" : "2025-12-31",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -933.41000000000008,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -138.19999999999999,
+      "category" : "Groceries",
+      "date" : "2025-12-28",
+      "payee" : "Whole Foods",
+      "runningBalance" : -859.12000000000012,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -60.760000000000005,
+      "category" : "Dining",
+      "date" : "2025-12-25",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -720.91999999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -158.02000000000001,
+      "category" : "Groceries",
+      "date" : "2025-12-21",
+      "payee" : "Whole Foods",
+      "runningBalance" : -660.16000000000008,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -129.04000000000002,
+      "category" : "Shopping",
+      "date" : "2025-12-18",
+      "payee" : "Amazon",
+      "runningBalance" : -502.13999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -64.929999999999993,
+      "category" : "Dining",
+      "date" : "2025-12-15",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -373.10000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -65.549999999999997,
+      "category" : "Dining",
+      "date" : "2025-12-14",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -308.16999999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -113.97,
+      "category" : "Groceries",
+      "date" : "2025-12-14",
+      "payee" : "Whole Foods",
+      "runningBalance" : -242.61999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -191.57999999999998,
+      "category" : "Shopping",
+      "date" : "2025-12-11",
+      "payee" : "Amazon",
+      "runningBalance" : -128.65000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-12-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 62.929999999999993,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -70.370000000000005,
+      "category" : "Shopping",
+      "date" : "2025-12-08",
+      "payee" : "Amazon",
+      "runningBalance" : 172.93000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -147.69,
+      "category" : "Groceries",
+      "date" : "2025-12-07",
+      "payee" : "Whole Foods",
+      "runningBalance" : 243.30000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1508.03,
+      "category" : "Credit Card Payment",
+      "date" : "2025-12-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 390.99000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -97.859999999999999,
+      "category" : "Dining",
+      "date" : "2025-12-01",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1117.04,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -144.92000000000002,
+      "category" : "Groceries",
+      "date" : "2025-11-30",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1019.1799999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -88.870000000000005,
+      "category" : "Dining",
+      "date" : "2025-11-27",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -874.25999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -157.06,
+      "category" : "Groceries",
+      "date" : "2025-11-23",
+      "payee" : "Whole Foods",
+      "runningBalance" : -785.38999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -108.00999999999999,
+      "category" : "Dining",
+      "date" : "2025-11-20",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -628.33000000000004,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -155.99000000000001,
+      "category" : "Groceries",
+      "date" : "2025-11-16",
+      "payee" : "Whole Foods",
+      "runningBalance" : -520.31999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -166.44,
+      "category" : "Shopping",
+      "date" : "2025-11-16",
+      "payee" : "Amazon",
+      "runningBalance" : -364.33000000000004,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -107.87,
+      "category" : "Dining",
+      "date" : "2025-11-10",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -197.89000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -146.45999999999998,
+      "category" : "Groceries",
+      "date" : "2025-11-09",
+      "payee" : "Whole Foods",
+      "runningBalance" : -90.02000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-11-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 56.439999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -113.12,
+      "category" : "Shopping",
+      "date" : "2025-11-07",
+      "payee" : "Amazon",
+      "runningBalance" : 166.44,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -86.849999999999994,
+      "category" : "Dining",
+      "date" : "2025-11-05",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 279.56,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1686.5799999999999,
+      "category" : "Credit Card Payment",
+      "date" : "2025-11-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 366.40999999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -133.27000000000001,
+      "category" : "Groceries",
+      "date" : "2025-11-02",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1320.1700000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -156.09,
+      "category" : "Shopping",
+      "date" : "2025-11-02",
+      "payee" : "Amazon",
+      "runningBalance" : -1186.9000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -61.539999999999999,
+      "category" : "Dining",
+      "date" : "2025-10-28",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1030.8099999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -177.42000000000002,
+      "category" : "Groceries",
+      "date" : "2025-10-26",
+      "payee" : "Whole Foods",
+      "runningBalance" : -969.2700000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -132.64000000000001,
+      "category" : "Shopping",
+      "date" : "2025-10-26",
+      "payee" : "Amazon",
+      "runningBalance" : -791.85000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -87.439999999999998,
+      "category" : "Dining",
+      "date" : "2025-10-25",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -659.21000000000004,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -182.06999999999999,
+      "category" : "Groceries",
+      "date" : "2025-10-19",
+      "payee" : "Whole Foods",
+      "runningBalance" : -571.76999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -64.159999999999997,
+      "category" : "Dining",
+      "date" : "2025-10-16",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -389.69999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -125.92999999999999,
+      "category" : "Groceries",
+      "date" : "2025-10-12",
+      "payee" : "Whole Foods",
+      "runningBalance" : -325.54000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -118.03,
+      "category" : "Dining",
+      "date" : "2025-10-11",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -199.60999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -164.78,
+      "category" : "Shopping",
+      "date" : "2025-10-10",
+      "payee" : "Amazon",
+      "runningBalance" : -81.579999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -177.25,
+      "category" : "Shopping",
+      "date" : "2025-10-09",
+      "payee" : "Amazon",
+      "runningBalance" : 83.200000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-10-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 260.44999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -104.22,
+      "category" : "Groceries",
+      "date" : "2025-10-05",
+      "payee" : "Whole Foods",
+      "runningBalance" : 370.44999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1640.27,
+      "category" : "Credit Card Payment",
+      "date" : "2025-10-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 474.66999999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -87.070000000000007,
+      "category" : "Dining",
+      "date" : "2025-10-02",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1165.5999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -128.42000000000002,
+      "category" : "Shopping",
+      "date" : "2025-10-02",
+      "payee" : "Amazon",
+      "runningBalance" : -1078.53,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -71.530000000000001,
+      "category" : "Dining",
+      "date" : "2025-09-28",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -950.11000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -144.75999999999999,
+      "category" : "Groceries",
+      "date" : "2025-09-28",
+      "payee" : "Whole Foods",
+      "runningBalance" : -878.57999999999993,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -159.09,
+      "category" : "Groceries",
+      "date" : "2025-09-21",
+      "payee" : "Whole Foods",
+      "runningBalance" : -733.81999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -96.789999999999992,
+      "category" : "Dining",
+      "date" : "2025-09-20",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -574.73000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -50.439999999999998,
+      "category" : "Shopping",
+      "date" : "2025-09-19",
+      "payee" : "Amazon",
+      "runningBalance" : -477.93999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -131.44,
+      "category" : "Groceries",
+      "date" : "2025-09-14",
+      "payee" : "Whole Foods",
+      "runningBalance" : -427.5,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -108.87,
+      "category" : "Shopping",
+      "date" : "2025-09-12",
+      "payee" : "Amazon",
+      "runningBalance" : -296.06,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -165.89000000000001,
+      "category" : "Shopping",
+      "date" : "2025-09-09",
+      "payee" : "Amazon",
+      "runningBalance" : -187.19,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-09-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -21.300000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -69.960000000000008,
+      "category" : "Dining",
+      "date" : "2025-09-08",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 88.700000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -166.54000000000002,
+      "category" : "Groceries",
+      "date" : "2025-09-07",
+      "payee" : "Whole Foods",
+      "runningBalance" : 158.66,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -119.27000000000001,
+      "category" : "Dining",
+      "date" : "2025-09-06",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 325.19999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1555.48,
+      "category" : "Credit Card Payment",
+      "date" : "2025-09-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 444.46999999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -143.00999999999999,
+      "category" : "Groceries",
+      "date" : "2025-08-31",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1111.01,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -92.700000000000003,
+      "category" : "Dining",
+      "date" : "2025-08-25",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -968,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -186.10999999999999,
+      "category" : "Groceries",
+      "date" : "2025-08-24",
+      "payee" : "Whole Foods",
+      "runningBalance" : -875.29999999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -93,
+      "category" : "Dining",
+      "date" : "2025-08-19",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -689.18999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -195.25999999999999,
+      "category" : "Shopping",
+      "date" : "2025-08-17",
+      "payee" : "Amazon",
+      "runningBalance" : -596.18999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -146.56999999999999,
+      "category" : "Groceries",
+      "date" : "2025-08-17",
+      "payee" : "Whole Foods",
+      "runningBalance" : -400.93000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -102.72,
+      "category" : "Dining",
+      "date" : "2025-08-14",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -254.35999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -83.859999999999999,
+      "category" : "Shopping",
+      "date" : "2025-08-13",
+      "payee" : "Amazon",
+      "runningBalance" : -151.64000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -51.429999999999993,
+      "category" : "Shopping",
+      "date" : "2025-08-12",
+      "payee" : "Amazon",
+      "runningBalance" : -67.780000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -121.52000000000001,
+      "category" : "Groceries",
+      "date" : "2025-08-10",
+      "payee" : "Whole Foods",
+      "runningBalance" : -16.350000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -115.38,
+      "category" : "Dining",
+      "date" : "2025-08-09",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 105.17,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-08-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 220.55000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1947.4599999999998,
+      "category" : "Credit Card Payment",
+      "date" : "2025-08-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 330.55000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -207.31999999999999,
+      "category" : "Groceries",
+      "date" : "2025-08-03",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1616.9100000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -160.56,
+      "category" : "Shopping",
+      "date" : "2025-08-03",
+      "payee" : "Amazon",
+      "runningBalance" : -1409.5899999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -94.590000000000003,
+      "category" : "Dining",
+      "date" : "2025-08-01",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1249.03,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -61.870000000000005,
+      "category" : "Shopping",
+      "date" : "2025-07-28",
+      "payee" : "Amazon",
+      "runningBalance" : -1154.4400000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -167.69999999999999,
+      "category" : "Groceries",
+      "date" : "2025-07-27",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1092.5700000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -188.14000000000001,
+      "category" : "Shopping",
+      "date" : "2025-07-26",
+      "payee" : "Amazon",
+      "runningBalance" : -924.87000000000012,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -112.70999999999999,
+      "category" : "Dining",
+      "date" : "2025-07-23",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -736.73000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -209.75999999999999,
+      "category" : "Groceries",
+      "date" : "2025-07-20",
+      "payee" : "Whole Foods",
+      "runningBalance" : -624.01999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -170.34,
+      "category" : "Shopping",
+      "date" : "2025-07-20",
+      "payee" : "Amazon",
+      "runningBalance" : -414.26000000000005,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -109.03,
+      "category" : "Dining",
+      "date" : "2025-07-14",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -243.91999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -205.01999999999998,
+      "category" : "Groceries",
+      "date" : "2025-07-13",
+      "payee" : "Whole Foods",
+      "runningBalance" : -134.89000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -106.91,
+      "category" : "Dining",
+      "date" : "2025-07-10",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 70.129999999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-07-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 177.04000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -133.31,
+      "category" : "Groceries",
+      "date" : "2025-07-06",
+      "payee" : "Whole Foods",
+      "runningBalance" : 287.04000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -80.900000000000006,
+      "category" : "Dining",
+      "date" : "2025-07-04",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 420.35000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1606.55,
+      "category" : "Credit Card Payment",
+      "date" : "2025-07-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 501.25,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -177.09999999999999,
+      "category" : "Shopping",
+      "date" : "2025-07-01",
+      "payee" : "Amazon",
+      "runningBalance" : -1105.3,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -146.29000000000002,
+      "category" : "Shopping",
+      "date" : "2025-06-30",
+      "payee" : "Amazon",
+      "runningBalance" : -928.20000000000005,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -151.17000000000002,
+      "category" : "Groceries",
+      "date" : "2025-06-29",
+      "payee" : "Whole Foods",
+      "runningBalance" : -781.91000000000008,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -77.920000000000002,
+      "category" : "Shopping",
+      "date" : "2025-06-27",
+      "payee" : "Amazon",
+      "runningBalance" : -630.74000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -101.44,
+      "category" : "Dining",
+      "date" : "2025-06-23",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -552.81999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -133.69,
+      "category" : "Groceries",
+      "date" : "2025-06-22",
+      "payee" : "Whole Foods",
+      "runningBalance" : -451.38,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -104.09,
+      "category" : "Dining",
+      "date" : "2025-06-18",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -317.69,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -113.12,
+      "category" : "Groceries",
+      "date" : "2025-06-15",
+      "payee" : "Whole Foods",
+      "runningBalance" : -213.59999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -173.34999999999999,
+      "category" : "Shopping",
+      "date" : "2025-06-13",
+      "payee" : "Amazon",
+      "runningBalance" : -100.47999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -111.66,
+      "category" : "Dining",
+      "date" : "2025-06-09",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 72.870000000000005,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-06-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 184.53,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -103.03,
+      "category" : "Groceries",
+      "date" : "2025-06-08",
+      "payee" : "Whole Foods",
+      "runningBalance" : 294.53000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -78.890000000000001,
+      "category" : "Dining",
+      "date" : "2025-06-05",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 397.56,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1782.3,
+      "category" : "Credit Card Payment",
+      "date" : "2025-06-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 476.44999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -131.54000000000002,
+      "category" : "Groceries",
+      "date" : "2025-06-01",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1305.8499999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -84.890000000000001,
+      "category" : "Dining",
+      "date" : "2025-05-29",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1174.3099999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -120.58,
+      "category" : "Shopping",
+      "date" : "2025-05-26",
+      "payee" : "Amazon",
+      "runningBalance" : -1089.4200000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -179.49000000000001,
+      "category" : "Groceries",
+      "date" : "2025-05-25",
+      "payee" : "Whole Foods",
+      "runningBalance" : -968.83999999999992,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -89.890000000000001,
+      "category" : "Dining",
+      "date" : "2025-05-24",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -789.35000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -63.120000000000005,
+      "category" : "Shopping",
+      "date" : "2025-05-19",
+      "payee" : "Amazon",
+      "runningBalance" : -699.46000000000004,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -112.12,
+      "category" : "Groceries",
+      "date" : "2025-05-18",
+      "payee" : "Whole Foods",
+      "runningBalance" : -636.33999999999992,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -87.039999999999992,
+      "category" : "Dining",
+      "date" : "2025-05-18",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -524.22000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -50.710000000000001,
+      "category" : "Shopping",
+      "date" : "2025-05-16",
+      "payee" : "Amazon",
+      "runningBalance" : -437.18000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -206.91999999999999,
+      "category" : "Groceries",
+      "date" : "2025-05-11",
+      "payee" : "Whole Foods",
+      "runningBalance" : -386.46999999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -119.40000000000001,
+      "category" : "Dining",
+      "date" : "2025-05-09",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -179.55000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-05-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -60.149999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -184.56,
+      "category" : "Groceries",
+      "date" : "2025-05-04",
+      "payee" : "Whole Foods",
+      "runningBalance" : 49.850000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -85.789999999999992,
+      "category" : "Dining",
+      "date" : "2025-05-03",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 234.41,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1172.2,
+      "category" : "Credit Card Payment",
+      "date" : "2025-05-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 320.19999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -103.57000000000001,
+      "category" : "Groceries",
+      "date" : "2025-04-27",
+      "payee" : "Whole Foods",
+      "runningBalance" : -852,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -66.329999999999998,
+      "category" : "Dining",
+      "date" : "2025-04-26",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -748.43000000000006,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -112.41,
+      "category" : "Groceries",
+      "date" : "2025-04-20",
+      "payee" : "Whole Foods",
+      "runningBalance" : -682.10000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -88.22999999999999,
+      "category" : "Dining",
+      "date" : "2025-04-14",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -569.68999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -95.460000000000008,
+      "category" : "Groceries",
+      "date" : "2025-04-13",
+      "payee" : "Whole Foods",
+      "runningBalance" : -481.46000000000004,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-04-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -386,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -91.420000000000002,
+      "category" : "Shopping",
+      "date" : "2025-04-08",
+      "payee" : "Amazon",
+      "runningBalance" : -276,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -87.989999999999995,
+      "category" : "Dining",
+      "date" : "2025-04-07",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -184.57999999999998,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -188.00999999999999,
+      "category" : "Groceries",
+      "date" : "2025-04-06",
+      "payee" : "Whole Foods",
+      "runningBalance" : -96.590000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1471.7,
+      "category" : "Credit Card Payment",
+      "date" : "2025-04-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 91.420000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -90.469999999999999,
+      "category" : "Shopping",
+      "date" : "2025-04-03",
+      "payee" : "Amazon",
+      "runningBalance" : -1380.28,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -87.390000000000001,
+      "category" : "Dining",
+      "date" : "2025-04-02",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1289.8099999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -113.12,
+      "category" : "Shopping",
+      "date" : "2025-04-01",
+      "payee" : "Amazon",
+      "runningBalance" : -1202.4200000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -184.59,
+      "category" : "Groceries",
+      "date" : "2025-03-30",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1089.3,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -74.799999999999997,
+      "category" : "Dining",
+      "date" : "2025-03-29",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -904.71000000000004,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -145.69,
+      "category" : "Shopping",
+      "date" : "2025-03-28",
+      "payee" : "Amazon",
+      "runningBalance" : -829.91000000000008,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -162.45999999999998,
+      "category" : "Groceries",
+      "date" : "2025-03-23",
+      "payee" : "Whole Foods",
+      "runningBalance" : -684.22000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -59.149999999999999,
+      "category" : "Shopping",
+      "date" : "2025-03-20",
+      "payee" : "Amazon",
+      "runningBalance" : -521.75999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -65.070000000000007,
+      "category" : "Dining",
+      "date" : "2025-03-18",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -462.61000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -204.59,
+      "category" : "Groceries",
+      "date" : "2025-03-16",
+      "payee" : "Whole Foods",
+      "runningBalance" : -397.54000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -94.070000000000007,
+      "category" : "Dining",
+      "date" : "2025-03-11",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -192.94999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -193.72,
+      "category" : "Groceries",
+      "date" : "2025-03-09",
+      "payee" : "Whole Foods",
+      "runningBalance" : -98.879999999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-03-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 94.840000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -99.77000000000001,
+      "category" : "Dining",
+      "date" : "2025-03-07",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 204.84,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -111.08,
+      "category" : "Shopping",
+      "date" : "2025-03-06",
+      "payee" : "Amazon",
+      "runningBalance" : 304.61000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 1265.79,
+      "category" : "Credit Card Payment",
+      "date" : "2025-03-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 415.68999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -137.97,
+      "category" : "Groceries",
+      "date" : "2025-03-02",
+      "payee" : "Whole Foods",
+      "runningBalance" : -850.10000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -115.22,
+      "category" : "Shopping",
+      "date" : "2025-02-27",
+      "payee" : "Amazon",
+      "runningBalance" : -712.13,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -78.429999999999993,
+      "category" : "Dining",
+      "date" : "2025-02-25",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -596.91000000000008,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -112.07000000000001,
+      "category" : "Groceries",
+      "date" : "2025-02-23",
+      "payee" : "Whole Foods",
+      "runningBalance" : -518.48000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -189.93000000000001,
+      "category" : "Shopping",
+      "date" : "2025-02-23",
+      "payee" : "Amazon",
+      "runningBalance" : -406.40999999999997,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -74.320000000000007,
+      "category" : "Dining",
+      "date" : "2025-02-22",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -216.48000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -62.129999999999995,
+      "category" : "Shopping",
+      "date" : "2025-02-18",
+      "payee" : "Amazon",
+      "runningBalance" : -142.16,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -100.42999999999999,
+      "category" : "Groceries",
+      "date" : "2025-02-16",
+      "payee" : "Whole Foods",
+      "runningBalance" : -80.030000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -106.12,
+      "category" : "Dining",
+      "date" : "2025-02-14",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 20.399999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -130.75999999999999,
+      "category" : "Groceries",
+      "date" : "2025-02-09",
+      "payee" : "Whole Foods",
+      "runningBalance" : 126.52000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-02-08",
+      "payee" : "CC Internet",
+      "runningBalance" : 257.28000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -112.58,
+      "category" : "Dining",
+      "date" : "2025-02-07",
+      "payee" : "Local Restaurant",
+      "runningBalance" : 367.28000000000003,
+      "status" : "cleared"
+    },
+    {
+      "amount" : 2218.4099999999999,
+      "category" : "Credit Card Payment",
+      "date" : "2025-02-03",
+      "payee" : "Payment Received",
+      "runningBalance" : 479.86000000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -100.72,
+      "category" : "Groceries",
+      "date" : "2025-02-02",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1738.55,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -70.189999999999998,
+      "category" : "Dining",
+      "date" : "2025-02-01",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1637.8299999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -206.96999999999997,
+      "category" : "Groceries",
+      "date" : "2025-01-26",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1567.6399999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -81.609999999999999,
+      "category" : "Dining",
+      "date" : "2025-01-26",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -1360.6700000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -196.39000000000001,
+      "category" : "Shopping",
+      "date" : "2025-01-21",
+      "payee" : "Amazon",
+      "runningBalance" : -1279.0599999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -141.47999999999999,
+      "category" : "Groceries",
+      "date" : "2025-01-19",
+      "payee" : "Whole Foods",
+      "runningBalance" : -1082.6700000000001,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -60.140000000000001,
+      "category" : "Dining",
+      "date" : "2025-01-16",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -941.18999999999994,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -161.13,
+      "category" : "Shopping",
+      "date" : "2025-01-13",
+      "payee" : "Amazon",
+      "runningBalance" : -881.04999999999995,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -166.31999999999999,
+      "category" : "Groceries",
+      "date" : "2025-01-12",
+      "payee" : "Whole Foods",
+      "runningBalance" : -719.91999999999996,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -104.78,
+      "category" : "Dining",
+      "date" : "2025-01-10",
+      "payee" : "Local Restaurant",
+      "runningBalance" : -553.60000000000002,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -110,
+      "category" : "Utilities",
+      "date" : "2025-01-08",
+      "payee" : "CC Internet",
+      "runningBalance" : -448.81999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -156.91,
+      "category" : "Groceries",
+      "date" : "2025-01-05",
+      "payee" : "Whole Foods",
+      "runningBalance" : -338.81999999999999,
+      "status" : "cleared"
+    },
+    {
+      "amount" : -181.91,
+      "category" : "Shopping",
+      "date" : "2025-01-05",
+      "payee" : "Amazon",
+      "runningBalance" : -181.91,
+      "status" : "cleared"
+    }
+  ]
+}
