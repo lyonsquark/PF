@@ -24,7 +24,7 @@ VERSION="$(awk '/^\[workspace.package\]/ { f = 1; next } /^\[/ { f = 0 } f && /^
 check "binary exists and is executable" test -x "${APP}/Contents/MacOS/PF"
 check "bundle identifier" test "$(plutil -extract CFBundleIdentifier raw "${APP}/Contents/Info.plist")" = "local.pfrust.app"
 check "version matches the workspace" test "$(plutil -extract CFBundleShortVersionString raw "${APP}/Contents/Info.plist")" = "${VERSION}"
-if [ -f "${ROOT}/../PFApp/Sources/PFApp/Resources/AppIcon.png" ]; then
+if [ -f "${ROOT}/apps/pf/macos/AppIcon.png" ]; then
     check "icon exists" test -f "${APP}/Contents/Resources/AppIcon.icns"
 fi
 check "PkgInfo" grep -q "APPL????" "${APP}/Contents/PkgInfo"

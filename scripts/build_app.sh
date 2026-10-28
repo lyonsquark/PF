@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TARGET_DIR="${ROOT}/target/release"
 APP_BUNDLE="${ROOT}/${APP_NAME}.app"
-ICON_SOURCE="${ROOT}/../PFApp/Sources/PFApp/Resources/AppIcon.png"
+ICON_SOURCE="${ROOT}/apps/pf/macos/AppIcon.png"
 PLIST_TEMPLATE="${ROOT}/apps/pf/macos/Info.plist"
 
 usage() {
