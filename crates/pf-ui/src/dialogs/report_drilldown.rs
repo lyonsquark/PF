@@ -12,7 +12,6 @@ use rust_decimal::Decimal;
 
 use super::{Dialog, Outcome};
 use crate::app::UiCtx;
-use crate::widgets::col_fit::{fit, longest};
 use crate::widgets::colors;
 use crate::widgets::hscroll::{self, HScroll};
 
@@ -22,6 +21,24 @@ const ROW_HEIGHT: f32 = 22.0;
 const HEADER_HEIGHT: f32 = 20.0;
 /// The drill-down dialogs' width, in points, when the window is wide enough.
 const DIALOG_WIDTH: f32 = 900.0;
+/// Fixed column widths of the drill-down tables, in points. Together with the gaps between columns they
+/// fit inside `DIALOG_WIDTH`: a table wider than its dialog would push the dialog and its text off screen.
+const TX_DATE_WIDTH: f32 = 90.0;
+const TX_ACCOUNT_WIDTH: f32 = 100.0;
+const TX_PAYEE_WIDTH: f32 = 130.0;
+const TX_AMOUNT_WIDTH: f32 = 90.0;
+const TX_CONTEXT_WIDTH: f32 = 100.0;
+const TX_STATUS_WIDTH: f32 = 80.0;
+const TX_SCENARIO_WIDTH: f32 = 90.0;
+const BUDGET_NAME_WIDTH: f32 = 130.0;
+const BUDGET_CATEGORY_WIDTH: f32 = 120.0;
+const BUDGET_TYPE_WIDTH: f32 = 64.0;
+const BUDGET_FREQUENCY_WIDTH: f32 = 120.0;
+const BUDGET_AMOUNT_WIDTH: f32 = 90.0;
+const BUDGET_START_WIDTH: f32 = 90.0;
+const BUDGET_TOTAL_WIDTH: f32 = 176.0;
+/// The narrowest the memo column may be; it takes the rest of the transaction window.
+const TX_MEMO_MIN_WIDTH: f32 = 80.0;
 
 /// Opens the transactions drill-down (used by the reports and, from T24b, by the charts).
 pub fn open_transactions(cx: &mut UiCtx, title: String, ids: Vec<TransactionId>) {
@@ -49,25 +66,13 @@ pub fn show_transactions(
                 // The memo takes the rest of the width, so the table fits the dialog and the sideways
                 // scroll is only for a scenario's extra column on a narrow window. Each column starts as
                 // wide as its widest text (see `widgets::col_fit`).
-                let date_w = fit(ui, "Date", &["Sep 30, 2026"]);
-                let account_w = fit(
-                    ui,
-                    "Account",
-                    &longest(rows.iter().map(|r| r.account.as_str())),
-                );
-                let payee_w = fit(ui, "Payee", &longest(rows.iter().map(|r| r.payee.as_str())));
-                let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
-                let context_w = fit(
-                    ui,
-                    "Context",
-                    &longest(rows.iter().map(|r| r.contexts.as_str())),
-                );
-                let status_w = fit(ui, "Status", &["Reconciled", "Pending"]);
-                let scenario_w = fit(
-                    ui,
-                    "Scenario",
-                    &longest(rows.iter().map(|r| r.scenario.as_str())),
-                );
+                let date_w = TX_DATE_WIDTH;
+                let account_w = TX_ACCOUNT_WIDTH;
+                let payee_w = TX_PAYEE_WIDTH;
+                let amount_w = TX_AMOUNT_WIDTH;
+                let context_w = TX_CONTEXT_WIDTH;
+                let status_w = TX_STATUS_WIDTH;
+                let scenario_w = TX_SCENARIO_WIDTH;
                 let mut table = TableBuilder::new(ui)
                     .id_salt("drill_transactions")
                     .resizable(true)
@@ -78,7 +83,7 @@ pub fn show_transactions(
                     .column(Column::initial(account_w))
                     .column(Column::initial(payee_w))
                     .column(Column::initial(amount_w))
-                    .column(Column::remainder().at_least(120.0))
+                    .column(Column::remainder().at_least(TX_MEMO_MIN_WIDTH))
                     .column(Column::initial(context_w))
                     .column(Column::initial(status_w));
                 if scenario_active {
@@ -170,17 +175,13 @@ pub fn show_budget_items(
         if rows.is_empty() {
             ui.label(RichText::new("No budget items").weak());
         } else {
-            let name_w = fit(ui, "Name", &longest(rows.iter().map(|r| r.name.as_str())));
-            let category_w = fit(
-                ui,
-                "Category",
-                &longest(rows.iter().map(|r| r.category.as_str())),
-            );
-            let type_w = fit(ui, "Type", &["Expense", "Income", "Bill"]);
-            let frequency_w = fit(ui, "Frequency", &["Specific Months (12)"]);
-            let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
-            let start_w = fit(ui, "Start Date", &["Sep 30, 2026"]);
-            let total_w = fit(ui, "Calculated Total (In Window)", &["-$999,999.99"]);
+            let name_w = BUDGET_NAME_WIDTH;
+            let category_w = BUDGET_CATEGORY_WIDTH;
+            let type_w = BUDGET_TYPE_WIDTH;
+            let frequency_w = BUDGET_FREQUENCY_WIDTH;
+            let amount_w = BUDGET_AMOUNT_WIDTH;
+            let start_w = BUDGET_START_WIDTH;
+            let total_w = BUDGET_TOTAL_WIDTH;
             with_hscroll(ui, "report_budget_items_hscroll", |ui| {
                 TableBuilder::new(ui)
                     .id_salt("drill_budget_items")

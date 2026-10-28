@@ -278,3 +278,90 @@ fn ui_rpt_bs_net_worth_note_mentions_pending() {
         "net worth note"
     );
 }
+
+/// Opens the drill-down of the P&L figure `figure` in an 800-point window, where the names are long.
+/// Returns the window's heading rectangle and the rectangle of its last column header (`last`).
+fn narrow_drill(figure: &str, last: &str) -> (egui::Rect, egui::Rect, egui::Vec2) {
+    use egui_kittest::kittest::Queryable;
+    let mut t = TestDb::new();
+    let chk = t.account(
+        "A very long checking account name here",
+        AccountType::Checking,
+    );
+    let groceries = t.category(
+        "Groceries and household supplies for the whole family",
+        CategoryType::Expense,
+    );
+    for i in 0..3 {
+        t.tx(
+            chk,
+            "2026-03-05",
+            "-100",
+            &format!("A very long payee name number {i} indeed"),
+        )
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    }
+    t.budget_item(
+        BudgetItemType::Expense,
+        "A very long budget item name for the test",
+        "40",
+        "2026-01-01",
+        BudgetFrequency::Monthly,
+    )
+    .category(groceries)
+    .done();
+    let window = egui::Vec2::new(800.0, 640.0);
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Reports);
+    let mut h = egui_kittest::Harness::builder()
+        .with_size(window)
+        .build_ui(|ui| app.ui_root(ui));
+    h.run();
+    click_button(&mut h, figure);
+    h.run();
+    let heading = h
+        .query_all_by_value("Groceries and household supplies for the whole family Transactions")
+        .chain(h.query_all_by_value(
+            "Groceries and household supplies for the whole family Budget Items",
+        ))
+        .next()
+        .expect("drill-down heading")
+        .rect();
+    let last_header = h
+        .query_all_by_value(last)
+        .next()
+        .expect("last column header")
+        .rect();
+    (heading, last_header, window)
+}
+
+#[test]
+/// The Actual drill-down stays inside a narrow window even with long names: a wider table would push
+/// the dialog and its text off screen.
+fn ui_rpt_actual_drill_fits_narrow_window() {
+    let (heading, last, window) = narrow_drill("-$300.00", "Status");
+    assert!(
+        heading.left() >= 0.0,
+        "heading starts inside the window: {heading:?}"
+    );
+    assert!(
+        last.right() <= window.x,
+        "last column ends inside the window: {last:?}"
+    );
+}
+
+#[test]
+/// The Budgeted drill-down stays inside a narrow window even with long names.
+fn ui_rpt_budgeted_drill_fits_narrow_window() {
+    let (heading, last, window) = narrow_drill("-$40.00", "Calculated Total (In Window)");
+    assert!(
+        heading.left() >= 0.0,
+        "heading starts inside the window: {heading:?}"
+    );
+    assert!(
+        last.right() <= window.x,
+        "last column ends inside the window: {last:?}"
+    );
+}
