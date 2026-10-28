@@ -71,38 +71,41 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
-    Plot::new("chart_spending")
-        .cursor_color(egui::Color32::TRANSPARENT)
-        .label_formatter(|pos| {
-            super::style::hover_label(
-                pos,
-                |x| format!("Day {}", x.round()),
-                super::style::money_exact,
-            )
-        })
-        .x_grid_spacer(grid::major_x)
-        .y_grid_spacer(grid::major_y)
-        .height(super::PLOT_HEIGHT)
-        .legend(Legend::default())
-        .allow_zoom(false)
-        .allow_drag(false)
-        .allow_scroll(false)
-        .include_y(0.0)
-        .x_axis_formatter(|mark, _| format!("Day {}", mark.value.round()))
-        .y_axis_formatter(|mark, _| format!("{:.0}", mark.value))
-        .show(ui, |plot| {
-            plot.line(
-                Line::new(cmp.b.label.clone(), PlotPoints::from(b_points))
-                    .color(GREY)
-                    .width(2.0)
-                    .style(egui_plot::LineStyle::Dashed { length: 6.0 }),
-            );
-            plot.line(
-                Line::new(cmp.a.label.clone(), PlotPoints::from(a_points))
-                    .color(MAIN)
-                    .width(3.0),
-            );
-        });
+    Plot::new((
+        "chart_spending",
+        super::plot_key(f, (st.compare_a, st.compare_b)),
+    ))
+    .cursor_color(egui::Color32::TRANSPARENT)
+    .label_formatter(|pos| {
+        super::style::hover_label(
+            pos,
+            |x| format!("Day {}", x.round()),
+            super::style::money_exact,
+        )
+    })
+    .x_grid_spacer(grid::major_x)
+    .y_grid_spacer(grid::major_y)
+    .height(super::PLOT_HEIGHT)
+    .legend(Legend::default())
+    .allow_zoom(false)
+    .allow_drag(false)
+    .allow_scroll(false)
+    .include_y(0.0)
+    .x_axis_formatter(|mark, _| format!("Day {}", mark.value.round()))
+    .y_axis_formatter(|mark, _| format!("{:.0}", mark.value))
+    .show(ui, |plot| {
+        plot.line(
+            Line::new(cmp.b.label.clone(), PlotPoints::from(b_points))
+                .color(GREY)
+                .width(2.0)
+                .style(egui_plot::LineStyle::Dashed { length: 6.0 }),
+        );
+        plot.line(
+            Line::new(cmp.a.label.clone(), PlotPoints::from(a_points))
+                .color(MAIN)
+                .width(3.0),
+        );
+    });
 }
 
 /// The budget pacing card: what has been spent against the budget so far this month.
@@ -156,7 +159,7 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
-    Plot::new("chart_pacing")
+    Plot::new(("chart_pacing", super::plot_key(f, st.pacing_date)))
         .cursor_color(egui::Color32::TRANSPARENT)
         .label_formatter(|pos| {
             super::style::hover_label(

@@ -85,7 +85,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
         return;
     }
     let names: Vec<String> = w.bars.iter().map(|b| b.label.clone()).collect();
-    let plot = Plot::new("chart_waterfall")
+    let plot = Plot::new(("chart_waterfall", super::plot_key(f, st.waterfall_date)))
         .x_grid_spacer(grid::per_bar(w.bars.len()))
         .y_grid_spacer(grid::major_y)
         .height(PLOT_HEIGHT)

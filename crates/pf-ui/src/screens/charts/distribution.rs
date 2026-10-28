@@ -69,22 +69,25 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         })
         .collect();
     let height = distribution_height(slices.len());
-    Plot::new("chart_distribution")
-        .x_grid_spacer(grid::major_x)
-        .y_grid_spacer(grid::per_bar(slices.len()))
-        .height(height)
-        .allow_zoom(false)
-        .allow_drag(false)
-        .allow_scroll(false)
-        .include_x(0.0)
-        .x_axis_formatter(|mark, _| format!("{:.0}", mark.value))
-        .y_axis_formatter(move |mark, _| {
-            usize::try_from(mark.value.round() as i64)
-                .ok()
-                .and_then(|i| names.get(i).cloned())
-                .unwrap_or_default()
-        })
-        .show(ui, |plot| {
-            plot.bar_chart(BarChart::new("Expenses", bars).horizontal());
-        });
+    Plot::new((
+        "chart_distribution",
+        super::plot_key(f, st.distribution_period),
+    ))
+    .x_grid_spacer(grid::major_x)
+    .y_grid_spacer(grid::per_bar(slices.len()))
+    .height(height)
+    .allow_zoom(false)
+    .allow_drag(false)
+    .allow_scroll(false)
+    .include_x(0.0)
+    .x_axis_formatter(|mark, _| format!("{:.0}", mark.value))
+    .y_axis_formatter(move |mark, _| {
+        usize::try_from(mark.value.round() as i64)
+            .ok()
+            .and_then(|i| names.get(i).cloned())
+            .unwrap_or_default()
+    })
+    .show(ui, |plot| {
+        plot.bar_chart(BarChart::new("Expenses", bars).horizontal());
+    });
 }

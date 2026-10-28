@@ -146,6 +146,12 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     }
 }
 
+/// The identity of a chart's view: the filter and the chart's own time setting. egui_plot keeps a plot's
+/// zoom and pan under its id, so a new key gives the plot fresh axes and grid lines when either changes.
+pub(crate) fn plot_key(f: &ChartFilter, setting: impl std::fmt::Debug) -> String {
+    format!("{:?}|{:?}|{:?}", f.accounts, f.scenario, setting)
+}
+
 /// One card: a framed group with the title as its heading.
 pub(crate) fn chart_card(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui)) {
     Frame::group(ui.style())

@@ -1,5 +1,6 @@
 //! The account filter of the Charts screen (T24a, Swift `AccountMultiSelectView`): a button that shows
-//! the selection, and a menu with a Select All / Deselect All toggle and one checkbox per account.
+//! the selection, and a menu with a Select All / Deselect All toggle, Select None (to build a selection
+//! from scratch) and one checkbox per account.
 
 use std::collections::BTreeSet;
 
@@ -23,6 +24,9 @@ pub fn account_multiselect(
             } else {
                 *selected = all;
             }
+        }
+        if ui.button("Select None").clicked() {
+            selected.clear();
         }
         ui.separator();
         for (id, name) in accounts {

@@ -61,7 +61,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|p| [day_number(p.date), to_f64(p.balance)])
         .collect();
-    Plot::new("chart_networth")
+    Plot::new(("chart_networth", super::plot_key(f, st.networth_period)))
         .cursor_color(egui::Color32::TRANSPARENT)
         .label_formatter(|pos| {
             super::style::hover_label(pos, super::style::day_hover, super::style::money_exact)

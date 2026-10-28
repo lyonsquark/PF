@@ -108,3 +108,34 @@ fn ui_chart_drill_window_fits_narrow_window() {
         "last column ends inside the window: {last:?}"
     );
 }
+
+#[test]
+/// The account filter has a Select None button that clears the selection, so a filter can be built from
+/// scratch.
+fn ui_cht_filter_select_none_clears_selection() {
+    use egui::accesskit::Role;
+    use egui_kittest::kittest::Queryable;
+    use pf_model::AccountType;
+    use std::collections::BTreeSet;
+    let mut t = pf_model::testing::TestDb::new();
+    t.account("Everyday", AccountType::Checking);
+    t.account("Savings", AccountType::Savings);
+    let db = t.build();
+    let all_label = pf_core::charts::selection_label(&db, &pf_core::charts::default_selection(&db));
+    let none_label = pf_core::charts::selection_label(&db, &BTreeSet::new());
+    let mut e = pf_engine::Engine::open_in_memory().expect("engine");
+    e.replace_db(db).expect("db");
+    let mut app = pf_ui::PfApp::new_for_test(e);
+    app.set_screen(pf_ui::screen::Screen::Charts);
+    let mut h = crate::common::harness(&mut app);
+    h.run();
+    h.get_by_role_and_label(Role::Button, &all_label).click();
+    h.run();
+    h.get_by_role_and_label(Role::Button, "Select None").click();
+    h.run();
+    assert!(
+        h.query_all_by_label(&none_label).next().is_some()
+            || h.query_all_by_value(&none_label).next().is_some(),
+        "the filter shows an empty selection"
+    );
+}
