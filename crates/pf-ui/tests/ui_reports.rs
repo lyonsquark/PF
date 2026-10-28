@@ -262,3 +262,19 @@ fn ui_rpt_bs_pending_column_next_to_balance() {
         "pending figure is {gap} points from the balance figure's right edge"
     );
 }
+
+#[test]
+/// R-RPT-4d: the Balance Sheet's Net Worth says it includes pending and future transactions, since the
+/// Dashboard's Net Worth does not.
+fn ui_rpt_bs_net_worth_note_mentions_pending() {
+    let mut app = PfApp::new_for_test(engine_with(report_db()));
+    app.set_screen(Screen::Reports);
+    let mut h = harness(&mut app);
+    h.run();
+    h.get_by_label("Balance Sheet").click();
+    h.run();
+    assert!(
+        shows(&h, "Includes pending and future transactions."),
+        "net worth note"
+    );
+}

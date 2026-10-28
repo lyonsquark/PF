@@ -425,6 +425,12 @@ fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
             ui.label(RichText::new("Net Worth").size(18.0).strong());
             with_right(ui, |ui| money(ui, sheet.net_worth, true));
         });
+        // The Dashboard's Net Worth uses cleared balances only; this one includes pending and future.
+        ui.label(
+            RichText::new("Includes pending and future transactions.")
+                .small()
+                .weak(),
+        );
         ui.horizontal(|ui| {
             ui.label("Available (Net Worth − Obligations)");
             with_right(ui, |ui| money(ui, sheet.available, false));
