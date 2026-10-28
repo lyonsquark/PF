@@ -10,6 +10,9 @@ use crate::caches::AccountRow;
 use crate::dialogs::{ConfirmAction, Dialog};
 use crate::screen::Screen;
 
+/// Width of the grouping menu, in points: wide enough for "Institution".
+const GROUPING_WIDTH: f32 = 120.0;
+
 /// How the account list is grouped (R-ACC-4). UI only, not persisted.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum Grouping {
@@ -143,7 +146,7 @@ fn accounts_header(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     ui.horizontal(|ui| {
         let combo = ComboBox::from_id_salt("sidebar_grouping")
             .selected_text(st.grouping.label())
-            .width(ui.available_width())
+            .width(GROUPING_WIDTH)
             .show_ui(ui, |ui| {
                 for g in Grouping::ALL {
                     ui.selectable_value(&mut st.grouping, g, g.label());
