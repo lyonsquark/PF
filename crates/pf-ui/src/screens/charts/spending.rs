@@ -81,7 +81,10 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(|mark, _| format!("Day {}", mark.value.round()))
+        .x_axis_formatter(grid::hide_minor(|mark, _| {
+            format!("Day {}", mark.value.round())
+        }))
+        .y_axis_formatter(grid::hide_minor(|mark, _| format!("{:.0}", mark.value)))
         .show(ui, |plot| {
             plot.line(
                 Line::new(cmp.b.label.clone(), PlotPoints::from(b_points))
@@ -158,7 +161,10 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(|mark, _| format!("{}", mark.value.round()))
+        .x_axis_formatter(grid::hide_minor(|mark, _| {
+            format!("{}", mark.value.round())
+        }))
+        .y_axis_formatter(grid::hide_minor(|mark, _| format!("{:.0}", mark.value)))
         .show(ui, |plot| {
             plot.line(
                 Line::new("Budget Pacing", PlotPoints::from(budget))

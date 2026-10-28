@@ -69,8 +69,8 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .allow_zoom(true)
         .allow_drag(true)
         .allow_scroll(false)
-        .x_axis_formatter(move |mark, _| day_axis(mark.value, long))
-        .y_axis_formatter(|mark, _| money_axis_small(mark.value))
+        .x_axis_formatter(grid::hide_minor(move |mark, _| day_axis(mark.value, long)))
+        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis_small(mark.value)))
         .show(ui, |plot| {
             plot.line(
                 Line::new("Net Worth", PlotPoints::from(values))

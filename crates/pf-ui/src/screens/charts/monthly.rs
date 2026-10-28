@@ -76,8 +76,10 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(move |mark, _| label_at(&labels, mark.value))
-        .y_axis_formatter(|mark, _| money_axis(mark.value))
+        .x_axis_formatter(grid::hide_minor(move |mark, _| {
+            label_at(&labels, mark.value)
+        }))
+        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis(mark.value)))
         .show(ui, |plot| {
             plot.bar_chart(BarChart::new("Income", income).color(INCOME));
             plot.bar_chart(BarChart::new("Expenses", expenses).color(EXPENSE));
@@ -137,8 +139,10 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(move |mark, _| label_at(&labels, mark.value))
-        .y_axis_formatter(|mark, _| money_axis(mark.value))
+        .x_axis_formatter(grid::hide_minor(move |mark, _| {
+            label_at(&labels, mark.value)
+        }))
+        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis(mark.value)))
         .show(ui, |plot| {
             plot.line(
                 Line::new("Income", PlotPoints::from(income))

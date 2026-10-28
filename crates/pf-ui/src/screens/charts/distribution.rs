@@ -78,12 +78,13 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .allow_drag(false)
         .allow_scroll(false)
         .include_x(0.0)
-        .y_axis_formatter(move |mark, _| {
+        .x_axis_formatter(grid::hide_minor(|mark, _| format!("{:.0}", mark.value)))
+        .y_axis_formatter(grid::hide_minor(move |mark, _| {
             usize::try_from(mark.value.round() as i64)
                 .ok()
                 .and_then(|i| names.get(i).cloned())
                 .unwrap_or_default()
-        })
+        }))
         .show(ui, |plot| {
             plot.bar_chart(BarChart::new("Expenses", bars).horizontal());
         });

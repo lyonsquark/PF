@@ -93,13 +93,13 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
         .allow_zoom(false)
         .allow_drag(false)
         .allow_scroll(false)
-        .x_axis_formatter(move |mark, _| {
+        .x_axis_formatter(grid::hide_minor(move |mark, _| {
             usize::try_from(mark.value.round() as i64)
                 .ok()
                 .and_then(|i| names.get(i).cloned())
                 .unwrap_or_default()
-        })
-        .y_axis_formatter(|mark, _| money_axis(mark.value))
+        }))
+        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis(mark.value)))
         .show(ui, |plot_ui| {
             plot_ui.bar_chart(BarChart::new("Waterfall", waterfall_bars(&w.bars)));
             for (i, b) in w.bars.iter().enumerate() {

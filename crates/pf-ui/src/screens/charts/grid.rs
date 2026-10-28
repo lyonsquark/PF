@@ -7,6 +7,8 @@
 //! slider's alpha: the slider times the major alpha, from none (0) to the same (1). Items are not drawn,
 //! so the plot's scale is unchanged.
 
+use std::ops::RangeInclusive;
+
 use egui_plot::{GridInput, GridMark, log_grid_spacer};
 
 /// egui_plot's grid spacing range in points: a line this far apart is at full strength.
@@ -14,6 +16,22 @@ const SPACING_MIN: f64 = 8.0;
 const SPACING_MAX: f64 = 300.0;
 /// The grid fade the charts use (egui_plot's default): a line's alpha is its strength to this power.
 pub(crate) const FADE: f32 = 0.5;
+
+/// Wraps an axis label formatter so that minor marks get no label. egui_plot places a label where it draws
+/// a line and fades it by the same spacing, so the minor marks' labels would show up at full slider. The
+/// minor marks have a negative `step_size`: egui_plot takes its absolute value for spacing, so they are
+/// placed and faded as `spacer` says, and only the formatter sees the sign.
+pub(crate) fn hide_minor(
+    format: impl Fn(GridMark, &RangeInclusive<f64>) -> String,
+) -> impl Fn(GridMark, &RangeInclusive<f64>) -> String {
+    move |mark, range| {
+        if mark.step_size < 0.0 {
+            String::new()
+        } else {
+            format(mark, range)
+        }
+    }
+}
 
 /// The grid spacer for one axis of a chart, with its minor lines at `minor` (0 to 1) of the major lines'
 /// alpha. Set on both axes with `x_grid_spacer` and `y_grid_spacer`.
@@ -41,7 +59,7 @@ pub(crate) fn spacer(minor: f32) -> impl Fn(GridInput) -> Vec<GridMark> {
         let minor_step = minor_spacing / points_per_value;
         for mark in &mut marks {
             if mark.step_size < coarse {
-                mark.step_size = minor_step;
+                mark.step_size = -minor_step;
             }
         }
         marks
@@ -68,7 +86,7 @@ mod tests {
 
     /// The alpha egui_plot would draw a mark with: its strength to the fade power.
     fn alpha(points_per_value: f64, mark: &GridMark) -> f64 {
-        strength(points_per_value, mark.step_size).powf(f64::from(FADE))
+        strength(points_per_value, mark.step_size.abs()).powf(f64::from(FADE))
     }
 
     #[test]
@@ -121,5 +139,37 @@ mod tests {
                 "minor alpha {a} vs half of {major}"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod label_tests {
+    use super::*;
+
+    #[test]
+    /// A minor mark (negative step) gets no label; a major mark keeps its text.
+    fn minor_marks_have_no_label() {
+        let label = hide_minor(|mark, _| format!("{}", mark.value));
+        let range = 0.0..=10.0;
+        assert_eq!(
+            label(
+                GridMark {
+                    value: 5.0,
+                    step_size: -2.0
+                },
+                &range
+            ),
+            ""
+        );
+        assert_eq!(
+            label(
+                GridMark {
+                    value: 5.0,
+                    step_size: 10.0
+                },
+                &range
+            ),
+            "5"
+        );
     }
 }
