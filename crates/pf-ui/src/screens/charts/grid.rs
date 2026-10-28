@@ -1,72 +1,125 @@
-//! Chart grid lines, drawn by the chart instead of by egui_plot, so the minor lines can be lightened
-//! with the Charts screen's "Minor grid lines" slider. egui_plot fades a line by its spacing with a fixed
-//! rule; here the major lines (the coarsest level) use the base colour and the minor lines use it at the
-//! slider's strength.
+//! The chart grids: egui_plot's own grid, with the minor lines at the Charts screen's "Minor grid lines"
+//! strength.
+//!
+//! egui_plot draws a grid line in the text colour times its strength to the `FADE` power. The strength
+//! comes from the line's spacing on screen, which is `step_size` times the axis scale. The coarsest level
+//! (the major lines) keeps its real spacing. The finer levels are given the spacing that yields the
+//! slider's alpha: the slider times the major alpha, from none (0) to the same (1). Items are not drawn,
+//! so the plot's scale is unchanged.
 
-use egui::Color32;
-use egui_plot::{GridInput, HLine, PlotUi, VLine, log_grid_spacer};
+use egui_plot::{GridInput, GridMark, log_grid_spacer};
 
-/// Grid spacing range in points, as egui_plot uses it: a line this far apart is at full strength.
+/// egui_plot's grid spacing range in points: a line this far apart is at full strength.
 const SPACING_MIN: f64 = 8.0;
 const SPACING_MAX: f64 = 300.0;
+/// The grid fade the charts use (egui_plot's default): a line's alpha is its strength to this power.
+pub(crate) const FADE: f32 = 0.5;
 
-/// Draws the grid of both axes on `plot_ui`. Major lines are `base`; minor lines are `base` at `minor`
-/// (0 draws none, 1 is as dark as the major lines). Call it first, so the data is drawn over it.
-pub(crate) fn draw(plot_ui: &mut PlotUi, base: Color32, minor: f32) {
-    let transform = *plot_ui.transform();
-    let bounds = plot_ui.plot_bounds();
-    let ranges = [bounds.range_x(), bounds.range_y()];
-    let spacer = log_grid_spacer(10);
-    let value_per_point = transform.dvalue_dpos();
-    let points_per_value = transform.dpos_dvalue();
-    for axis in 0..2 {
-        let input = GridInput {
-            bounds: (*ranges[axis].start(), *ranges[axis].end()),
-            base_step_size: value_per_point[axis].abs() * SPACING_MIN,
+/// The grid spacer for one axis of a chart, with its minor lines at `minor` (0 to 1) of the major lines'
+/// alpha. Set on both axes with `x_grid_spacer` and `y_grid_spacer`.
+pub(crate) fn spacer(minor: f32) -> impl Fn(GridInput) -> Vec<GridMark> {
+    move |input| {
+        let base_step = input.base_step_size;
+        let mut marks = log_grid_spacer(10)(input);
+        let Some(coarse) = marks.iter().map(|m| m.step_size).reduce(f64::max) else {
+            return marks;
         };
-        // (value, strength) for every line of this axis, the strongest kept where levels coincide.
-        let mut lines: Vec<(f64, f64)> = Vec::new();
-        for mark in spacer(input) {
-            let spacing = points_per_value[axis].abs() * mark.step_size;
-            if spacing <= SPACING_MIN {
-                continue;
-            }
-            let strength = ((spacing - SPACING_MIN) / (SPACING_MAX - SPACING_MIN)).clamp(0.0, 1.0);
-            lines.push((mark.value, strength));
+        if minor <= 0.0 {
+            marks.retain(|m| m.step_size >= coarse);
+            return marks;
         }
-        lines.sort_by(|a, b| a.0.total_cmp(&b.0));
-        lines.dedup_by(|later, kept| {
-            let same = (later.0 - kept.0).abs() < 1e-9 * kept.0.abs().max(1.0);
-            if same {
-                kept.1 = kept.1.max(later.1);
+        if base_step <= 0.0 {
+            return marks;
+        }
+        // egui_plot passes the value per point times SPACING_MIN, so points per value follow from it.
+        let points_per_value = SPACING_MIN / base_step;
+        let major_strength = strength(points_per_value, coarse);
+        // alpha = strength^FADE, so the minor alpha is `minor` times the major alpha when its strength is
+        // minor^(1/FADE) times the major strength.
+        let minor_strength = f64::from(minor).powf(f64::from(1.0 / FADE)) * major_strength;
+        let minor_spacing = SPACING_MIN + minor_strength * (SPACING_MAX - SPACING_MIN);
+        let minor_step = minor_spacing / points_per_value;
+        for mark in &mut marks {
+            if mark.step_size < coarse {
+                mark.step_size = minor_step;
             }
-            same
-        });
-        for (value, strength) in lines {
-            let major = strength >= 1.0;
-            if !major && minor <= 0.0 {
-                continue;
-            }
-            let color = if major {
-                base
-            } else {
-                base.gamma_multiply(minor)
-            };
-            if axis == 0 {
-                plot_ui.vline(
-                    VLine::new("", value)
-                        .color(color)
-                        .width(1.0)
-                        .allow_hover(false),
-                );
-            } else {
-                plot_ui.hline(
-                    HLine::new("", value)
-                        .color(color)
-                        .width(1.0)
-                        .allow_hover(false),
-                );
-            }
+        }
+        marks
+    }
+}
+
+/// egui_plot's strength of a line `step` value apart.
+fn strength(points_per_value: f64, step: f64) -> f64 {
+    ((points_per_value * step - SPACING_MIN) / (SPACING_MAX - SPACING_MIN)).clamp(0.0, 1.0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Marks for an axis of 1000 units at `points_per_value` points per unit.
+    fn marks_at(minor: f32, points_per_value: f64) -> Vec<GridMark> {
+        let input = GridInput {
+            bounds: (0.0, 1000.0),
+            base_step_size: SPACING_MIN / points_per_value,
+        };
+        spacer(minor)(input)
+    }
+
+    /// The alpha egui_plot would draw a mark with: its strength to the fade power.
+    fn alpha(points_per_value: f64, mark: &GridMark) -> f64 {
+        strength(points_per_value, mark.step_size).powf(f64::from(FADE))
+    }
+
+    #[test]
+    /// At 0 the minor lines are gone: every mark is a major (coarsest level) line.
+    fn minor_zero_keeps_only_major_lines() {
+        let marks = marks_at(0.0, 0.5);
+        let coarse = marks.iter().map(|m| m.step_size).fold(0.0, f64::max);
+        assert!(!marks.is_empty());
+        assert!(marks.iter().all(|m| m.step_size == coarse));
+    }
+
+    #[test]
+    /// At 1 the minor lines have the same alpha as the major lines.
+    fn minor_one_matches_major_alpha() {
+        let ppv = 0.5;
+        let marks = marks_at(1.0, ppv);
+        let coarse = marks.iter().map(|m| m.step_size).fold(0.0, f64::max);
+        let major = alpha(
+            ppv,
+            marks
+                .iter()
+                .find(|m| m.step_size == coarse)
+                .expect("a major mark"),
+        );
+        for m in marks.iter().filter(|m| m.step_size < coarse) {
+            let a = alpha(ppv, m);
+            assert!((a - major).abs() < 1e-6, "minor alpha {a} vs major {major}");
+        }
+    }
+
+    #[test]
+    /// At 0.5 the minor lines have half the major lines' alpha.
+    fn minor_half_is_half_the_major_alpha() {
+        let ppv = 0.5;
+        let marks = marks_at(0.5, ppv);
+        let coarse = marks.iter().map(|m| m.step_size).fold(0.0, f64::max);
+        let major = alpha(
+            ppv,
+            marks
+                .iter()
+                .find(|m| m.step_size == coarse)
+                .expect("a major mark"),
+        );
+        let minors: Vec<&GridMark> = marks.iter().filter(|m| m.step_size < coarse).collect();
+        assert!(!minors.is_empty(), "there are minor lines to test");
+        for m in minors {
+            let a = alpha(ppv, m);
+            assert!(
+                (a - 0.5 * major).abs() < 1e-6,
+                "minor alpha {a} vs half of {major}"
+            );
         }
     }
 }

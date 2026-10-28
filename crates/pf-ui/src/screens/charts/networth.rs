@@ -61,10 +61,10 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|p| [day_number(p.date), to_f64(p.balance)])
         .collect();
-    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
     Plot::new("chart_networth")
-        .show_grid(false)
+        .x_grid_spacer(grid::spacer(grid_minor))
+        .y_grid_spacer(grid::spacer(grid_minor))
         .height(super::PLOT_HEIGHT)
         .allow_zoom(true)
         .allow_drag(true)
@@ -72,7 +72,6 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .x_axis_formatter(move |mark, _| day_axis(mark.value, long))
         .y_axis_formatter(|mark, _| money_axis_small(mark.value))
         .show(ui, |plot| {
-            grid::draw(plot, grid_base, grid_minor);
             plot.line(
                 Line::new("Net Worth", PlotPoints::from(values))
                     .color(MAIN)

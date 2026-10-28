@@ -85,15 +85,14 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
         return;
     }
     let names: Vec<String> = w.bars.iter().map(|b| b.label.clone()).collect();
-    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
     let plot = Plot::new("chart_waterfall")
-        .show_grid(false)
+        .x_grid_spacer(grid::spacer(grid_minor))
+        .y_grid_spacer(grid::spacer(grid_minor))
         .height(PLOT_HEIGHT)
         .allow_zoom(false)
         .allow_drag(false)
         .allow_scroll(false)
-        .show_grid(false)
         .x_axis_formatter(move |mark, _| {
             usize::try_from(mark.value.round() as i64)
                 .ok()
@@ -102,7 +101,6 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
         })
         .y_axis_formatter(|mark, _| money_axis(mark.value))
         .show(ui, |plot_ui| {
-            grid::draw(plot_ui, grid_base, grid_minor);
             plot_ui.bar_chart(BarChart::new("Waterfall", waterfall_bars(&w.bars)));
             for (i, b) in w.bars.iter().enumerate() {
                 let top = to_f64(b.y_start.max(b.y_end));
