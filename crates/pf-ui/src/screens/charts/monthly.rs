@@ -67,7 +67,12 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .map(|(i, r)| [i as f64, to_f64(r.net())])
         .collect();
     let labels = rows.clone();
+    let hover_rows = rows.clone();
     Plot::new("chart_profit_loss")
+        .cursor_color(egui::Color32::TRANSPARENT)
+        .label_formatter(move |pos| {
+            super::style::hover_label(pos, |x| label_at(&hover_rows, x), super::style::money_exact)
+        })
         .x_grid_spacer(grid::major_x)
         .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)
@@ -126,7 +131,12 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .map(|(i, r)| [i as f64, to_f64(r.expenses)])
         .collect();
     let labels = rows.clone();
+    let hover_rows = rows.clone();
     Plot::new("chart_trend")
+        .cursor_color(egui::Color32::TRANSPARENT)
+        .label_formatter(move |pos| {
+            super::style::hover_label(pos, |x| label_at(&hover_rows, x), super::style::money_exact)
+        })
         .x_grid_spacer(grid::major_x)
         .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)

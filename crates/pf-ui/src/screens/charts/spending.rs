@@ -72,6 +72,14 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
     Plot::new("chart_spending")
+        .cursor_color(egui::Color32::TRANSPARENT)
+        .label_formatter(|pos| {
+            super::style::hover_label(
+                pos,
+                |x| format!("Day {}", x.round()),
+                super::style::money_exact,
+            )
+        })
         .x_grid_spacer(grid::major_x)
         .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)
@@ -149,6 +157,14 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
     Plot::new("chart_pacing")
+        .cursor_color(egui::Color32::TRANSPARENT)
+        .label_formatter(|pos| {
+            super::style::hover_label(
+                pos,
+                |x| format!("Day {}", x.round()),
+                super::style::money_exact,
+            )
+        })
         .x_grid_spacer(grid::major_x)
         .y_grid_spacer(grid::major_y)
         .height(super::PLOT_HEIGHT)
