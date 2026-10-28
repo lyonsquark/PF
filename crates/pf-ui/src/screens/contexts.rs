@@ -182,14 +182,13 @@ fn context_row(ui: &mut Ui, row: &ContextRow, count: usize, action: &mut Option<
                     ui.label(RichText::new(notes).small().weak());
                 }
             });
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                ui.label(RichText::new("Edit").small().weak());
-                ui.label(
-                    RichText::new(count.to_string())
-                        .color(colors::BLUE)
-                        .strong(),
-                );
-            });
+            ui.add_space(12.0);
+            ui.label(
+                RichText::new(count.to_string())
+                    .color(colors::BLUE)
+                    .strong(),
+            );
+            ui.label(RichText::new("Edit").small().weak());
         })
         .response;
     let click = ui.interact(

@@ -171,3 +171,43 @@ fn ui_ctx_create_default_blue() {
         .expect("context");
     assert_eq!(c.color_hex.as_deref(), Some("#0000ff"));
 }
+
+#[test]
+/// The editor of a context lists its transactions with their accounts, and the total underneath. The
+/// count on the Contexts screen is next to the name.
+fn ui_ctx_edit_lists_transactions_and_total() {
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    let card = t.account("Card", AccountType::Credit);
+    let trip = t.context("Trip");
+    t.tx(chk, "2026-03-01", "-40", "Hotel")
+        .contexts(&[trip])
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.tx(card, "2026-03-05", "-12.50", "Taxi")
+        .contexts(&[trip])
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Contexts);
+    let mut h = harness(&mut app);
+    h.run();
+    h.get_by_label("Trip").click();
+    h.run();
+    assert!(
+        h.query_all_by_value("Transactions (2)").next().is_some(),
+        "lists two transactions"
+    );
+    assert!(
+        h.query_all_by_value("Card").next().is_some(),
+        "shows the Card account"
+    );
+    assert!(
+        h.query_all_by_value("Checking").next().is_some(),
+        "shows the Checking account"
+    );
+    assert!(
+        h.query_all_by_value("-$52.50").next().is_some(),
+        "shows the total"
+    );
+}
