@@ -71,7 +71,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
     let height = distribution_height(slices.len());
     Plot::new("chart_distribution")
         .x_grid_spacer(grid::major_only)
-        .y_grid_spacer(grid::major_only)
+        .y_grid_spacer(grid::per_bar(slices.len()))
         .height(height)
         .allow_zoom(false)
         .allow_drag(false)
