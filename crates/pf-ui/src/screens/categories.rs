@@ -101,8 +101,10 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
             .auto_shrink([false, false])
             .show(ui, |ui| {
                 for (t, rows) in sections {
-                    ui.add_space(8.0);
-                    ui.label(RichText::new(t.label()).strong());
+                    ui.add_space(20.0);
+                    ui.label(RichText::new(t.label()).size(18.0).strong());
+                    ui.separator();
+                    ui.add_space(4.0);
                     for row in rows {
                         category_row(ui, row, &mut action);
                     }
