@@ -24,6 +24,8 @@ use crate::widgets::colors;
 use crate::widgets::hscroll::{self, HScroll};
 
 /// Width of the category column in the matrix, in points.
+/// Width of the name column (account, category, obligation), in points.
+const NAME_WIDTH: f32 = 200.0;
 const MATRIX_LABEL_WIDTH: f32 = 140.0;
 /// Width of a month or total column in the matrix, in points.
 const MATRIX_CELL_WIDTH: f32 = 90.0;
@@ -237,17 +239,24 @@ fn profit_and_loss_body(
     let money_w = fit(ui, "Difference", &["-$999,999.99"]);
     hscroll::show(ui, hscroll_state, |ui| {
         TableBuilder::new(ui)
+            .id_salt("reports_pnl")
+            .resizable(true)
             .striped(true)
             .auto_shrink([false, false])
             .max_scroll_height(f32::INFINITY)
-            .column(Column::remainder().at_least(200.0))
+            .column(Column::initial(NAME_WIDTH))
             .column(Column::initial(money_w))
             .column(Column::initial(money_w))
             .column(Column::initial(money_w))
             .header(20.0, |mut header| {
-                for h in ["Category", "Budgeted", "Actual", "Difference"] {
+                header.col(|ui| {
+                    ui.strong("Category");
+                });
+                for h in ["Budgeted", "Actual", "Difference"] {
                     header.col(|ui| {
-                        ui.strong(h);
+                        with_right(ui, |ui| {
+                            ui.strong(h);
+                        });
                     });
                 }
             })
@@ -304,8 +313,10 @@ fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
     let money_w = fit(ui, "Pending", &["-$999,999.99"]).max(fit(ui, "Balance", &["-$999,999.99"]));
     Frame::group(ui.style()).show(ui, |ui| {
         TableBuilder::new(ui)
+            .id_salt("reports_bs_accounts")
+            .resizable(true)
             .auto_shrink([false, true])
-            .column(Column::remainder().at_least(160.0))
+            .column(Column::initial(NAME_WIDTH))
             .column(Column::initial(money_w))
             .column(Column::initial(money_w))
             .header(20.0, |mut header| {
@@ -365,8 +376,10 @@ fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
         ui.add_space(8.0);
         Frame::group(ui.style()).show(ui, |ui| {
             TableBuilder::new(ui)
+                .id_salt("reports_bs_obligations")
+                .resizable(true)
                 .auto_shrink([false, true])
-                .column(Column::remainder().at_least(160.0))
+                .column(Column::initial(NAME_WIDTH))
                 .column(Column::initial(money_w))
                 .header(20.0, |mut header| {
                     header.col(|ui| {

@@ -69,6 +69,8 @@ pub fn show_transactions(
                     &longest(rows.iter().map(|r| r.scenario.as_str())),
                 );
                 let mut table = TableBuilder::new(ui)
+                    .id_salt("drill_transactions")
+                    .resizable(true)
                     .striped(true)
                     .auto_shrink([false, false])
                     .max_scroll_height(360.0)
@@ -181,6 +183,8 @@ pub fn show_budget_items(
             let total_w = fit(ui, "Calculated Total (In Window)", &["-$999,999.99"]);
             with_hscroll(ui, "report_budget_items_hscroll", |ui| {
                 TableBuilder::new(ui)
+                    .id_salt("drill_budget_items")
+                    .resizable(true)
                     .striped(true)
                     .auto_shrink([false, false])
                     .max_scroll_height(360.0)
