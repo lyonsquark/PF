@@ -7,11 +7,13 @@ use egui_extras::{Column, TableBuilder};
 use jiff::civil::Date;
 use pf_core::format;
 use pf_core::reports::{budget_drill_rows, drill_rows};
-use pf_model::{BudgetItemId, TransactionId};
+use pf_engine::commands::transactions::{TxField, edit_transaction};
+use pf_model::{BudgetItemId, CategoryId, TransactionId};
 use rust_decimal::Decimal;
 
 use super::{Dialog, Outcome};
 use crate::app::UiCtx;
+use crate::widgets::category::{PICKER_WIDTH, category_picker};
 use crate::widgets::colors;
 
 /// Row height in points.
@@ -19,7 +21,7 @@ const ROW_HEIGHT: f32 = 22.0;
 /// Header height in points.
 const HEADER_HEIGHT: f32 = 20.0;
 /// The drill-down dialogs' width, in points, when the window is wide enough.
-const DIALOG_WIDTH: f32 = 900.0;
+const DIALOG_WIDTH: f32 = 1040.0;
 /// Fixed column widths of the drill-down tables, in points. Together with the gaps between columns they
 /// fit inside `DIALOG_WIDTH`: a table wider than its dialog would push the dialog and its text off screen.
 const TX_DATE_WIDTH: f32 = 90.0;
@@ -27,6 +29,8 @@ const TX_ACCOUNT_WIDTH: f32 = 100.0;
 const TX_PAYEE_WIDTH: f32 = 130.0;
 const TX_AMOUNT_WIDTH: f32 = 90.0;
 const TX_CONTEXT_WIDTH: f32 = 100.0;
+/// The category column: the picker (fixed width) plus the cell padding.
+const TX_CATEGORY_WIDTH: f32 = PICKER_WIDTH + 16.0;
 const TX_STATUS_WIDTH: f32 = 80.0;
 const TX_SCENARIO_WIDTH: f32 = 90.0;
 const BUDGET_NAME_WIDTH: f32 = 130.0;
@@ -44,16 +48,25 @@ pub fn open_transactions(cx: &mut UiCtx, title: String, ids: Vec<TransactionId>)
     cx.dialogs.open(Dialog::ReportTransactions { title, ids });
 }
 
-/// The transactions behind a report number: date, account, payee, amount, memo, context, status and,
-/// only while a scenario is active, the scenario. Newest first.
+/// The transactions behind a report number: date, account, payee, category (editable), amount, memo,
+/// context, status and, only while a scenario is active, the scenario. Newest first. Changing a
+/// transaction's category takes it out of this list (`ids`); the screen behind updates.
 pub fn show_transactions(
     cx: &mut UiCtx,
     ui: &mut Ui,
     title: &str,
-    ids: &[TransactionId],
+    ids: &mut Vec<TransactionId>,
 ) -> Outcome {
     let scenario_active = cx.engine.state.active_scenario.is_some();
     let rows = drill_rows(cx.engine.db(), ids, scenario_active);
+    // The current category of each row, and the list the picker offers.
+    let categories = cx.caches.lookups(&*cx.engine).categories.clone();
+    let current: Vec<Option<CategoryId>> = rows
+        .iter()
+        .map(|r| cx.engine.db().transaction(r.id).and_then(|t| t.category_id))
+        .collect();
+    // A category picked this frame, applied after the window is drawn.
+    let mut picked: Option<(TransactionId, Option<CategoryId>)> = None;
     let mut close = false;
     let response = Modal::new(egui::Id::unique(("report_transactions",))).show(ui.ctx(), |ui| {
         ui.set_width(dialog_width(ui));
@@ -68,6 +81,7 @@ pub fn show_transactions(
                 let date_w = TX_DATE_WIDTH;
                 let account_w = TX_ACCOUNT_WIDTH;
                 let payee_w = TX_PAYEE_WIDTH;
+                let category_w = TX_CATEGORY_WIDTH;
                 let amount_w = TX_AMOUNT_WIDTH;
                 let context_w = TX_CONTEXT_WIDTH;
                 let status_w = TX_STATUS_WIDTH;
@@ -81,6 +95,7 @@ pub fn show_transactions(
                     .column(Column::initial(date_w))
                     .column(Column::initial(account_w))
                     .column(Column::initial(payee_w))
+                    .column(Column::initial(category_w))
                     .column(Column::initial(amount_w))
                     .column(Column::remainder().at_least(TX_MEMO_MIN_WIDTH))
                     .column(Column::initial(context_w))
@@ -90,12 +105,13 @@ pub fn show_transactions(
                 }
                 let headers: Vec<&str> = if scenario_active {
                     vec![
-                        "Date", "Account", "Payee", "Amount", "Memo", "Context", "Status",
-                        "Scenario",
+                        "Date", "Account", "Payee", "Category", "Amount", "Memo", "Context",
+                        "Status", "Scenario",
                     ]
                 } else {
                     vec![
-                        "Date", "Account", "Payee", "Amount", "Memo", "Context", "Status",
+                        "Date", "Account", "Payee", "Category", "Amount", "Memo", "Context",
+                        "Status",
                     ]
                 };
                 table
@@ -108,7 +124,8 @@ pub fn show_transactions(
                     })
                     .body(|body| {
                         body.rows(ROW_HEIGHT, rows.len(), |mut row| {
-                            let r = &rows[row.index()];
+                            let index = row.index();
+                            let r = &rows[index];
                             row.col(|ui| {
                                 ui.label(format_date(r.date));
                             });
@@ -117,6 +134,18 @@ pub fn show_transactions(
                             });
                             row.col(|ui| {
                                 ui.label(&r.payee);
+                            });
+                            row.col(|ui| {
+                                if let Some(choice) = category_picker(
+                                    ui,
+                                    ("drill_category", r.id.raw()),
+                                    current[index],
+                                    &categories,
+                                    true,
+                                    &format!("Category {}", r.payee),
+                                ) {
+                                    picked = Some((r.id, choice));
+                                }
                             });
                             row.col(|ui| {
                                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -150,6 +179,13 @@ pub fn show_transactions(
             close = true;
         }
     });
+    // Apply a picked category as one undo step; the transaction then leaves this window.
+    if let Some((id, category)) = picked {
+        match edit_transaction(cx.engine, id, TxField::Category(category)) {
+            Ok(_) => ids.retain(|x| *x != id),
+            Err(e) => cx.toasts.info(e.to_string()),
+        }
+    }
     if close || response.should_close() {
         Outcome::Close
     } else {

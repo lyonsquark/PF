@@ -176,7 +176,7 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::ContextEdit(form) => context_edit::show(cx, ui, form),
         Dialog::CsvWizard(w) => csv_wizard::show(cx, ui, w),
         Dialog::ReportTransactions { title, ids } => {
-            report_drilldown::show_transactions(cx, ui, title.as_str(), ids.as_slice())
+            report_drilldown::show_transactions(cx, ui, title.as_str(), ids)
         }
         Dialog::ReportBudgetItems {
             title,

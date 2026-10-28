@@ -403,3 +403,50 @@ fn ui_rpt_drill_window_is_not_full_height() {
         "Close sits at {close:?}: the window grew to the full height"
     );
 }
+
+#[test]
+/// Changing a transaction's category in a drill-down window moves it to that category, takes it out of
+/// the window, and the Profit & Loss figure behind the window updates.
+fn ui_rpt_drill_category_change_updates_window_and_report() {
+    use egui::accesskit::Role;
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    let groceries = t.category("Groceries", CategoryType::Expense);
+    let dining = t.category("Dining", CategoryType::Expense);
+    let store = t
+        .tx(chk, "2026-03-05", "-100", "Store")
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.tx(chk, "2026-02-20", "-50", "Market")
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Reports);
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        click_button(&mut h, "-$150.00");
+        h.run();
+        assert!(shows(&h, "Store"), "the window lists Store");
+        // Open the Store row's category picker and choose Dining (the last match is the open list).
+        h.get_by_role_and_label(Role::ComboBox, "Category Store")
+            .click();
+        h.run();
+        h.get_all_by_role_and_label(Role::Button, "Dining")
+            .last()
+            .expect("Dining in the picker")
+            .click();
+        h.run();
+        h.run();
+        assert!(!shows(&h, "Store"), "Store leaves the window");
+    }
+    let shared = app.engine();
+    let e = shared.lock().expect("engine lock");
+    assert_eq!(
+        e.db().transaction(store).and_then(|x| x.category_id),
+        Some(dining)
+    );
+    drop(e);
+}
