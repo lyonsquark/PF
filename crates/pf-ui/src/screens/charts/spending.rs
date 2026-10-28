@@ -71,20 +71,20 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
+    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
-    Plot::new("chart_spending")
-        .x_grid_spacer(grid::spacer(grid_minor))
-        .y_grid_spacer(grid::spacer(grid_minor))
+    let grid_slot = grid::reserve(ui);
+    let plot_response = Plot::new("chart_spending")
+        .show_grid(false)
+        .show_background(false)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(grid::hide_minor(|mark, _| {
-            format!("Day {}", mark.value.round())
-        }))
-        .y_axis_formatter(grid::hide_minor(|mark, _| format!("{:.0}", mark.value)))
+        .x_axis_formatter(|mark, _| format!("Day {}", mark.value.round()))
+        .y_axis_formatter(|mark, _| format!("{:.0}", mark.value))
         .show(ui, |plot| {
             plot.line(
                 Line::new(cmp.b.label.clone(), PlotPoints::from(b_points))
@@ -98,6 +98,14 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
                     .width(3.0),
             );
         });
+    grid::paint(
+        ui,
+        grid_slot,
+        plot_response.response.rect,
+        &plot_response.transform,
+        grid_base,
+        grid_minor,
+    );
 }
 
 /// The budget pacing card: what has been spent against the budget so far this month.
@@ -151,20 +159,20 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
+    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
-    Plot::new("chart_pacing")
-        .x_grid_spacer(grid::spacer(grid_minor))
-        .y_grid_spacer(grid::spacer(grid_minor))
+    let grid_slot = grid::reserve(ui);
+    let plot_response = Plot::new("chart_pacing")
+        .show_grid(false)
+        .show_background(false)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(grid::hide_minor(|mark, _| {
-            format!("{}", mark.value.round())
-        }))
-        .y_axis_formatter(grid::hide_minor(|mark, _| format!("{:.0}", mark.value)))
+        .x_axis_formatter(|mark, _| format!("{}", mark.value.round()))
+        .y_axis_formatter(|mark, _| format!("{:.0}", mark.value))
         .show(ui, |plot| {
             plot.line(
                 Line::new("Budget Pacing", PlotPoints::from(budget))
@@ -179,6 +187,14 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                     .fill(0.0),
             );
         });
+    grid::paint(
+        ui,
+        grid_slot,
+        plot_response.response.rect,
+        &plot_response.transform,
+        grid_base,
+        grid_minor,
+    );
 }
 
 /// "Mar 2026", the label of a comparison month.

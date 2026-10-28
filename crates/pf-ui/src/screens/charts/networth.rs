@@ -61,16 +61,18 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|p| [day_number(p.date), to_f64(p.balance)])
         .collect();
+    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
-    Plot::new("chart_networth")
-        .x_grid_spacer(grid::spacer(grid_minor))
-        .y_grid_spacer(grid::spacer(grid_minor))
+    let grid_slot = grid::reserve(ui);
+    let plot_response = Plot::new("chart_networth")
+        .show_grid(false)
+        .show_background(false)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(true)
         .allow_drag(true)
         .allow_scroll(false)
-        .x_axis_formatter(grid::hide_minor(move |mark, _| day_axis(mark.value, long)))
-        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis_small(mark.value)))
+        .x_axis_formatter(move |mark, _| day_axis(mark.value, long))
+        .y_axis_formatter(|mark, _| money_axis_small(mark.value))
         .show(ui, |plot| {
             plot.line(
                 Line::new("Net Worth", PlotPoints::from(values))
@@ -79,6 +81,14 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                     .fill(0.0),
             );
         });
+    grid::paint(
+        ui,
+        grid_slot,
+        plot_response.response.rect,
+        &plot_response.transform,
+        grid_base,
+        grid_minor,
+    );
 }
 
 /// The label of a period in the picker.

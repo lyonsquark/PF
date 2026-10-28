@@ -67,19 +67,19 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .map(|(i, r)| [i as f64, to_f64(r.net())])
         .collect();
     let labels = rows.clone();
+    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
-    Plot::new("chart_profit_loss")
-        .x_grid_spacer(grid::spacer(grid_minor))
-        .y_grid_spacer(grid::spacer(grid_minor))
+    let grid_slot = grid::reserve(ui);
+    let plot_response = Plot::new("chart_profit_loss")
+        .show_grid(false)
+        .show_background(false)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(false)
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(grid::hide_minor(move |mark, _| {
-            label_at(&labels, mark.value)
-        }))
-        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis(mark.value)))
+        .x_axis_formatter(move |mark, _| label_at(&labels, mark.value))
+        .y_axis_formatter(|mark, _| money_axis(mark.value))
         .show(ui, |plot| {
             plot.bar_chart(BarChart::new("Income", income).color(INCOME));
             plot.bar_chart(BarChart::new("Expenses", expenses).color(EXPENSE));
@@ -89,6 +89,14 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
                     .width(2.0),
             );
         });
+    grid::paint(
+        ui,
+        grid_slot,
+        plot_response.response.rect,
+        &plot_response.transform,
+        grid_base,
+        grid_minor,
+    );
     legend_row(ui);
 }
 
@@ -129,20 +137,20 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .map(|(i, r)| [i as f64, to_f64(r.expenses)])
         .collect();
     let labels = rows.clone();
+    let grid_base = ui.visuals().text_color();
     let grid_minor = st.grid_minor;
-    Plot::new("chart_trend")
-        .x_grid_spacer(grid::spacer(grid_minor))
-        .y_grid_spacer(grid::spacer(grid_minor))
+    let grid_slot = grid::reserve(ui);
+    let plot_response = Plot::new("chart_trend")
+        .show_grid(false)
+        .show_background(false)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
         .allow_drag(false)
         .allow_scroll(false)
         .include_y(0.0)
-        .x_axis_formatter(grid::hide_minor(move |mark, _| {
-            label_at(&labels, mark.value)
-        }))
-        .y_axis_formatter(grid::hide_minor(|mark, _| money_axis(mark.value)))
+        .x_axis_formatter(move |mark, _| label_at(&labels, mark.value))
+        .y_axis_formatter(|mark, _| money_axis(mark.value))
         .show(ui, |plot| {
             plot.line(
                 Line::new("Income", PlotPoints::from(income))
@@ -157,6 +165,14 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                     .fill(0.1),
             );
         });
+    grid::paint(
+        ui,
+        grid_slot,
+        plot_response.response.rect,
+        &plot_response.transform,
+        grid_base,
+        grid_minor,
+    );
 }
 
 /// The month label at the x position (rounded), or nothing past the end.
