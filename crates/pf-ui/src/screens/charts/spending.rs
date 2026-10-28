@@ -11,6 +11,7 @@ use pf_core::charts::{NO_BUDGETS, NOT_ENOUGH_DATA};
 use pf_core::format;
 
 use super::State;
+use super::grid;
 use super::style::{GREY, MAIN, to_f64};
 use crate::app::UiCtx;
 
@@ -70,7 +71,10 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
+    let grid_base = ui.visuals().text_color();
+    let grid_minor = st.grid_minor;
     Plot::new("chart_spending")
+        .show_grid(false)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
@@ -79,6 +83,7 @@ pub fn comparison_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter)
         .include_y(0.0)
         .x_axis_formatter(|mark, _| format!("Day {}", mark.value.round()))
         .show(ui, |plot| {
+            grid::draw(plot, grid_base, grid_minor);
             plot.line(
                 Line::new(cmp.b.label.clone(), PlotPoints::from(b_points))
                     .color(GREY)
@@ -144,7 +149,10 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .iter()
         .map(|(d, v)| [f64::from(*d), to_f64(*v)])
         .collect();
+    let grid_base = ui.visuals().text_color();
+    let grid_minor = st.grid_minor;
     Plot::new("chart_pacing")
+        .show_grid(false)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
@@ -153,6 +161,7 @@ pub fn pacing_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .include_y(0.0)
         .x_axis_formatter(|mark, _| format!("{}", mark.value.round()))
         .show(ui, |plot| {
+            grid::draw(plot, grid_base, grid_minor);
             plot.line(
                 Line::new("Budget Pacing", PlotPoints::from(budget))
                     .color(GREY)

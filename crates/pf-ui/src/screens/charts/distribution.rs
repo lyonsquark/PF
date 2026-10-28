@@ -12,6 +12,7 @@ use pf_core::format;
 use rust_decimal::Decimal;
 
 use super::State;
+use super::grid;
 use super::style::{hex_color, to_f64};
 use crate::app::UiCtx;
 
@@ -68,7 +69,10 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         })
         .collect();
     let height = distribution_height(slices.len());
+    let grid_base = ui.visuals().text_color();
+    let grid_minor = st.grid_minor;
     Plot::new("chart_distribution")
+        .show_grid(false)
         .height(height)
         .allow_zoom(false)
         .allow_drag(false)
@@ -81,6 +85,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
                 .unwrap_or_default()
         })
         .show(ui, |plot| {
+            grid::draw(plot, grid_base, grid_minor);
             plot.bar_chart(BarChart::new("Expenses", bars).horizontal());
         });
 }

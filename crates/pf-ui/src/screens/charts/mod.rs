@@ -7,6 +7,7 @@
 
 mod breakdown;
 mod distribution;
+mod grid;
 mod monthly;
 mod networth;
 mod sankey;
@@ -62,6 +63,8 @@ pub struct State {
     pub waterfall_date: Option<Date>,
     /// The money flow's month (`None` is this month).
     pub sankey_date: Option<Date>,
+    /// The minor grid lines' strength, from 0 (none) to 1 (as dark as the major lines).
+    pub grid_minor: f32,
     networth: Cached<(FilterKey, TimePeriod), Vec<pf_core::charts::balance::BalancePoint>>,
     comparison: Cached<(FilterKey, Date, Date), pf_core::charts::spending::SpendingComparison>,
     pacing: Cached<(FilterKey, Date), pf_core::charts::spending::BudgetPacing>,
@@ -87,6 +90,7 @@ impl Default for State {
             breakdown_period: TimePeriod::PastMonth,
             waterfall_date: None,
             sankey_date: None,
+            grid_minor: 0.5,
             networth: Cached::default(),
             comparison: Cached::default(),
             pacing: Cached::default(),
@@ -113,6 +117,13 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
         ui.label(RichText::new("Accounts").weak());
         let selected = st.selected.get_or_insert_with(BTreeSet::new);
         account_multiselect(ui, cx.engine.db(), &accounts, selected);
+    });
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("Minor grid lines").weak());
+        let slider = ui.add(egui::Slider::new(&mut st.grid_minor, 0.0..=1.0).show_value(false));
+        slider.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::Role::Slider, true, "Minor grid lines")
+        });
     });
     ui.add_space(8.0);
     let filter = ChartFilter {

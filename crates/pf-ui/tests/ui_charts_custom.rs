@@ -108,3 +108,17 @@ fn ui_chart_drill_window_fits_narrow_window() {
         "last column ends inside the window: {last:?}"
     );
 }
+
+#[test]
+/// The Charts screen has a "Minor grid lines" slider, so the minor grid can be lightened or hidden.
+fn ui_cht_minor_grid_slider_is_present() {
+    use egui_kittest::kittest::Queryable;
+    let mut app = pf_ui::PfApp::new_for_test(pf_engine::Engine::open_in_memory().expect("engine"));
+    app.set_screen(pf_ui::screen::Screen::Charts);
+    let mut h = crate::common::harness(&mut app);
+    h.run();
+    assert!(
+        h.query_all_by_label("Minor grid lines").next().is_some(),
+        "the minor grid slider"
+    );
+}

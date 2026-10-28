@@ -10,6 +10,7 @@ use pf_core::charts::monthly::{
 };
 
 use super::State;
+use super::grid;
 use super::style::{EXPENSE, INCOME, money_axis, to_f64};
 use crate::app::UiCtx;
 
@@ -66,7 +67,10 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .map(|(i, r)| [i as f64, to_f64(r.net())])
         .collect();
     let labels = rows.clone();
+    let grid_base = ui.visuals().text_color();
+    let grid_minor = st.grid_minor;
     Plot::new("chart_profit_loss")
+        .show_grid(false)
         .height(super::PLOT_HEIGHT)
         .allow_zoom(false)
         .allow_drag(false)
@@ -75,6 +79,7 @@ pub fn profit_loss_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter
         .x_axis_formatter(move |mark, _| label_at(&labels, mark.value))
         .y_axis_formatter(|mark, _| money_axis(mark.value))
         .show(ui, |plot| {
+            grid::draw(plot, grid_base, grid_minor);
             plot.bar_chart(BarChart::new("Income", income).color(INCOME));
             plot.bar_chart(BarChart::new("Expenses", expenses).color(EXPENSE));
             plot.line(
@@ -123,7 +128,10 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .map(|(i, r)| [i as f64, to_f64(r.expenses)])
         .collect();
     let labels = rows.clone();
+    let grid_base = ui.visuals().text_color();
+    let grid_minor = st.grid_minor;
     Plot::new("chart_trend")
+        .show_grid(false)
         .height(super::PLOT_HEIGHT)
         .legend(Legend::default())
         .allow_zoom(false)
@@ -133,6 +141,7 @@ pub fn trend_card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         .x_axis_formatter(move |mark, _| label_at(&labels, mark.value))
         .y_axis_formatter(|mark, _| money_axis(mark.value))
         .show(ui, |plot| {
+            grid::draw(plot, grid_base, grid_minor);
             plot.line(
                 Line::new("Income", PlotPoints::from(income))
                     .color(INCOME)
