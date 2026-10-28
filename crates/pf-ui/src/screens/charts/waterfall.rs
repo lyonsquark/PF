@@ -86,7 +86,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mu
     }
     let names: Vec<String> = w.bars.iter().map(|b| b.label.clone()).collect();
     let plot = Plot::new("chart_waterfall")
-        .x_grid_spacer(grid::major_only)
+        .x_grid_spacer(grid::per_bar(w.bars.len()))
         .y_grid_spacer(grid::major_only)
         .height(PLOT_HEIGHT)
         .allow_zoom(false)
