@@ -14,15 +14,15 @@ The Swift app was not running when the automated rows were checked, so the parit
 (see `fixtures/parity/meta.txt`).
 
 ## 1. Launch & shell
-| # | Check | IDs | Result | Notes |
-| --- | --- | --- | --- | --- |
-| 1.1 | App launches in < 1 s; the window title is "PF" | perf budget | needs user | Launch time is not measured by the tests. Title is set in `apps/pf/src/main.rs`. |
-| 1.2 | The sidebar has Dashboard, accounts, Budget, Obligations, Scenarios, Reports, Charts, Categories, Contexts, Settings | UI-NAV-01 | needs user | |
-| 1.3 | Sidebar grouping A-Z / Institution / Type works and is remembered after restart | R-ACC-4 | needs user | Grouping is UI-only and not saved (see `sidebar.rs`), so "remembered" is expected to be false. Check what Swift does. |
-| 1.4 | The scenario menu shows "Reality" + scenarios with a ✓; it is hidden on Budget/Categories/Contexts/Settings/Obligations/Charts | UI-SCN-01 | needs user | |
-| 1.5 | ⌘Z / ⇧⌘Z undo and redo the last action; the Edit menu shows "Undo {name}" | R-UND-5, UI-UND-01 | needs user | Undo itself is covered by ✅ auto tests. |
-| 1.6 | ⌘S backs up (prompts for a folder the first time); toast "Backup saved to: …" | R-MD-7 | needs user | |
-| 1.7 | The API answers `curl localhost:8989/api/scenarios` while the app runs | R-API-1 | ✅ run | App started; `/api/db-path`, `/api/scenarios`, `/api/accounts/balances`, one account's balance and transactions, and an unknown route (404 `Not Found: GET /api/nope`) all answered. |
+| #   | Check                                                                                                                          | IDs                | Result     | Notes                                                                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.1 | App launches in < 1 s; the window title is "PF"                                                                                | perf budget        | needs user | Launch time is not measured by the tests. Title is set in `apps/pf/src/main.rs`.                                                                                                     |
+| 1.2 | The sidebar has Dashboard, accounts, Budget, Obligations, Scenarios, Reports, Charts, Categories, Contexts, Settings           | UI-NAV-01          | needs user |                                                                                                                                                                                      |
+| 1.3 | Sidebar grouping A-Z / Institution / Type works and is remembered after restart                                                | R-ACC-4            | needs user | Grouping is UI-only and not saved (see `sidebar.rs`), so "remembered" is expected to be false. Check what Swift does.                                                                |
+| 1.4 | The scenario menu shows "Reality" + scenarios with a ✓; it is hidden on Budget/Categories/Contexts/Settings/Obligations/Charts | UI-SCN-01          | needs user |                                                                                                                                                                                      |
+| 1.5 | ⌘Z / ⇧⌘Z undo and redo the last action; the Edit menu shows "Undo {name}"                                                      | R-UND-5, UI-UND-01 | needs user | Undo itself is covered by ✅ auto tests.                                                                                                                                              |
+| 1.6 | ⌘S backs up (prompts for a folder the first time); toast "Backup saved to: …"                                                  | R-MD-7             | needs user |                                                                                                                                                                                      |
+| 1.7 | The API answers `curl localhost:8989/api/scenarios` while the app runs                                                         | R-API-1            | ✅ run      | App started; `/api/db-path`, `/api/scenarios`, `/api/accounts/balances`, one account's balance and transactions, and an unknown route (404 `Not Found: GET /api/nope`) all answered. |
 
 ## 2. Dashboard
 | # | Check | IDs | Result | Notes |
@@ -115,11 +115,11 @@ The Swift app was not running when the automated rows were checked, so the parit
 | 11.7 | Restart: soft-deleted rows purged, undo empty | R-PRG-1, BEH-PRG-01 | ✅ auto | BEH-PRG-01 |
 
 ## 12. Migration from the real Swift data (user, optional, read-only on the Swift side)
-| # | Check | IDs | Result | Notes |
-| --- | --- | --- | --- | --- |
+| #    | Check                                                                                                            | IDs       | Result     | Notes                                                                                                                    |
+| ---- | ---------------------------------------------------------------------------------------------------------------- | --------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 12.1 | Swift export → PFRust import: counts per entity match (the import's summary line vs the Swift Markdown sections) | BEH-MD-01 | needs user | `pf-cli stats` does not exist. Use the summary line that `import-md` prints, and count the sections of the Swift export. |
-| 12.2 | `pf-cli balances --format text` equals Swift `curl …/api/accounts/balances?format=text` | R-API-6 | needs user | The same check on `SampleData2` passes (parity tests, ✅ auto). Run it on your data after exporting a backup. |
-| 12.3 | Same check with each scenario | R-API-4 | needs user | As 12.2. |
+| 12.2 | `pf-cli balances --format text` equals Swift `curl …/api/accounts/balances?format=text`                          | R-API-6   | needs user | The same check on `SampleData2` passes (parity tests, ✅ auto). Run it on your data after exporting a backup.             |
+| 12.3 | Same check with each scenario                                                                                    | R-API-4   | needs user | As 12.2.                                                                                                                 |
 
 ## Summary
 
