@@ -2,7 +2,7 @@
 //! and the budget items behind a budgeted figure. The rows come from `pf_core::reports`; this file lays
 //! them out.
 
-use egui::{Align, Id, Layout, Modal, RichText, Ui};
+use egui::{Align, Layout, Modal, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 use jiff::civil::Date;
 use pf_core::format;
@@ -13,7 +13,6 @@ use rust_decimal::Decimal;
 use super::{Dialog, Outcome};
 use crate::app::UiCtx;
 use crate::widgets::colors;
-use crate::widgets::hscroll::{self, HScroll};
 
 /// Row height in points.
 const ROW_HEIGHT: f32 = 22.0;
@@ -62,7 +61,7 @@ pub fn show_transactions(
         if rows.is_empty() {
             ui.label(RichText::new("No transactions").weak());
         } else {
-            with_hscroll(ui, "report_transactions_hscroll", |ui| {
+            {
                 // The memo takes the rest of the width, so the table fits the dialog and the sideways
                 // scroll is only for a scenario's extra column on a narrow window. Each column starts as
                 // wide as its widest text (see `widgets::col_fit`).
@@ -77,7 +76,7 @@ pub fn show_transactions(
                     .id_salt("drill_transactions")
                     .resizable(true)
                     .striped(true)
-                    .auto_shrink([false, false])
+                    .auto_shrink([false, true])
                     .max_scroll_height(360.0)
                     .column(Column::initial(date_w))
                     .column(Column::initial(account_w))
@@ -144,7 +143,7 @@ pub fn show_transactions(
                             }
                         });
                     });
-            });
+            }
         }
         ui.add_space(8.0);
         if ui.button("Close").clicked() {
@@ -182,12 +181,12 @@ pub fn show_budget_items(
             let amount_w = BUDGET_AMOUNT_WIDTH;
             let start_w = BUDGET_START_WIDTH;
             let total_w = BUDGET_TOTAL_WIDTH;
-            with_hscroll(ui, "report_budget_items_hscroll", |ui| {
+            {
                 TableBuilder::new(ui)
                     .id_salt("drill_budget_items")
                     .resizable(true)
                     .striped(true)
-                    .auto_shrink([false, false])
+                    .auto_shrink([false, true])
                     .max_scroll_height(360.0)
                     .column(Column::initial(name_w))
                     .column(Column::initial(category_w))
@@ -240,7 +239,7 @@ pub fn show_budget_items(
                             });
                         });
                     });
-            });
+            }
         }
         ui.add_space(8.0);
         if ui.button("Close").clicked() {
@@ -258,17 +257,6 @@ pub fn show_budget_items(
 /// never extends past the window's edges.
 fn dialog_width(ui: &Ui) -> f32 {
     (ui.ctx().content_rect().width() - 48.0).min(DIALOG_WIDTH)
-}
-
-/// Draws a drill-down table with a sideways scroll. The dialog is rebuilt every frame, so the scroll
-/// position is kept in egui's memory under `salt`.
-fn with_hscroll(ui: &mut Ui, salt: &'static str, add: impl FnOnce(&mut Ui)) {
-    let id = Id::unique(salt);
-    let mut state: HScroll = ui
-        .ctx()
-        .data_mut(|d| *d.get_temp_mut_or_default::<HScroll>(id));
-    hscroll::show(ui, &mut state, add);
-    ui.ctx().data_mut(|d| d.insert_temp(id, state));
 }
 
 /// An amount coloured by its sign: green above zero, red below (R-RPT-2).

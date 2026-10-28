@@ -365,3 +365,41 @@ fn ui_rpt_budgeted_drill_fits_narrow_window() {
         "last column ends inside the window: {last:?}"
     );
 }
+
+#[test]
+/// A drill-down window is as tall as its rows need (up to a scroll limit), not the whole window: its
+/// Close button sits well above the bottom edge.
+fn ui_rpt_drill_window_is_not_full_height() {
+    use egui::accesskit::Role;
+    use egui_kittest::kittest::Queryable;
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    let groceries = t.category("Groceries", CategoryType::Expense);
+    t.tx(chk, "2026-03-05", "-100", "Store")
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.budget_item(
+        BudgetItemType::Expense,
+        "Groceries",
+        "40",
+        "2026-01-01",
+        BudgetFrequency::Monthly,
+    )
+    .category(groceries)
+    .done();
+    let window = egui::Vec2::new(1000.0, 800.0);
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Reports);
+    let mut h = egui_kittest::Harness::builder()
+        .with_size(window)
+        .build_ui(|ui| app.ui_root(ui));
+    h.run();
+    click_button(&mut h, "-$40.00");
+    h.run();
+    let close = h.get_by_role_and_label(Role::Button, "Close").rect();
+    assert!(
+        close.bottom() < window.y * 0.6,
+        "Close sits at {close:?}: the window grew to the full height"
+    );
+}
