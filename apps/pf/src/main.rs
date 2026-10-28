@@ -9,6 +9,9 @@ use pf_engine::{Engine, SharedEngine};
 /// The API port used when the database has no `apiPort` setting (Swift's fixed port).
 const DEFAULT_API_PORT: u16 = 8989;
 
+/// The app icon (1024 px PNG), decoded at start-up.
+const APP_ICON_PNG: &[u8] = include_bytes!("../macos/AppIcon.png");
+
 fn main() -> anyhow::Result<()> {
     env_logger::init();
     // $PF_DB overrides the location (handy for development); otherwise the app's default file.
@@ -26,11 +29,17 @@ fn main() -> anyhow::Result<()> {
         .unwrap_or(DEFAULT_API_PORT);
     let shared: SharedEngine = Arc::new(Mutex::new(engine));
 
+    // The app icon: eframe sets the running app's Dock icon from this (macOS), and the window icon elsewhere.
+    let mut viewport = egui::ViewportBuilder::default()
+        .with_inner_size([1200.0, 800.0])
+        .with_min_inner_size([900.0, 600.0])
+        .with_title("PF");
+    match eframe::icon_data::from_png_bytes(APP_ICON_PNG) {
+        Ok(icon) => viewport = viewport.with_icon(icon),
+        Err(e) => log::warn!("app icon not loaded: {e}"),
+    }
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1200.0, 800.0])
-            .with_min_inner_size([900.0, 600.0])
-            .with_title("PF"),
+        viewport,
         ..Default::default()
     };
     eframe::run_native(
