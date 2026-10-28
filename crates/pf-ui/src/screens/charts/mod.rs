@@ -132,9 +132,9 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
                     1 => spending::comparison_card(ui, &*cx, st, &filter),
                     2 => spending::pacing_card(ui, &*cx, st, &filter),
                     3 => monthly::profit_loss_card(ui, &*cx, st, &filter),
-                    4 => breakdown::card(ui, &*cx, st, &filter),
+                    4 => breakdown::card(ui, &*cx, st, &filter, &mut drill),
                     5 => waterfall::card(ui, &*cx, st, &filter, &mut drill),
-                    6 => distribution::card(ui, &*cx, st, &filter),
+                    6 => distribution::card(ui, &*cx, st, &filter, &mut drill),
                     7 => monthly::trend_card(ui, &*cx, st, &filter),
                     _ => sankey::card(ui, &*cx, st, &filter, &mut drill),
                 });

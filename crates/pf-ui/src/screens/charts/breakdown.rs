@@ -8,13 +8,13 @@ use egui::{Color32, Pos2, RichText, Sense, Shape, Stroke, Ui, Vec2};
 use pf_core::charts::ChartFilter;
 use pf_core::charts::NOT_ENOUGH_DATA;
 use pf_core::charts::Slice;
-use pf_core::charts::categories::{BREAKDOWN_PERIODS, category_breakdown};
+use pf_core::charts::categories::{BREAKDOWN_PERIODS, breakdown_drill, category_breakdown};
 use pf_core::format;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::ToPrimitive;
 
-use super::State;
 use super::style::{hex_color, to_f64};
+use super::{Drill, State};
 use crate::app::UiCtx;
 use crate::widgets::color::color_dot;
 
@@ -83,7 +83,7 @@ fn polar(center: Pos2, r: f32, a: f32) -> Pos2 {
 }
 
 /// The breakdown card: the total, the period picker, the donut and its legend.
-pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
+pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mut Drill) {
     let db = cx.engine.db();
     let revision = cx.engine.revision();
     let period = st.breakdown_period;
@@ -123,7 +123,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
     ui.horizontal(|ui| {
         let width = ui.available_width();
         let (rect, resp) =
-            ui.allocate_exact_size(Vec2::new(width * 0.6, AREA_HEIGHT), Sense::hover());
+            ui.allocate_exact_size(Vec2::new(width * 0.6, AREA_HEIGHT), Sense::click());
         let center = rect.center();
         let half = rect.width().min(rect.height()) / 2.0;
         let (r_in, r_out) = (half * INNER, half);
@@ -131,6 +131,12 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         let hovered = resp
             .hover_pos()
             .and_then(|p| hit_wedge(center, r_in, r_out, &angles, p));
+        // A click on a wedge opens the transactions behind it (R-CHT-5).
+        if resp.clicked()
+            && let Some(i) = hovered
+        {
+            *drill = Some(breakdown_drill(db, f, period, &slices[i].name));
+        }
         let painter = ui.painter_at(rect);
         for (i, ((a0, a1), slice)) in angles.iter().zip(&slices).enumerate() {
             let fill = hex_color(&slice.color);

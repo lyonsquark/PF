@@ -1,6 +1,6 @@
 //! R-CHT-5 and R-CHT-7: the category donut and the expense distribution bars.
 
-use pf_model::{Db, TimePeriod, Transaction};
+use pf_model::{Db, TimePeriod, Transaction, TransactionId};
 use rust_decimal::Decimal;
 
 use super::{
@@ -69,6 +69,52 @@ pub fn expense_distribution(db: &Db, f: &ChartFilter, period: TimePeriod) -> Vec
 /// R-CHT-7: card height for `rows` bars, 34 px each plus 40 px.
 pub fn distribution_height(rows: usize) -> f32 {
     34.0 * (rows as f32) + 40.0
+}
+
+/// The drill-down of a breakdown wedge: the spending rows behind it, as (title, ids). A wedge is a group
+/// name (the top six, see `category_breakdown`); "Other" is every group outside those six.
+pub fn breakdown_drill(
+    db: &Db,
+    f: &ChartFilter,
+    period: TimePeriod,
+    name: &str,
+) -> (String, Vec<TransactionId>) {
+    let rows = spending_in_window(db, f, period);
+    let groups = sum_abs_by(&rows, |tx| group_name(db, tx));
+    let top: Vec<String> = groups
+        .into_iter()
+        .take(MAX_BREAKDOWN_SLICES)
+        .map(|(group, _)| group)
+        .collect();
+    let ids = rows
+        .iter()
+        .filter(|tx| {
+            let group = group_name(db, tx);
+            if top.contains(&group) {
+                group == name
+            } else {
+                name == "Other"
+            }
+        })
+        .map(|tx| tx.id)
+        .collect();
+    (format!("{name} Transactions"), ids)
+}
+
+/// The drill-down of a distribution bar: the spending rows of that category, as (title, ids).
+pub fn distribution_drill(
+    db: &Db,
+    f: &ChartFilter,
+    period: TimePeriod,
+    name: &str,
+) -> (String, Vec<TransactionId>) {
+    let rows = spending_in_window(db, f, period);
+    let ids: Vec<TransactionId> = rows
+        .iter()
+        .filter(|tx| category_name_or_uncategorized(db, tx) == name)
+        .map(|tx| tx.id)
+        .collect();
+    (format!("{name} Transactions"), ids)
 }
 
 /// A slice coloured by [`category_hex`].
@@ -187,5 +233,59 @@ mod tests {
         assert_eq!(capped.len(), 15);
         assert_eq!(capped[0].name, "Cat00");
         assert_eq!(capped[14].name, "Cat14");
+    }
+}
+
+#[cfg(test)]
+mod drill_tests {
+    use pf_model::testing::TestDb;
+    use pf_model::{AccountType, CategoryType, TimePeriod, TransactionStatus};
+
+    use super::*;
+
+    /// Checking with a Food spend and a Rent spend, both in the window.
+    fn filter_and_db() -> (Db, ChartFilter, TransactionId, TransactionId) {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let food = t.category("Food", CategoryType::Expense);
+        let rent = t.category("Rent", CategoryType::Expense);
+        let food_tx = t
+            .tx(chk, "2026-03-02", "-10", "Store")
+            .category(food)
+            .status(TransactionStatus::Cleared)
+            .done();
+        let rent_tx = t
+            .tx(chk, "2026-03-03", "-500", "Landlord")
+            .category(rent)
+            .status(TransactionStatus::Cleared)
+            .done();
+        let f = ChartFilter {
+            accounts: [chk].into_iter().collect(),
+            scenario: None,
+            today: jiff::civil::date(2026, 3, 15),
+        };
+        (t.build(), f, food_tx, rent_tx)
+    }
+
+    #[test]
+    /// The distribution bar of a category lists only that category's transactions.
+    fn distribution_drill_lists_the_bar() {
+        let (db, f, food_tx, _) = filter_and_db();
+        let (title, ids) = distribution_drill(&db, &f, TimePeriod::PastYear, "Food");
+        assert_eq!(title, "Food Transactions");
+        assert_eq!(ids, vec![food_tx]);
+    }
+
+    #[test]
+    /// The breakdown wedge of a group lists its transactions; with fewer groups than the wedge limit, no
+    /// transaction falls in "Other".
+    fn breakdown_drill_lists_the_wedge() {
+        let (db, f, food_tx, rent_tx) = filter_and_db();
+        let (_, rent) = breakdown_drill(&db, &f, TimePeriod::PastYear, "Rent");
+        assert_eq!(rent, vec![rent_tx]);
+        let (_, other) = breakdown_drill(&db, &f, TimePeriod::PastYear, "Other");
+        assert!(other.is_empty());
+        let (_, food) = breakdown_drill(&db, &f, TimePeriod::PastYear, "Food");
+        assert_eq!(food, vec![food_tx]);
     }
 }

@@ -6,18 +6,21 @@ use egui_plot::{Bar, BarChart, Plot};
 use pf_core::charts::ChartFilter;
 use pf_core::charts::NOT_ENOUGH_DATA;
 use pf_core::charts::categories::{
-    DISTRIBUTION_PERIODS, distribution_height, expense_distribution,
+    DISTRIBUTION_PERIODS, distribution_drill, distribution_height, expense_distribution,
 };
 use pf_core::format;
 use rust_decimal::Decimal;
 
-use super::State;
 use super::grid;
 use super::style::{hex_color, to_f64};
+use super::{Drill, State};
 use crate::app::UiCtx;
 
 /// The distribution card: the total, the period picker, and the bars.
-pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
+/// How far from a bar's centre (in bars) a click still counts as on the bar.
+const BAR_HALF_HEIGHT: f64 = 0.3;
+
+pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter, drill: &mut Drill) {
     let db = cx.engine.db();
     let revision = cx.engine.revision();
     let period = st.distribution_period;
@@ -69,7 +72,7 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
         })
         .collect();
     let height = distribution_height(slices.len());
-    Plot::new((
+    let plot_response = Plot::new((
         "chart_distribution",
         super::plot_key(f, st.distribution_period),
     ))
@@ -89,5 +92,18 @@ pub fn card(ui: &mut Ui, cx: &UiCtx, st: &mut State, f: &ChartFilter) {
     })
     .show(ui, |plot| {
         plot.bar_chart(BarChart::new("Expenses", bars).horizontal());
+        plot.pointer_coordinate()
     });
+    // A click on a bar opens the transactions behind it (R-CHT-7). Bars sit on whole numbers.
+    if plot_response.response.clicked()
+        && let Some(pc) = plot_response.inner
+    {
+        let row = pc.y.round();
+        if (pc.y - row).abs() <= BAR_HALF_HEIGHT
+            && row >= 0.0
+            && let Some(slice) = slices.get(row as usize)
+        {
+            *drill = Some(distribution_drill(db, f, period, &slice.name));
+        }
+    }
 }
