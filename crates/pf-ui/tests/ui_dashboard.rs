@@ -306,3 +306,31 @@ fn ui_dsh_external_account_has_badge() {
         "name is clickable"
     );
 }
+
+#[test]
+/// The summary cards follow the active scenario, as the account balances do.
+fn ui_dsh_cards_follow_scenario() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    let plan = t.scenario("Plan A");
+    t.tx(chk, "2026-01-05", "1000", "Pay")
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.tx(chk, "2026-01-07", "-300", "Plan spend")
+        .status(TransactionStatus::Cleared)
+        .scenario(plan)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        h.get_by_label("Reality").click();
+        h.run();
+        h.get_by_label("Plan A").click();
+        h.run();
+        assert!(
+            h.query_all_by_value("$700.00").next().is_some(),
+            "the cards show the Plan A cleared total"
+        );
+    }
+}
