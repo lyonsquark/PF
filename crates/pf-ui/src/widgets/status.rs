@@ -17,6 +17,9 @@ const ORDER: [TransactionStatus; 4] = [
 ];
 
 /// Text colour for a status. Cleared has none (normal text).
+/// Width of the status picker, in points.
+pub const PICKER_WIDTH: f32 = 110.0;
+
 pub fn status_color(s: TransactionStatus) -> Option<Color32> {
     match s {
         TransactionStatus::Cleared => None,
@@ -47,7 +50,7 @@ pub fn status_picker(
     let mut picked = None;
     ui.add_enabled_ui(enabled, |ui| {
         let resp = ComboBox::from_id_salt(id_salt)
-            .width(110.0)
+            .width(PICKER_WIDTH)
             .selected_text(status_text(current))
             .show_ui(ui, |ui| {
                 for s in ORDER {

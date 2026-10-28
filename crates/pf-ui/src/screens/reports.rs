@@ -19,6 +19,7 @@ use crate::app::UiCtx;
 use crate::caches::Cached;
 use crate::dialogs::Dialog;
 use crate::dialogs::report_drilldown::open_transactions;
+use crate::widgets::col_fit::fit;
 use crate::widgets::colors;
 use crate::widgets::hscroll::{self, HScroll};
 
@@ -28,9 +29,6 @@ const MATRIX_LABEL_WIDTH: f32 = 140.0;
 const MATRIX_CELL_WIDTH: f32 = 90.0;
 /// Width of the balance sheet, in points.
 const BS_WIDTH: f32 = 700.0;
-/// Width of a money column in the balance sheet, in points. Fixed so that a column does not grow to
-/// the frame edge, which would push its figures away from the header.
-const BS_MONEY_WIDTH: f32 = 120.0;
 /// Height of an account row (two lines: name and institution), in points.
 const BS_ACCOUNT_ROW_HEIGHT: f32 = 40.0;
 /// Height of a single-line balance sheet row, in points.
@@ -235,15 +233,17 @@ fn profit_and_loss_body(
         ui.label(RichText::new("No categories in this range").weak());
         return;
     }
+    // Each money column starts as wide as its widest figure (see `widgets::col_fit`).
+    let money_w = fit(ui, "Difference", &["-$999,999.99"]);
     hscroll::show(ui, hscroll_state, |ui| {
         TableBuilder::new(ui)
             .striped(true)
             .auto_shrink([false, false])
             .max_scroll_height(f32::INFINITY)
             .column(Column::remainder().at_least(200.0))
-            .column(Column::initial(130.0))
-            .column(Column::initial(130.0))
-            .column(Column::initial(130.0))
+            .column(Column::initial(money_w))
+            .column(Column::initial(money_w))
+            .column(Column::initial(money_w))
             .header(20.0, |mut header| {
                 for h in ["Category", "Budgeted", "Actual", "Difference"] {
                     header.col(|ui| {
@@ -301,12 +301,13 @@ fn profit_and_loss_body(
 fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
     ui.set_max_width(BS_WIDTH);
     ui.label(RichText::new(format!("As of {}", format_date(sheet.as_of))).weak());
+    let money_w = fit(ui, "Pending", &["-$999,999.99"]).max(fit(ui, "Balance", &["-$999,999.99"]));
     Frame::group(ui.style()).show(ui, |ui| {
         TableBuilder::new(ui)
             .auto_shrink([false, true])
             .column(Column::remainder().at_least(160.0))
-            .column(Column::initial(BS_MONEY_WIDTH))
-            .column(Column::initial(BS_MONEY_WIDTH))
+            .column(Column::initial(money_w))
+            .column(Column::initial(money_w))
             .header(20.0, |mut header| {
                 header.col(|ui| {
                     ui.strong("Account");
@@ -366,7 +367,7 @@ fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
             TableBuilder::new(ui)
                 .auto_shrink([false, true])
                 .column(Column::remainder().at_least(160.0))
-                .column(Column::initial(BS_MONEY_WIDTH))
+                .column(Column::initial(money_w))
                 .header(20.0, |mut header| {
                     header.col(|ui| {
                         ui.strong("Obligation");

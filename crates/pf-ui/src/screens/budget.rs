@@ -17,6 +17,7 @@ use crate::caches::Cached;
 use crate::dialogs::Dialog;
 use crate::dialogs::budget_item::BudgetItemForm;
 use crate::dialogs::projection::ProjectionForm;
+use crate::widgets::col_fit::{fit, longest};
 use crate::widgets::colors;
 
 /// Row height in points.
@@ -220,6 +221,20 @@ fn table(
     let mut clicked: Option<BudgetItemId> = None;
     let mut double: Option<BudgetItemId> = None;
     let name_title = name_header(tab);
+    // Each column starts as wide as its widest text (see `widgets::col_fit`).
+    let category_w = fit(
+        ui,
+        "Category",
+        &longest(rows.iter().filter_map(|r| r.category_label.as_deref())),
+    );
+    let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
+    let frequency_w = fit(ui, "Frequency", &["Specific Months (12)"]);
+    let start_w = fit(ui, "Start Date", &["Sep 30, 2026"]);
+    let account_w = fit(
+        ui,
+        "Account",
+        &longest(rows.iter().filter_map(|r| r.account.as_deref())),
+    );
     crate::widgets::hscroll::show(ui, hscroll, |ui| {
         TableBuilder::new(ui)
             .striped(true)
@@ -228,11 +243,11 @@ fn table(
             .auto_shrink([false, false])
             .max_scroll_height(f32::INFINITY)
             .column(Column::remainder().at_least(160.0))
-            .column(Column::initial(180.0))
-            .column(Column::initial(110.0))
-            .column(Column::initial(170.0))
-            .column(Column::initial(120.0))
-            .column(Column::initial(140.0))
+            .column(Column::initial(category_w))
+            .column(Column::initial(amount_w))
+            .column(Column::initial(frequency_w))
+            .column(Column::initial(start_w))
+            .column(Column::initial(account_w))
             .header(HEADER_HEIGHT, |mut header| {
                 for title in [
                     name_title,

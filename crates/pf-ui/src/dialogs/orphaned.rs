@@ -9,6 +9,7 @@ use pf_model::Db;
 
 use crate::app::UiCtx;
 use crate::dialogs::Outcome;
+use crate::widgets::col_fit::{fit, longest};
 use crate::widgets::colors;
 
 /// One table row, with every cell already converted to text.
@@ -95,15 +96,26 @@ pub fn show(cx: &mut UiCtx, ui: &mut Ui) -> Outcome {
 
 /// The virtualised table: Date, Payee, Amount, Category, Memo, Status, Scenario.
 fn table(ui: &mut Ui, rows: &[Row]) {
+    // Each column starts as wide as its widest text (see `widgets::col_fit`); Scenario takes the rest.
+    let date_w = fit(ui, "Date", &["Sep 30, 2026"]);
+    let payee_w = fit(ui, "Payee", &longest(rows.iter().map(|r| r.payee.as_str())));
+    let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
+    let category_w = fit(
+        ui,
+        "Category",
+        &longest(rows.iter().map(|r| r.category.as_str())),
+    );
+    let memo_w = fit(ui, "Memo", &longest(rows.iter().map(|r| r.memo.as_str())));
+    let status_w = fit(ui, "Status", &["Reconciled", "Pending"]);
     TableBuilder::new(ui)
         .striped(true)
         .max_scroll_height(360.0)
-        .column(Column::initial(90.0))
-        .column(Column::initial(130.0))
-        .column(Column::initial(90.0))
-        .column(Column::initial(120.0))
-        .column(Column::initial(110.0))
-        .column(Column::initial(80.0))
+        .column(Column::initial(date_w))
+        .column(Column::initial(payee_w))
+        .column(Column::initial(amount_w))
+        .column(Column::initial(category_w))
+        .column(Column::initial(memo_w))
+        .column(Column::initial(status_w))
         .column(Column::remainder())
         .header(20.0, |mut header| {
             for title in [

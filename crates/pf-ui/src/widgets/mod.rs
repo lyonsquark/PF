@@ -3,6 +3,7 @@
 pub mod account_multiselect;
 pub mod amount_field;
 pub mod category;
+pub mod col_fit;
 pub mod color;
 pub mod contexts;
 pub mod hscroll;

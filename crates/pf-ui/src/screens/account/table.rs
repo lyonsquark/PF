@@ -18,11 +18,13 @@ use super::edit::{CellEdit, EditCol, Edits, Pending};
 use super::menu;
 use super::rows::TxRow;
 use crate::widgets::amount_field::amount_field;
+use crate::widgets::category::PICKER_WIDTH as CATEGORY_PICKER_WIDTH;
 use crate::widgets::category::category_picker;
+use crate::widgets::col_fit::{fit, longest};
 use crate::widgets::colors;
 use crate::widgets::contexts::{context_chips, context_toggle_menu};
 use crate::widgets::hscroll::{self, HScroll};
-use crate::widgets::status::status_picker;
+use crate::widgets::status::{PICKER_WIDTH, status_picker};
 
 /// Row height in points; it fits a ComboBox (T15b).
 const ROW_HEIGHT: f32 = 24.0;
@@ -62,6 +64,29 @@ pub fn show(
     let mut clicked: Option<usize> = None;
     // Sideways scroll so every column is reachable in a narrow window (clamped, no rubber band).
     // The table keeps its own vertical scroll and row virtualisation (it gets the viewport height).
+    // Each column starts as wide as its widest text (the longest candidates, plus fixed-format
+    // templates for amounts and dates).
+    let date_w = fit(ui, "Date", &["Sep 30, 2026"]);
+    let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
+    let category_w = fit(
+        ui,
+        "Category",
+        &longest(rows.iter().map(|r| r.category_label.as_str())),
+    )
+    .max(CATEGORY_PICKER_WIDTH + 16.0);
+    let memo_w = fit(ui, "Memo", &longest(rows.iter().map(|r| r.memo.as_str())));
+    let att_w = fit(ui, "Att.", &["Attach"]);
+    let context_w = fit(
+        ui,
+        "Context",
+        &longest(
+            rows.iter()
+                .flat_map(|r| r.contexts.iter().map(|c| c.1.as_str())),
+        ),
+    );
+    let running_w = fit(ui, "Running Balance", &["-$999,999.99"]);
+    // The status picker is a fixed-width combo box, so the column is at least that wide.
+    let status_w = fit(ui, "Status", &["Reconciled", "Pending"]).max(PICKER_WIDTH + 16.0);
     hscroll::show(ui, hscroll, |ui| {
         TableBuilder::new(ui)
             .striped(true)
@@ -69,15 +94,15 @@ pub fn show(
             .sense(Sense::click())
             .auto_shrink([false, false])
             .max_scroll_height(f32::INFINITY)
-            .column(Column::initial(110.0))
+            .column(Column::initial(date_w))
             .column(Column::remainder().at_least(150.0))
-            .column(Column::initial(100.0))
-            .column(Column::initial(160.0))
-            .column(Column::initial(140.0))
-            .column(Column::initial(120.0))
-            .column(Column::initial(170.0))
-            .column(Column::initial(110.0))
-            .column(Column::initial(100.0))
+            .column(Column::initial(amount_w))
+            .column(Column::initial(category_w))
+            .column(Column::initial(memo_w))
+            .column(Column::initial(att_w))
+            .column(Column::initial(context_w))
+            .column(Column::initial(running_w))
+            .column(Column::initial(status_w))
             .header(HEADER_HEIGHT, |mut header| {
                 for title in HEADERS {
                     header.col(|ui| {

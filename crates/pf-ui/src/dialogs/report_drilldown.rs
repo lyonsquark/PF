@@ -12,6 +12,7 @@ use rust_decimal::Decimal;
 
 use super::{Dialog, Outcome};
 use crate::app::UiCtx;
+use crate::widgets::col_fit::{fit, longest};
 use crate::widgets::colors;
 use crate::widgets::hscroll::{self, HScroll};
 
@@ -46,20 +47,40 @@ pub fn show_transactions(
         } else {
             with_hscroll(ui, "report_transactions_hscroll", |ui| {
                 // The memo takes the rest of the width, so the table fits the dialog and the sideways
-                // scroll is only for a scenario's extra column on a narrow window.
+                // scroll is only for a scenario's extra column on a narrow window. Each column starts as
+                // wide as its widest text (see `widgets::col_fit`).
+                let date_w = fit(ui, "Date", &["Sep 30, 2026"]);
+                let account_w = fit(
+                    ui,
+                    "Account",
+                    &longest(rows.iter().map(|r| r.account.as_str())),
+                );
+                let payee_w = fit(ui, "Payee", &longest(rows.iter().map(|r| r.payee.as_str())));
+                let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
+                let context_w = fit(
+                    ui,
+                    "Context",
+                    &longest(rows.iter().map(|r| r.contexts.as_str())),
+                );
+                let status_w = fit(ui, "Status", &["Reconciled", "Pending"]);
+                let scenario_w = fit(
+                    ui,
+                    "Scenario",
+                    &longest(rows.iter().map(|r| r.scenario.as_str())),
+                );
                 let mut table = TableBuilder::new(ui)
                     .striped(true)
                     .auto_shrink([false, false])
                     .max_scroll_height(360.0)
-                    .column(Column::initial(96.0))
-                    .column(Column::initial(100.0))
-                    .column(Column::initial(150.0))
-                    .column(Column::initial(90.0))
+                    .column(Column::initial(date_w))
+                    .column(Column::initial(account_w))
+                    .column(Column::initial(payee_w))
+                    .column(Column::initial(amount_w))
                     .column(Column::remainder().at_least(120.0))
-                    .column(Column::initial(120.0))
-                    .column(Column::initial(80.0));
+                    .column(Column::initial(context_w))
+                    .column(Column::initial(status_w));
                 if scenario_active {
-                    table = table.column(Column::initial(100.0));
+                    table = table.column(Column::initial(scenario_w));
                 }
                 let headers: Vec<&str> = if scenario_active {
                     vec![
@@ -147,18 +168,29 @@ pub fn show_budget_items(
         if rows.is_empty() {
             ui.label(RichText::new("No budget items").weak());
         } else {
+            let name_w = fit(ui, "Name", &longest(rows.iter().map(|r| r.name.as_str())));
+            let category_w = fit(
+                ui,
+                "Category",
+                &longest(rows.iter().map(|r| r.category.as_str())),
+            );
+            let type_w = fit(ui, "Type", &["Expense", "Income", "Bill"]);
+            let frequency_w = fit(ui, "Frequency", &["Specific Months (12)"]);
+            let amount_w = fit(ui, "Amount", &["-$999,999.99"]);
+            let start_w = fit(ui, "Start Date", &["Sep 30, 2026"]);
+            let total_w = fit(ui, "Calculated Total (In Window)", &["-$999,999.99"]);
             with_hscroll(ui, "report_budget_items_hscroll", |ui| {
                 TableBuilder::new(ui)
                     .striped(true)
                     .auto_shrink([false, false])
                     .max_scroll_height(360.0)
-                    .column(Column::initial(170.0))
-                    .column(Column::initial(150.0))
-                    .column(Column::initial(90.0))
-                    .column(Column::initial(110.0))
-                    .column(Column::initial(100.0))
-                    .column(Column::initial(100.0))
-                    .column(Column::initial(130.0))
+                    .column(Column::initial(name_w))
+                    .column(Column::initial(category_w))
+                    .column(Column::initial(type_w))
+                    .column(Column::initial(frequency_w))
+                    .column(Column::initial(amount_w))
+                    .column(Column::initial(start_w))
+                    .column(Column::initial(total_w))
                     .header(HEADER_HEIGHT, |mut header| {
                         for h in [
                             "Name",

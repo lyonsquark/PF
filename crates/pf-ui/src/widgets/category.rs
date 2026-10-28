@@ -9,6 +9,9 @@ use pf_model::CategoryId;
 /// A category picker: "None" first, then `cats` in the order given (already sorted, R-CAT-4).
 /// Returns `Some(new)` when the choice changes. `a11y` is the accessible label
 /// (`Category {payee}`).
+/// Width of the category picker, in points.
+pub const PICKER_WIDTH: f32 = 150.0;
+
 pub fn category_picker(
     ui: &mut Ui,
     id_salt: impl Hash + Debug,
@@ -24,7 +27,7 @@ pub fn category_picker(
     let mut picked = None;
     ui.add_enabled_ui(enabled, |ui| {
         let resp = ComboBox::from_id_salt(id_salt)
-            .width(150.0)
+            .width(PICKER_WIDTH)
             .selected_text(shown)
             .show_ui(ui, |ui| {
                 if ui.selectable_label(current.is_none(), "None").clicked() && current.is_some() {

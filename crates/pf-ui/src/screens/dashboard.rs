@@ -14,6 +14,7 @@ use crate::app::UiCtx;
 use crate::caches::Cached;
 use crate::dialogs::{ConfirmAction, Dialog};
 use crate::screen::Screen;
+use crate::widgets::col_fit::fit;
 use crate::widgets::colors;
 
 /// Per-screen UI state. `show_available` is UI-only and not persisted.
@@ -69,8 +70,6 @@ pub struct AccountRow {
 
 /// The widest the dashboard gets, in points; a wider window keeps it in the middle.
 const MAX_WIDTH: f32 = 880.0;
-/// Width of each Cleared / All money column, in points.
-const AMOUNT_WIDTH: f32 = 130.0;
 /// Height of an account row, in points.
 const ROW_HEIGHT: f32 = 36.0;
 /// Height of an account row when a scenario shows its reality line, in points.
@@ -224,6 +223,8 @@ fn group_table(
     row_height: f32,
     reality_lines: bool,
 ) {
+    // Each Cleared / All column is as wide as its widest figure (see `widgets::col_fit`).
+    let amount_w = fit(ui, "Cleared", &["-$999,999.99"]).max(fit(ui, "All", &["-$999,999.99"]));
     Frame::group(ui.style())
         .inner_margin(12.0)
         .corner_radius(10.0)
@@ -233,8 +234,8 @@ fn group_table(
                 .striped(true)
                 .auto_shrink([false, true])
                 .column(Column::remainder().at_least(160.0))
-                .column(Column::exact(AMOUNT_WIDTH))
-                .column(Column::exact(AMOUNT_WIDTH))
+                .column(Column::exact(amount_w))
+                .column(Column::exact(amount_w))
                 .header(HEADER_HEIGHT, |mut header| {
                     header.col(|_| {});
                     header.col(|ui| amount_header(ui, "Cleared"));
