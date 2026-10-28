@@ -185,6 +185,7 @@ fn ui_ctx_edit_lists_transactions_and_total() {
         .status(TransactionStatus::Cleared)
         .done();
     t.tx(card, "2026-03-05", "-12.50", "Taxi")
+        .memo("Airport run")
         .contexts(&[trip])
         .status(TransactionStatus::Cleared)
         .done();

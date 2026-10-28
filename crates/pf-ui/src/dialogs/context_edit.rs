@@ -15,7 +15,7 @@ use crate::widgets::labeled_text;
 
 /// Dialog width in points: narrow for a new context, wider to list the transactions of an edited one.
 const MIN_WIDTH: f32 = 360.0;
-const EDIT_WIDTH: f32 = 640.0;
+const EDIT_WIDTH: f32 = 780.0;
 /// Height of the transaction list before it scrolls, in points.
 const LIST_HEIGHT: f32 = 240.0;
 /// The default context colour (R-CTX-4, blue).
@@ -85,6 +85,8 @@ pub struct ContextTx {
     pub account: String,
     /// The payee.
     pub payee: String,
+    /// The memo, empty when there is none.
+    pub memo: String,
     /// The signed amount.
     pub amount: Decimal,
     /// The scenario's name, or `None` for a reality transaction.
@@ -104,6 +106,7 @@ pub fn context_transactions(db: &Db, ctx: ContextId) -> (Vec<ContextTx>, Decimal
                 .and_then(|a| db.account(a))
                 .map_or_else(|| "(no account)".to_string(), |a| a.name.clone()),
             payee: tx.payee.clone(),
+            memo: tx.memo.clone().unwrap_or_default(),
             amount: tx.amount,
             scenario: tx
                 .scenario_id
@@ -219,11 +222,11 @@ fn transaction_list(ui: &mut Ui, rows: &[ContextTx], total: Decimal) {
         .auto_shrink([false, true])
         .show(ui, |ui| {
             egui::Grid::new("context_transactions")
-                .num_columns(5)
+                .num_columns(6)
                 .striped(true)
                 .spacing([14.0, 4.0])
                 .show(ui, |ui| {
-                    for head in ["Date", "Account", "Payee", "Amount", "Scenario"] {
+                    for head in ["Date", "Account", "Payee", "Memo", "Amount", "Scenario"] {
                         ui.label(RichText::new(head).strong());
                     }
                     ui.end_row();
@@ -231,6 +234,7 @@ fn transaction_list(ui: &mut Ui, rows: &[ContextTx], total: Decimal) {
                         ui.label(r.date.strftime("%b %-d, %Y").to_string());
                         ui.label(&r.account);
                         ui.label(&r.payee);
+                        ui.label(RichText::new(&r.memo).weak());
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.label(format_currency(r.amount));
                         });
@@ -284,6 +288,10 @@ mod tests {
         assert_eq!(rows[0].account, "Card");
         assert_eq!(rows[1].account, "Checking");
         assert_eq!(total, m("-52.50"));
+        assert_eq!(
+            rows[0].memo, "",
+            "a transaction without a memo has an empty one"
+        );
     }
 
     #[test]
