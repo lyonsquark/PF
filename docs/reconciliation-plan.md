@@ -126,10 +126,11 @@ The owner can unpair any pair, and pair any statement line with any candidate by
 1. **Statement adds up:** opening + Σ lines = closing (and the credit and debit totals, when present). If it
    fails, nothing else runs.
 2. **Opening balance:** PFRust's reconciled balance (sum of Reconciled transactions of the account) must equal
-   the statement's opening balance. On the first reconciliation there is nothing reconciled yet, so the
-   dialog offers to take the statement's opening balance as the starting point. Later, a difference here means
-   a reconciled transaction was edited or deleted since the last statement. The check lists those rows, using
-   the reconciliation history.
+   the statement's opening balance. On the first reconciliation nothing is Reconciled yet, so the dialog
+   offers two choices: mark every transaction dated before the statement period as Reconciled (so the
+   baseline exists from then on), or skip the opening check this once. Later, a difference here means a
+   Reconciled transaction was edited or deleted since the last statement. The app shows the difference; it
+   cannot say which row changed, since no history is kept (the edit warning makes this rare).
 3. **Closing balance:** opening + every accepted pair and added line must equal the statement's closing
    balance. The dialog shows **Difference: $0.00** live as the owner works. Finish is enabled at zero. With a
    non-zero difference, Finish asks whether to add a "Reconciliation adjustment" transaction for the
@@ -142,20 +143,25 @@ One `Engine::apply` named "Reconcile Statement":
 * Accepted pairs become Reconciled. A pair whose amount differs is changed only if the owner chose that.
 * Added lines are inserted as Reconciled transactions in Reality.
 * An adjustment transaction is added if the owner chose one.
-* A reconciliation record is stored, with the ids of the transactions it covered.
 * Confirmed pairs whose payee and description differ are saved as aliases (an `ImportMapping` of a new type,
   `statementPayee`, per account).
 
-Undo reverses all of it. "Undo Reconciliation" in the account menu removes a past reconciliation the same way.
+Edit → Undo Reconcile Statement (⌘Z) reverses all of it in one step, as long as it is still in the undo
+history. The history is in memory only (R-UND-4), so after a restart the statuses are set back by hand.
 
-### New data
+### No new data (decision)
 
-* Table `reconciliations` (id, account_id, period_start, period_end, opening, closing, completed_at,
-  source_name, source_sha256) and table `reconciliation_transactions` (reconciliation_id, transaction_id).
-  The hash stops the same statement from being reconciled twice.
-* `docs/data-model.md` and the Markdown backup gain a `## Reconciliations` section. **Risk:** the Swift app's
-  backup import may reject an unknown section. This must be checked against the Swift parser before release.
-  If it does, the section can be written only when reconciliations exist, with a note in the README.
+Reconciliation is recorded **only as the Reconciled status** on transactions. There are no reconciliation
+tables, no schema migration, and no change to the Markdown backup format.
+
+* The pending proposal from the skill lives in memory in the running app. Quitting before Finish drops it;
+  the skill is run again.
+* A statement fed in twice is caught by the "Already reconciled" section, not by a stored file hash.
+* Payee aliases are stored as `ImportMapping` rows of a new type, `statementPayee`, in the existing table.
+  **Check before release:** the Swift app's backup import must accept (or ignore) an unknown mapping type,
+  since these rows appear in the Markdown backup's ImportMappings section.
+* Given up on purpose: undoing an old reconciliation as one unit after a restart, a history of past
+  statements, and naming the changed row behind an opening-balance difference.
 * `PF.store` is never touched.
 
 ### Testing
@@ -216,9 +222,8 @@ Local API changes (all read-only, except storing the proposal):
 | `GET /api/accounts/{name}/reconcile/proposal` | The stored proposal's current report, recomputed against today's transactions (the owner may have edited some since). |
 | `DELETE /api/accounts/{name}/reconcile/proposal` | Drops the pending proposal. |
 
-The pending proposal is kept in a small `reconcile_proposals` table (account, statement JSON, hash, received
-at), so it survives a restart. It is not part of the Markdown backup. Finishing or cancelling in the app
-removes it.
+The pending proposal is kept in memory in the running app (one per account, a newer one replaces it). A
+restart drops it, and the skill is simply run again. Finishing or cancelling in the app removes it.
 
 * **Pros:** reading the PDF and explaining differences is AI work, and the decision stays in the app.
   No API key or network code inside PFRust. Uses the owner's existing Claude Code setup. The AI never sees bank
@@ -284,11 +289,10 @@ follow later if the terminal step becomes a nuisance. It reuses the schema and t
 
 | Task | Title | Deps | Notes |
 |---|---|---|---|
-| T28 | Reconciliation data | – | `pf-model` entity, `pf-store` tables, Markdown backup section, data-model doc. Check the Swift backup parser for unknown sections first. |
-| T29 | `pf-core::reconcile` | T28 | Statement model and parsing (JSON and CSV), self-check with both balance conventions, sign tie-break against PFRust and per-section sign flags, matching passes, sections, balance checks. New rule IDs `R-REC-*`. Property and golden tests, including the three statement layouts. |
-| T30 | Reconcile engine commands | T29 | Apply (one step), undo a past reconciliation, payee aliases (`statementPayee` mapping). |
+| T29 | `pf-core::reconcile` | – | Statement model and parsing (JSON and CSV), self-check with both balance conventions, sign tie-break against PFRust and per-section sign flags, matching passes, sections, balance checks. New rule IDs `R-REC-*`. Property and golden tests, including the three statement layouts. |
+| T30 | Reconcile engine commands | T29 | Apply (one step: statuses, added lines, adjustment, aliases), mark-before-period as Reconciled for a first reconciliation, payee aliases (`statementPayee` mapping; check the Swift backup import with an unknown mapping type). No schema change. |
 | T31 | Reconcile dialog | T30 | Account action row "Reconcile…", load file, "Read as" line with Flip signs and per-section fixes, review sections, manual pair and unpair, live Difference, Finish with optional adjustment. Warn-then-allow on editing or deleting a Reconciled transaction (account table, dialogs). kittest. |
-| T32 | Option B: proposal API | T31 | `GET …/transactions?from&to` with ids; `POST`/`GET`/`DELETE …/reconcile/proposal`; `reconcile_proposals` table; "Statement ready to review" banner that opens the dialog with the proposal. No API route changes a status. API tests on port 0 with temp databases. |
+| T32 | Option B: proposal API | T31 | `GET …/transactions?from&to` with ids; `POST`/`GET`/`DELETE …/reconcile/proposal`; proposal held in memory per account; "Statement ready to review" banner that opens the dialog with the proposal. No API route changes a status. API tests on port 0 with temp databases. |
 | T32b | Option B: `/reconcile` skill | T32 | `.claude/skills/reconcile/SKILL.md`: read the PDF, split a multi-account PDF into one statement file per account, sign each line by its section, self-check and re-read loop, post the proposal, explain the report, point the owner to the app. Tried by hand on two real statements. |
 | T33 | Option C: Claude API extraction (optional) | T31 | Blocked until the owner approves the HTTPS dependency. Keychain key, background call, retry on a failed self-check. |
 
@@ -298,8 +302,10 @@ follow later if the terminal step becomes a nuisance. It reuses the schema and t
    separate charge and credit tables, one card statement with a single signed table, and one checking
    statement. Sign handling must not assume a layout (see "Signs and statement layouts").
 2. **Editing a reconciled transaction:** warn, then allow. Changing the amount or date of, or deleting, a
-   Reconciled transaction asks "This transaction was reconciled on {date}. Change it anyway?". This keeps
-   parity with Swift, which never locked. The next opening-balance check lists the changed rows.
+   Reconciled transaction asks "This transaction is Reconciled. Change it anyway?". This keeps parity with
+   Swift, which never locked. The next opening-balance check shows any difference this causes.
+5. **Storage:** status only, no reconciliation tables and no database migration. Undo right after Finish
+   reverses the whole reconciliation; after a restart, statuses are changed back by hand.
 3. **Combined statements:** one proposal per account. The skill splits a multi-account PDF into one statement
    file per account and posts each to its account; each is reviewed and finished on its own.
 4. **Transfers between own accounts:** nothing special. Each account is reconciled from its own statement.
