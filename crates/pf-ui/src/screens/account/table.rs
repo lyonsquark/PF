@@ -56,6 +56,7 @@ pub fn show(
     selection: &mut BTreeSet<TransactionId>,
     anchor: &mut Option<TransactionId>,
     hscroll: &mut HScroll,
+    scroll_to: Option<TransactionId>,
     edits: &mut Edits<'_>,
 ) {
     if rows.is_empty() {
@@ -92,13 +93,20 @@ pub fn show(
     let running_w = fit(ui, "Running Balance", &["-$999,999.99"]);
     // The status picker is a fixed-width combo box, so the column is at least that wide.
     let status_w = fit(ui, "Status", &["Reconciled", "Pending"]).max(PICKER_WIDTH + 16.0);
+    // A revealed transaction is scrolled to once (its row index in this list).
+    let scroll_row = scroll_to.and_then(|t| rows.iter().position(|r| r.id == t));
     hscroll::show(ui, hscroll, |ui| {
-        TableBuilder::new(ui)
+        let builder = TableBuilder::new(ui)
             .striped(true)
             .resizable(true)
             .sense(Sense::click())
             .auto_shrink([false, false])
-            .max_scroll_height(f32::INFINITY)
+            .max_scroll_height(f32::INFINITY);
+        let builder = match scroll_row {
+            Some(index) => builder.scroll_to_row(index, Some(Align::Center)),
+            None => builder,
+        };
+        builder
             .column(Column::initial(date_w))
             .column(Column::initial(PAYEE_WIDTH))
             .column(Column::initial(amount_w))

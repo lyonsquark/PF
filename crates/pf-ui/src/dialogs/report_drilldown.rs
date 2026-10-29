@@ -2,7 +2,7 @@
 //! and the budget items behind a budgeted figure. The rows come from `pf_core::reports`; this file lays
 //! them out.
 
-use egui::{Align, Layout, Modal, RichText, Ui};
+use egui::{Align, Layout, Modal, RichText, Sense, Ui};
 use egui_extras::{Column, TableBuilder};
 use jiff::civil::Date;
 use pf_core::format;
@@ -11,7 +11,7 @@ use pf_engine::commands::transactions::{TxField, edit_transaction};
 use pf_model::{BudgetItemId, CategoryId, TransactionId};
 use rust_decimal::Decimal;
 
-use super::{Dialog, Outcome};
+use super::{Dialog, Outcome, Reveal};
 use crate::app::UiCtx;
 use crate::widgets::category::{PICKER_WIDTH, category_picker};
 use crate::widgets::colors;
@@ -67,6 +67,8 @@ pub fn show_transactions(
         .collect();
     // A category picked this frame, applied after the window is drawn.
     let mut picked: Option<(TransactionId, Option<CategoryId>)> = None;
+    // A row clicked this frame: its transaction is shown in its account after the window closes.
+    let mut clicked: Option<TransactionId> = None;
     let mut close = false;
     let response = Modal::new(egui::Id::unique(("report_transactions",))).show(ui.ctx(), |ui| {
         ui.set_width(dialog_width(ui));
@@ -126,14 +128,15 @@ pub fn show_transactions(
                         body.rows(ROW_HEIGHT, rows.len(), |mut row| {
                             let index = row.index();
                             let r = &rows[index];
+                            let mut row_clicked = false;
                             row.col(|ui| {
-                                ui.label(format_date(r.date));
+                                row_clicked |= clickable(ui, format_date(r.date));
                             });
                             row.col(|ui| {
-                                ui.label(&r.account);
+                                row_clicked |= clickable(ui, &r.account);
                             });
                             row.col(|ui| {
-                                ui.label(&r.payee);
+                                row_clicked |= clickable(ui, &r.payee);
                             });
                             row.col(|ui| {
                                 if let Some(choice) = category_picker(
@@ -148,27 +151,36 @@ pub fn show_transactions(
                                 }
                             });
                             row.col(|ui| {
-                                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                                    ui.label(amount_text(r.amount));
-                                });
+                                row_clicked |= ui
+                                    .with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                        clickable(ui, amount_text(r.amount))
+                                    })
+                                    .inner;
                             });
                             row.col(|ui| {
-                                ui.label(RichText::new(&r.memo).weak());
+                                row_clicked |= clickable(ui, RichText::new(&r.memo).weak());
                             });
                             row.col(|ui| {
-                                ui.label(&r.contexts);
+                                row_clicked |= clickable(ui, &r.contexts);
                             });
                             row.col(|ui| {
-                                ui.label(r.status);
+                                row_clicked |= clickable(ui, r.status);
                             });
                             if scenario_active {
                                 row.col(|ui| {
-                                    if r.scenario == "Reality" {
-                                        ui.label(RichText::new("Reality").weak());
+                                    row_clicked |= if r.scenario == "Reality" {
+                                        clickable(ui, RichText::new("Reality").weak())
                                     } else {
-                                        ui.label(RichText::new(&r.scenario).color(colors::BLUE));
-                                    }
+                                        clickable(
+                                            ui,
+                                            RichText::new(&r.scenario).color(colors::BLUE),
+                                        )
+                                    };
                                 });
+                            }
+                            // A click on the row (not on its picker) shows the transaction in its account.
+                            if row_clicked {
+                                clicked = Some(r.id);
                             }
                         });
                     });
@@ -186,11 +198,33 @@ pub fn show_transactions(
             Err(e) => cx.toasts.info(e.to_string()),
         }
     }
+    // A clicked row closes this window and asks the app to show it in its account (the account
+    // screen selects and scrolls to it).
+    if let Some(id) = clicked {
+        match cx.engine.db().transaction(id).and_then(|t| t.account_id) {
+            Some(account) => {
+                cx.dialogs.reveal = Some(Reveal {
+                    account,
+                    transaction: id,
+                });
+                close = true;
+            }
+            None => cx
+                .toasts
+                .info("This transaction has no account, so it cannot be shown."),
+        }
+    }
     if close || response.should_close() {
         Outcome::Close
     } else {
         Outcome::KeepOpen
     }
+}
+
+/// A label that reports a click on it, so a click anywhere on a drill-down row shows its transaction.
+fn clickable(ui: &mut Ui, text: impl Into<egui::WidgetText>) -> bool {
+    ui.add(egui::Label::new(text).sense(Sense::click()))
+        .clicked()
 }
 
 /// The budget items behind a budgeted figure, with each one's total for the window.

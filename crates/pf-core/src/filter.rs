@@ -115,7 +115,7 @@ pub fn account_transactions(
 
 /// R-FLT-2: the time window. Archival keeps only old reality rows; other periods always keep
 /// scenario rows and keep reality rows dated on or after the period start.
-fn in_window(tx: &Transaction, period: TimePeriod, today: Date) -> bool {
+pub fn in_window(tx: &Transaction, period: TimePeriod, today: Date) -> bool {
     if period == TimePeriod::Archival {
         let cutoff = period_start(TimePeriod::PastYear, today);
         return tx.scenario_id.is_none() && cutoff.is_some_and(|c| tx.date < c);

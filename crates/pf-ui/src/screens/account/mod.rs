@@ -13,7 +13,7 @@ use std::collections::{BTreeSet, HashSet};
 
 use egui::{Align, ComboBox, Frame, Layout, RichText, TextEdit, TextStyle, Ui};
 use jiff::civil::Date;
-use pf_core::filter::SearchState;
+use pf_core::filter::{SearchState, in_window};
 use pf_core::{balance, format};
 use pf_engine::commands::accounts::{self, AccountInput};
 use pf_model::{AccountId, Db, ScenarioId, TimePeriod, TransactionId};
@@ -22,6 +22,7 @@ use rust_decimal::Decimal;
 use crate::app::UiCtx;
 use crate::caches::Cached;
 use crate::dialogs::Dialog;
+use crate::screen::Screen;
 use crate::widgets::colors;
 
 use edit::{
@@ -63,6 +64,35 @@ pub struct State {
     pub(crate) focus_search: bool,
     /// The (revision, key) for which the selection was last pruned to the visible rows.
     pruned: Option<(u64, RowsKey)>,
+    /// A transaction to scroll to on the next frame (set by `reveal`); taken once drawn.
+    pub(crate) reveal_scroll: Option<TransactionId>,
+}
+
+/// Shows `tx` in account `id` with it selected, from a drill-down window. The search is closed, and
+/// the time period widens to All when it leaves the transaction out.
+pub fn reveal(cx: &mut UiCtx, st: &mut State, id: AccountId, tx: TransactionId) {
+    let period = cx.engine.state.time_period;
+    let today = cx.engine.today();
+    let shown = cx
+        .engine
+        .db()
+        .transaction(tx)
+        .is_some_and(|t| in_window(t, period, today));
+    if !shown && let Err(e) = cx.engine.set_time_period(TimePeriod::All) {
+        cx.toasts.info(e.to_string());
+    }
+    *cx.screen = Screen::Account(id);
+    st.selection.clear();
+    st.selection.insert(tx);
+    st.anchor = Some(tx);
+    st.for_account = Some(id);
+    st.name_edit = None;
+    st.cell = None;
+    st.amount = None;
+    st.search = None;
+    st.focus_search = false;
+    st.tag_open = None;
+    st.reveal_scroll = Some(tx);
 }
 
 /// ⌘F on the account screen: opens the search bar, or closes it when it is open (T15c).
@@ -134,8 +164,10 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
         amount,
         tag_open,
         hscroll,
+        reveal_scroll,
         ..
     } = st;
+    let scroll_to = reveal_scroll.take();
     let view = rows.get(revision, &key, || {
         build_rows(cx.engine.db(), &cx.engine.state, &key)
     });
@@ -166,7 +198,9 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId) {
             tag_open,
             pending: Vec::new(),
         };
-        table::show(ui, &view.rows, selection, anchor, hscroll, &mut edits);
+        table::show(
+            ui, &view.rows, selection, anchor, hscroll, scroll_to, &mut edits,
+        );
         edits.pending
     };
     for change in pending {

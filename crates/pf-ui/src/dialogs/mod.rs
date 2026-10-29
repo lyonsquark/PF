@@ -23,6 +23,15 @@ use pf_model::{AccountId, BudgetItemId, TransactionId};
 use crate::app::UiCtx;
 use crate::screen::Screen;
 
+/// Where to show a transaction: its account, and the transaction to select there.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Reveal {
+    /// The account the transaction belongs to.
+    pub account: pf_model::AccountId,
+    /// The transaction to select and scroll to.
+    pub transaction: pf_model::TransactionId,
+}
+
 /// One modal. Later tasks add variants and their arms in `show_active`.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Dialog {
@@ -112,6 +121,8 @@ pub enum Outcome {
 #[derive(Debug, Default)]
 pub struct Dialogs {
     active: Option<Dialog>,
+    /// A transaction chosen in a drill-down window: the app opens its account with it selected.
+    pub reveal: Option<Reveal>,
     /// A confirmed Markdown import waiting for the Settings screen to run it (T21).
     pub pending_import: Option<PathBuf>,
 }

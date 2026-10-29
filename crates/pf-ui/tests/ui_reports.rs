@@ -442,6 +442,11 @@ fn ui_rpt_drill_category_change_updates_window_and_report() {
         h.run();
         assert!(!shows(&h, "Store"), "Store leaves the window");
     }
+    assert_eq!(
+        app.screen(),
+        Screen::Reports,
+        "a picker click does not navigate"
+    );
     let shared = app.engine();
     let e = shared.lock().expect("engine lock");
     assert_eq!(
@@ -449,4 +454,76 @@ fn ui_rpt_drill_category_change_updates_window_and_report() {
         Some(dining)
     );
     drop(e);
+}
+
+#[test]
+/// Clicking a row in a drill-down window closes it and shows that transaction in its account, selected.
+fn ui_rpt_drill_row_click_shows_transaction_in_account() {
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    let groceries = t.category("Groceries", CategoryType::Expense);
+    let store = t
+        .tx(chk, "2026-03-05", "-100", "Store")
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    t.tx(chk, "2026-02-20", "-50", "Market")
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Reports);
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        click_button(&mut h, "-$150.00");
+        h.run();
+        h.get_all_by_value("Store")
+            .last()
+            .expect("the Store row")
+            .click();
+        h.run();
+        h.run();
+    }
+    assert_eq!(app.screen(), Screen::Account(chk));
+    assert_eq!(app.account_selection(), vec![store]);
+}
+
+#[test]
+/// A row click on a transaction the time period leaves out widens the period to All, so it shows.
+fn ui_rpt_drill_row_click_widens_period_when_needed() {
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    let groceries = t.category("Groceries", CategoryType::Expense);
+    let store = t
+        .tx(chk, "2026-01-10", "-100", "Store")
+        .category(groceries)
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut engine = engine_with(t.build());
+    engine
+        .set_time_period(pf_model::TimePeriod::PastMonth)
+        .expect("set period");
+    let mut app = PfApp::new_for_test(engine);
+    app.set_screen(Screen::Reports);
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        // The 1Y quick range brings January into the report.
+        click_button(&mut h, "1Y");
+        h.run();
+        click_button(&mut h, "-$100.00");
+        h.run();
+        h.get_all_by_value("Store")
+            .last()
+            .expect("the Store row")
+            .click();
+        h.run();
+        h.run();
+    }
+    assert_eq!(app.screen(), Screen::Account(chk));
+    assert_eq!(app.account_selection(), vec![store]);
+    let shared = app.engine();
+    let e = shared.lock().expect("engine lock");
+    assert_eq!(e.state.time_period, pf_model::TimePeriod::All);
 }

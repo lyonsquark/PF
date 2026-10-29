@@ -201,6 +201,10 @@ impl PfApp {
             }
         });
         dialogs::show_active(&mut cx, ui);
+        // A transaction chosen in a drill-down window is shown in its account.
+        if let Some(r) = cx.dialogs.reveal.take() {
+            screens::account::reveal(&mut cx, &mut self.states.account, r.account, r.transaction);
+        }
         toasts::draw(cx.toasts, ui);
     }
 }
