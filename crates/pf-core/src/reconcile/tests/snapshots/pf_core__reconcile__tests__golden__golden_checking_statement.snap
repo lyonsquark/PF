@@ -1,0 +1,95 @@
+---
+source: crates/pf-core/src/reconcile/tests/golden.rs
+expression: "report(\"checking.json\", &t.build(), a)"
+---
+Report {
+    reading: AsPrinted,
+    style: Asset,
+    matches_as_printed: 4,
+    matches_flipped: 0,
+    amounts: [
+        2000.00,
+        -6.50,
+        -84.20,
+        -23.99,
+        -12.00,
+    ],
+    opening: 1000.00,
+    closing: 2873.31,
+    matched: [
+        Pair {
+            line: 0,
+            transaction: TransactionId(
+                3,
+            ),
+            confidence: High,
+            day_distance: 0,
+            payee_score: 1.0,
+        },
+        Pair {
+            line: 1,
+            transaction: TransactionId(
+                4,
+            ),
+            confidence: High,
+            day_distance: 0,
+            payee_score: 1.0,
+        },
+        Pair {
+            line: 2,
+            transaction: TransactionId(
+                5,
+            ),
+            confidence: High,
+            day_distance: 1,
+            payee_score: 1.0,
+        },
+        Pair {
+            line: 3,
+            transaction: TransactionId(
+                6,
+            ),
+            confidence: High,
+            day_distance: 2,
+            payee_score: 1.0,
+        },
+    ],
+    amount_differs: [],
+    already_reconciled: [],
+    statement_only: [
+        4,
+    ],
+    pf_only_in_period: [
+        TransactionId(
+            7,
+        ),
+    ],
+    pf_only_outside: [
+        TransactionId(
+            8,
+        ),
+    ],
+    reconciled_balance: 1000,
+    opening_difference: 0.00,
+    first_time: false,
+    tx_amounts: {
+        TransactionId(
+            3,
+        ): 2000,
+        TransactionId(
+            4,
+        ): -6.50,
+        TransactionId(
+            5,
+        ): -84.20,
+        TransactionId(
+            6,
+        ): -23.99,
+        TransactionId(
+            7,
+        ): -4.00,
+        TransactionId(
+            8,
+        ): -500,
+    },
+}

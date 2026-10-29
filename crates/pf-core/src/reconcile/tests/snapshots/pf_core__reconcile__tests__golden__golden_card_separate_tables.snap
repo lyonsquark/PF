@@ -1,0 +1,65 @@
+---
+source: crates/pf-core/src/reconcile/tests/golden.rs
+expression: "report(\"card-separate.json\", &t.build(), a)"
+---
+Report {
+    reading: AsPrinted,
+    style: Owed,
+    matches_as_printed: 3,
+    matches_flipped: 0,
+    amounts: [
+        500.00,
+        -60.00,
+        -40.00,
+    ],
+    opening: -1764.30,
+    closing: -1364.30,
+    matched: [
+        Pair {
+            line: 0,
+            transaction: TransactionId(
+                2,
+            ),
+            confidence: High,
+            day_distance: 0,
+            payee_score: 0.0,
+        },
+        Pair {
+            line: 1,
+            transaction: TransactionId(
+                3,
+            ),
+            confidence: High,
+            day_distance: 0,
+            payee_score: 1.0,
+        },
+        Pair {
+            line: 2,
+            transaction: TransactionId(
+                4,
+            ),
+            confidence: High,
+            day_distance: 1,
+            payee_score: 1.0,
+        },
+    ],
+    amount_differs: [],
+    already_reconciled: [],
+    statement_only: [],
+    pf_only_in_period: [],
+    pf_only_outside: [],
+    reconciled_balance: 0,
+    opening_difference: -1764.30,
+    first_time: true,
+    tx_amounts: {
+        TransactionId(
+            2,
+        ): 500,
+        TransactionId(
+            3,
+        ): -60,
+        TransactionId(
+            4,
+        ): -40,
+    },
+}

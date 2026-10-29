@@ -1,0 +1,17 @@
+{
+  "institution": "First Test Bank",
+  "account_hint": "Checking ...1234",
+  "period_start": "2026-02-01",
+  "period_end": "2026-02-28",
+  "opening_balance": "$1,000.00",
+  "closing_balance": "2,873.31",
+  "total_credits": "2000.00",
+  "total_debits": "126.69",
+  "lines": [
+    {"date": "2026-02-02", "description": "ACH PAYROLL ACME INC", "amount": "2000.00", "section": "Deposits"},
+    {"date": "2026-02-03", "description": "SQ *BLUE BOTTLE 8812", "amount": "-6.50", "section": "Withdrawals"},
+    {"date": "2026-02-05", "description": "CHECKCARD 0205 TRADER JOE'S #552", "amount": "-84.20", "section": "Withdrawals"},
+    {"date": "2026-02-10", "description": "AMAZON.COM*2K4 AMZN.COM/BILL WA", "amount": "-23.99", "section": "Withdrawals"},
+    {"date": "2026-02-28", "description": "MONTHLY SERVICE FEE", "amount": "-12.00", "section": "Fees"}
+  ]
+}

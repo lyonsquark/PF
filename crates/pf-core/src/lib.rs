@@ -12,4 +12,5 @@ pub mod markdown;
 pub mod names;
 pub mod obligation;
 pub mod projector;
+pub mod reconcile;
 pub mod reports;

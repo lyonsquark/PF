@@ -1,0 +1,13 @@
+{
+  "institution": "Other Card Co",
+  "account_hint": "MC ...4321",
+  "period_start": "2026-02-01",
+  "period_end": "2026-02-28",
+  "opening_balance": "1000.00",
+  "closing_balance": "815.00",
+  "lines": [
+    {"date": "2026-02-06", "description": "TST* JOE'S PIZZA #12", "amount": "75.00"},
+    {"date": "2026-02-14", "description": "SHELL OIL 5512", "amount": "40.00"},
+    {"date": "2026-02-25", "description": "ONLINE PAYMENT THANK YOU", "amount": "-300.00"}
+  ]
+}

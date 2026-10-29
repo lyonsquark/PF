@@ -1,0 +1,13 @@
+{
+  "institution": "Test Card Co",
+  "account_hint": "Visa ...9876",
+  "period_start": "2026-02-01",
+  "period_end": "2026-02-28",
+  "opening_balance": "1,764.30",
+  "closing_balance": "1,364.30",
+  "lines": [
+    {"date": "2026-02-04", "post_date": "2026-02-05", "description": "PAYMENT THANK YOU", "amount": "500.00", "section": "Payments and Credits"},
+    {"date": "2026-02-10", "description": "SQ *BLUE BOTTLE 8812", "amount": "-60.00", "section": "Purchases"},
+    {"date": "2026-02-20", "description": "SHELL OIL 5512", "amount": "-40.00", "section": "Purchases"}
+  ]
+}
