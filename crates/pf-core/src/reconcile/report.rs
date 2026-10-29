@@ -137,6 +137,14 @@ fn count_matches(db: &Db, account: AccountId, st: &Statement, reading: Reading) 
 
 /// R-REC-3 … R-REC-13: checks the statement, chooses the reading and matches.
 pub fn reconcile(input: &ReconcileInput<'_>) -> Result<Report, String> {
+    reconcile_with(input, None)
+}
+
+/// Like [`reconcile`], but `forced` overrides the reading choice (the Flip signs button, T30).
+pub fn reconcile_with(
+    input: &ReconcileInput<'_>,
+    forced: Option<Reading>,
+) -> Result<Report, String> {
     let (db, account, st) = (input.db, input.account, input.statement);
     let Some(acct) = db.account(account) else {
         return Err("Account not found.".to_string());
@@ -146,7 +154,9 @@ pub fn reconcile(input: &ReconcileInput<'_>) -> Result<Report, String> {
 
     let matches_as_printed = count_matches(db, account, st, Reading::AsPrinted);
     let matches_flipped = count_matches(db, account, st, Reading::Flipped);
-    let chosen = if matches_as_printed != matches_flipped {
+    let chosen = if let Some(f) = forced {
+        usize::from(f == Reading::Flipped)
+    } else if matches_as_printed != matches_flipped {
         if matches_as_printed > matches_flipped {
             0
         } else {

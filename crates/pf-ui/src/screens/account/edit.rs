@@ -13,7 +13,7 @@ use pf_model::{CategoryId, TransactionId, TransactionStatus};
 
 use super::menu::MenuAction;
 use crate::app::UiCtx;
-use crate::dialogs::Dialog;
+use crate::dialogs::{ConfirmAction, Dialog};
 use crate::widgets::contexts::ContextEntry;
 
 /// Title of the attach file dialog (T15c).
@@ -75,8 +75,36 @@ pub struct Edits<'a> {
     pub pending: Vec<Pending>,
 }
 
-/// Applies one field edit. An engine error is a toast; an unchanged value is no step (engine).
+/// R-REC-17: whether `field` changes the amount or the date of a Reconciled transaction.
+fn changes_reconciled(db: &pf_model::Db, id: TransactionId, field: &TxField) -> bool {
+    let Some(t) = db.transaction(id) else {
+        return false;
+    };
+    t.status == TransactionStatus::Reconciled
+        && match field {
+            TxField::Amount(a) => *a != t.amount,
+            TxField::Date(d) => *d != t.date,
+            _ => false,
+        }
+}
+
+/// Applies one field edit. Changing the amount or date of a Reconciled transaction asks first
+/// (R-REC-17). An engine error is a toast; an unchanged value is no step (engine).
 pub fn commit(cx: &mut UiCtx, id: TransactionId, field: TxField) {
+    if changes_reconciled(cx.engine.db(), id, &field) {
+        cx.dialogs.open(Dialog::Confirm {
+            title: "Change Reconciled Transaction?".into(),
+            message: "This transaction is Reconciled. Change it anyway?".into(),
+            confirm_label: "Change".into(),
+            action: ConfirmAction::EditReconciled { id, field },
+        });
+        return;
+    }
+    commit_unchecked(cx, id, field);
+}
+
+/// Applies one field edit without the R-REC-17 question.
+pub fn commit_unchecked(cx: &mut UiCtx, id: TransactionId, field: TxField) {
     if let Err(e) = edit_transaction(cx.engine, id, field) {
         cx.toasts.info(e.to_string());
     }
@@ -134,8 +162,36 @@ pub fn duplicate(cx: &mut UiCtx, ids: &[TransactionId]) -> Option<Vec<Transactio
     }
 }
 
-/// Deletes the rows (R-TXN-7). An error is a toast.
+/// Deletes the rows (R-TXN-7). Rows that are Reconciled ask first (R-REC-17). An error is a toast.
 pub fn delete(cx: &mut UiCtx, ids: &[TransactionId]) {
+    let reconciled = ids
+        .iter()
+        .filter(|id| {
+            cx.engine
+                .db()
+                .transaction(**id)
+                .is_some_and(|t| t.status == TransactionStatus::Reconciled)
+        })
+        .count();
+    if reconciled > 0 {
+        let message = if reconciled == 1 {
+            "This transaction is Reconciled. Change it anyway?".to_string()
+        } else {
+            format!("{reconciled} of these transactions are Reconciled. Delete them anyway?")
+        };
+        cx.dialogs.open(Dialog::Confirm {
+            title: "Delete Reconciled Transaction?".into(),
+            message,
+            confirm_label: "Delete".into(),
+            action: ConfirmAction::DeleteReconciled(ids.to_vec()),
+        });
+        return;
+    }
+    delete_unchecked(cx, ids);
+}
+
+/// Deletes the rows without the R-REC-17 question.
+pub fn delete_unchecked(cx: &mut UiCtx, ids: &[TransactionId]) {
     if let Err(e) = delete_transactions(cx.engine, ids) {
         cx.toasts.info(e.to_string());
     }

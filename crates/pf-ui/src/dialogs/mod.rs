@@ -11,6 +11,7 @@ pub mod obligation_add;
 pub mod obligation_detail;
 pub mod orphaned;
 pub mod projection;
+pub mod reconcile;
 pub mod report_drilldown;
 pub mod scenario_edit;
 
@@ -77,6 +78,8 @@ pub enum Dialog {
     ContextEdit(Box<context_edit::ContextForm>),
     /// The CSV import wizard (T22).
     CsvWizard(Box<csv_wizard::CsvWizard>),
+    /// Reconcile a statement against the account on screen (T30).
+    Reconcile(Box<reconcile::ReconcileForm>),
     /// Transactions behind a report number (T23).
     ReportTransactions {
         /// Heading of the modal.
@@ -113,6 +116,15 @@ pub enum ConfirmAction {
     WipeAndImport(PathBuf),
     /// Hard-delete everything (Settings, Danger Zone). Not undoable.
     DeleteAllData,
+    /// Change the amount or date of a Reconciled transaction anyway (R-REC-17).
+    EditReconciled {
+        /// The transaction.
+        id: TransactionId,
+        /// The edit to apply.
+        field: commands::transactions::TxField,
+    },
+    /// Delete transactions of which some are Reconciled (R-REC-17).
+    DeleteReconciled(Vec<TransactionId>),
 }
 
 /// Whether a dialog stays open after a frame.
@@ -193,6 +205,7 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::CategoryEdit(form) => category_edit::show(cx, ui, form),
         Dialog::ContextEdit(form) => context_edit::show(cx, ui, form),
         Dialog::CsvWizard(w) => csv_wizard::show(cx, ui, w),
+        Dialog::Reconcile(form) => reconcile::show(cx, ui, form),
         Dialog::ReportTransactions { title, ids } => report_drilldown::show_transactions(
             cx,
             ui,
@@ -243,6 +256,12 @@ fn run_confirm(cx: &mut UiCtx, action: &ConfirmAction) {
         ConfirmAction::WipeAndImport(path) => {
             // The Settings screen draws the progress overlay and runs the import next frame.
             cx.dialogs.pending_import = Some(path.clone());
+        }
+        ConfirmAction::EditReconciled { id, field } => {
+            crate::screens::account::edit::commit_unchecked(cx, *id, field.clone());
+        }
+        ConfirmAction::DeleteReconciled(ids) => {
+            crate::screens::account::edit::delete_unchecked(cx, ids);
         }
         ConfirmAction::DeleteAllData => match commands::backup::wipe_all_data(cx.engine) {
             Ok(()) => cx

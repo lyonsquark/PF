@@ -17,7 +17,8 @@ pub use check::{
 pub use matching::{Confidence, Matching, Pair, candidates, run_matching};
 pub use payee::{aliases_for, normalize_description, payee_score};
 pub use report::{
-    Choice, ReconcileInput, Report, Section, difference, reconcile, reconciled_balance,
+    Choice, ReconcileInput, Report, Section, difference, reconcile, reconcile_with,
+    reconciled_balance,
 };
 pub use statement::{
     Statement, StatementError, StatementLine, parse_statement_csv, parse_statement_json,

@@ -206,6 +206,10 @@ Widgets that tests must find need stable accessible labels: use visible text, or
 | UI-CTX-01 | Archive a context; it moves to the Archived section | T20 |
 | UI-SET-01 | Export then import via a fake file dialog; data survives | T21 |
 | UI-CSV-01 | Walk the CSV wizard (column mapping → translation → done) with a fake file; the result counts are shown | T22 |
+| UI-REC-01 | Load a JSON statement through the fake file dialog; Difference shows $0.00; Finish marks the transactions Reconciled as one undo step `Reconcile Statement` | T30 |
+| UI-REC-02 | Untick one Matched pair: Difference becomes non-zero and the button reads `Finish with Adjustment…`; tick it again: $0.00 | T30 |
+| UI-REC-03 | Pair an "In PFRust only" transaction with an "On statement only" line by hand; both leave their sections | T30 |
+| UI-REC-04 | Edit the amount of a Reconciled transaction: the warning appears; Cancel keeps the old amount; Change saves it | T30 |
 | UI-RPT-01 | Each report renders for the fixture; P&L total row present | T23 |
 | UI-CHT-01 | The charts dashboard renders all 9 charts without panic for the fixture and for an empty Db | T24b |
 

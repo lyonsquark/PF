@@ -153,3 +153,21 @@ fn r_rec_13_unknown_account_and_bad_statement() {
         "Account not found."
     );
 }
+
+/// Covers: R-REC-7
+#[test]
+fn r_rec_7_forced_reading_overrides_counts() {
+    let st = statement(
+        "2026-02-01",
+        "2026-02-28",
+        "100",
+        "130",
+        vec![line("2026-02-10", "X", "30")],
+    );
+    let (db, a) = tie_case("-30", AccountType::Checking);
+    let forced =
+        crate::reconcile::reconcile_with(&input(&db, a, &st, None), Some(Reading::AsPrinted))
+            .expect("report");
+    assert_eq!(forced.reading, Reading::AsPrinted);
+    assert_eq!(forced.matches_flipped, 1);
+}

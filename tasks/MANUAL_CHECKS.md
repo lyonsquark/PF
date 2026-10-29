@@ -52,6 +52,10 @@ Things the tests cannot judge: how things look and feel. Tick them off as you go
 - [ ] Monthly Matrix: each mode and the year; click a month cell (Groceries/Feb); the NET row is plain.
 - [ ] Narrow window: the tables scroll sideways and stop at both ends.
 
+## Reconcile dialog (T30)
+- [ ] Reconcile one real checking statement from a CSV export (Reconcile… on the account, Choose File…, type the period and the printed balances) and confirm the Difference reaches $0.00. Finish, then undo once: everything returns.
+- [ ] Edit the amount or date of a Reconciled transaction: the warning appears. Change its status away from Reconciled: no warning.
+
 ## Known gaps to decide on
 - Vertical scrolling may also rubber-band at the top and bottom (egui's own scroll). Tell me if it bothers you.
 - Glyphs were replaced with plain text (+, •, ×, -, Open/Attach, "Active", "Edit", "Apply"). Emoji now draw. Say if you want the symbols back where the font has them.

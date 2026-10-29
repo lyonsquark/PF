@@ -3,7 +3,7 @@
 //! (T15c), the search bar, and the transaction table. Rows come from `rows::build_rows`, cached per
 //! engine revision and `RowsKey`.
 
-mod edit;
+pub(crate) mod edit;
 mod menu;
 mod rows;
 mod search;
@@ -373,6 +373,17 @@ fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId, count:
                 .clicked()
         {
             crate::dialogs::csv_wizard::pick_bank_csv(cx, id);
+        }
+        // Reconcile is for Reality only (R-REC-14).
+        if cx.engine.state.active_scenario.is_none()
+            && ui
+                .button("Reconcile…")
+                .on_hover_text("Reconcile this account against a statement")
+                .clicked()
+        {
+            cx.dialogs.open(Dialog::Reconcile(Box::new(
+                crate::dialogs::reconcile::ReconcileForm::new_load(id),
+            )));
         }
         let open = st.search.as_ref().is_some_and(|s| s.open);
         let hover = if open {
