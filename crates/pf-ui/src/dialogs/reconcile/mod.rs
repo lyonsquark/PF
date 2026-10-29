@@ -27,6 +27,8 @@ pub struct ReconcileForm {
     pub load: LoadState,
     /// The Review step; `Some` once a statement is loaded.
     pub review: Option<Review>,
+    /// Opened from the proposal banner: Finish or Cancel removes the account's proposal (R-REC-18).
+    pub from_proposal: bool,
 }
 
 impl ReconcileForm {
@@ -36,6 +38,7 @@ impl ReconcileForm {
             account,
             load: LoadState::default(),
             review: None,
+            from_proposal: false,
         }
     }
 
@@ -49,6 +52,7 @@ impl ReconcileForm {
             account,
             load: LoadState::default(),
             review: Some(Review::new(db, account, statement, None)?),
+            from_proposal: false,
         })
     }
 }
@@ -73,6 +77,10 @@ pub fn show(cx: &mut UiCtx, ui: &mut Ui, form: &mut ReconcileForm) -> Outcome {
             Some(review) => review::show(cx, ui, account, review, &mut action),
         }
     });
+    let closing = matches!(action, Action::Cancel | Action::Done) || response.should_close();
+    if closing && form.from_proposal {
+        cx.engine.proposals.remove(&account);
+    }
     match action {
         Action::None => {}
         Action::Cancel | Action::Done => return Outcome::Close,

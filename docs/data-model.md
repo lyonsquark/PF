@@ -180,6 +180,10 @@ unless the method name says `_including_deleted`:
 `live_accounts()`, `live_transactions()`, `account_by_name_ci(&str)`,
 `scenario_by_name_ci(&str)`, `category_full_name(CategoryId)`, `transactions_for_account(AccountId)`, etc.
 
+**Engine memory outside `Db`:** `Engine.proposals: BTreeMap<AccountId, Statement>` holds the statement
+a client posted to the local API (R-API-12) until the owner reviews or discards it. It is in memory
+only: not undoable, not stored, not in backups, empty at launch.
+
 ## SQLite schema (`pf-store`)
 
 File: `~/Library/Application Support/PF/PFRust.sqlite` (use `directories` crate or

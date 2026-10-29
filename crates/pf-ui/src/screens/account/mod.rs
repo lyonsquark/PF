@@ -398,4 +398,41 @@ fn action_row(cx: &mut UiCtx, st: &mut State, ui: &mut Ui, id: AccountId, count:
     if let Some(search) = st.search.as_mut().filter(|s| s.open) {
         search::bar(ui, search, count, &mut st.focus_search);
     }
+    proposal_banner(cx, ui, id);
+}
+
+/// R-REC-18: a statement posted through the API is waiting for review (Reality only).
+fn proposal_banner(cx: &mut UiCtx, ui: &mut Ui, id: AccountId) {
+    if cx.engine.state.active_scenario.is_some() {
+        return;
+    }
+    let Some(statement) = cx.engine.proposals.get(&id).cloned() else {
+        return;
+    };
+    ui.horizontal(|ui| {
+        ui.label(
+            RichText::new(format!(
+                "A statement for {} to {} is ready to review.",
+                statement.period_start, statement.period_end
+            ))
+            .color(colors::BLUE)
+            .strong(),
+        );
+        if ui.button("Review").clicked() {
+            match crate::dialogs::reconcile::ReconcileForm::with_statement(
+                cx.engine.db(),
+                id,
+                statement,
+            ) {
+                Ok(mut form) => {
+                    form.from_proposal = true;
+                    cx.dialogs.open(Dialog::Reconcile(Box::new(form)));
+                }
+                Err(e) => cx.dialogs.alert("Reconcile Statement", e),
+            }
+        }
+        if ui.button("Discard").clicked() {
+            cx.engine.proposals.remove(&id);
+        }
+    });
 }

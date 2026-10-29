@@ -1,13 +1,15 @@
 //! The engine: one in-memory `Db`, one SQLite store, and the undo/redo stacks. `apply` is the
 //! only way to change data (R-UND-1); every applied step is persisted before it returns (R-UND-6).
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use jiff::Timestamp;
 use jiff::civil::Date;
 use jiff::tz::TimeZone;
-use pf_model::{Change, Db, Record, RowKey, ScenarioId, TimePeriod};
+use pf_core::reconcile::Statement;
+use pf_model::{AccountId, Change, Db, Record, RowKey, ScenarioId, TimePeriod};
 use pf_store::Store;
 
 use crate::error::Result;
@@ -37,6 +39,9 @@ pub struct Engine {
     redo: Vec<Step>,
     /// Active scenario and time window. Not undoable.
     pub state: AppState,
+    /// Pending statement proposals from the local API, one per account (R-API-12). In memory only:
+    /// not undoable, not stored, not part of `Db`, empty at launch.
+    pub proposals: BTreeMap<AccountId, Statement>,
     /// Bumps on every change; UI caches key on it.
     revision: u64,
     /// Injected local date. Tests fix it.
@@ -78,6 +83,7 @@ impl Engine {
                 active_scenario: None,
                 time_period,
             },
+            proposals: BTreeMap::new(),
             revision: 0,
             clock: Box::new(|| jiff::Zoned::now().date()),
             // Production defaults: the only system clock and zone reads in the engine.

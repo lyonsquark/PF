@@ -2,10 +2,12 @@
 //! cannot drift. Port of Swift `Services/APIHandlers.swift`. Pure: no IO, no clock.
 
 mod json;
+mod reconcile;
 #[cfg(test)]
 mod tests;
 
 pub use json::{JsonValue, to_apple_json};
+pub use reconcile::format_reconcile_report;
 
 use jiff::civil::Date;
 use pf_model::{AccountId, Db, ScenarioId, Transaction, TransactionId, TransactionStatus};
@@ -208,16 +210,40 @@ pub fn transaction_lines(
     scenario: Option<ScenarioId>,
     n: usize,
 ) -> Vec<TxLine> {
+    lines_where(db, account, scenario, |_| true, Some(n))
+}
+
+/// R-API-11: every visible row of `account` with `from` <= date <= `to` (either bound optional),
+/// newest first, with the running balance over all visible rows.
+pub fn transaction_lines_between(
+    db: &Db,
+    account: AccountId,
+    scenario: Option<ScenarioId>,
+    from: Option<Date>,
+    to: Option<Date>,
+) -> Vec<TxLine> {
+    let keep = |t: &Transaction| from.is_none_or(|f| t.date >= f) && to.is_none_or(|e| t.date <= e);
+    lines_where(db, account, scenario, keep, None)
+}
+
+/// Visible rows passing `keep`, newest first, at most `limit`.
+fn lines_where(
+    db: &Db,
+    account: AccountId,
+    scenario: Option<ScenarioId>,
+    keep: impl Fn(&Transaction) -> bool,
+    limit: Option<usize>,
+) -> Vec<TxLine> {
     let visible: Vec<&Transaction> = db
         .transactions_for_account(account)
         .filter(|t| is_visible(t, scenario))
         .collect();
     let running = running_balances(&visible);
-    let mut newest_first = visible;
+    let mut newest_first: Vec<&Transaction> = visible.into_iter().filter(|t| keep(t)).collect();
     newest_first.sort_by_key(|t| std::cmp::Reverse((t.date, t.id)));
     newest_first
         .into_iter()
-        .take(n)
+        .take(limit.unwrap_or(usize::MAX))
         .map(|t| TxLine {
             tx: t.id,
             date: t.date,
@@ -246,6 +272,15 @@ pub fn transaction_lines(
 
 /// R-API-7: the transactions reply in `f`. `count` is the number of lines given.
 pub fn format_transactions(account_name: &str, lines: &[TxLine], f: Format) -> String {
+    format_transactions_impl(account_name, lines, f, false)
+}
+
+/// R-API-11: like [`format_transactions`], with an `id` key on every JSON transaction.
+pub fn format_transactions_with_ids(account_name: &str, lines: &[TxLine], f: Format) -> String {
+    format_transactions_impl(account_name, lines, f, true)
+}
+
+fn format_transactions_impl(account_name: &str, lines: &[TxLine], f: Format, ids: bool) -> String {
     match f {
         Format::Text => {
             let header = format!("{account_name} — Last {} transactions", lines.len());
@@ -273,7 +308,7 @@ pub fn format_transactions(account_name: &str, lines: &[TxLine], f: Format) -> S
             out.join("\n")
         }
         Format::Json => {
-            let txs = lines.iter().map(json_tx).collect();
+            let txs = lines.iter().map(|l| json_tx(l, ids)).collect();
             let v = obj(vec![
                 ("account", jstr(account_name)),
                 ("count", JsonValue::Num(lines.len() as f64)),
@@ -337,7 +372,7 @@ fn markdown_line(l: &TxLine) -> String {
 }
 
 /// One transaction object of the JSON reply. Optional keys are left out when absent or empty.
-fn json_tx(l: &TxLine) -> JsonValue {
+fn json_tx(l: &TxLine, with_id: bool) -> JsonValue {
     let mut pairs = vec![
         ("amount", num(l.amount)),
         ("date", jstr(&ymd(l.date))),
@@ -345,6 +380,9 @@ fn json_tx(l: &TxLine) -> JsonValue {
         ("runningBalance", num(l.running_balance)),
         ("status", jstr(l.status.as_str())),
     ];
+    if with_id {
+        pairs.push(("id", JsonValue::Num(l.tx.raw() as f64)));
+    }
     if let Some(c) = &l.category {
         pairs.push(("category", jstr(c)));
     }

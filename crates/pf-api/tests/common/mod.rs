@@ -69,6 +69,15 @@ pub fn post(port: u16, path: &str, body: &str) -> (u16, String, String) {
     (raw.status, raw.content_type().to_string(), raw.body)
 }
 
+/// `DELETE path`, returning (status, content type, body).
+pub fn delete(port: u16, path: &str) -> (u16, String, String) {
+    let raw = send_raw(
+        port,
+        &format!("DELETE {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"),
+    );
+    (raw.status, raw.content_type().to_string(), raw.body)
+}
+
 /// Splits a reply into status, headers and body at the first blank line.
 fn parse(reply: &[u8]) -> Raw {
     let split = reply

@@ -5,12 +5,16 @@
 use std::collections::HashMap;
 use std::sync::MutexGuard;
 
+use jiff::civil::Date;
 use pf_core::api_format::{
     Format, balance_entries, balance_entry, error_body, format_balances, format_import_result,
-    format_scenarios, format_transactions, parse_format, resolve_scenario, transaction_lines,
+    format_reconcile_report, format_scenarios, format_transactions, format_transactions_with_ids,
+    parse_format, resolve_scenario, transaction_lines, transaction_lines_between,
 };
+use pf_core::reconcile::{ReconcileInput, parse_statement_json, reconcile};
 use pf_engine::commands::backup::export_markdown;
 use pf_engine::commands::import::import_csv_with_saved_mappings;
+use pf_engine::commands::reconcile::preferred_reading;
 use pf_engine::{Engine, SharedEngine};
 use pf_model::{Db, ScenarioId};
 
@@ -19,6 +23,9 @@ const DEFAULT_TX_COUNT: usize = 10;
 
 /// Prefix of every account route (Swift `extractAccountName`).
 const ACCOUNT_PREFIX: &str = "/api/accounts/";
+
+/// Suffix of the reconciliation proposal routes (R-API-12).
+const PROPOSAL_SUFFIX: &str = "/reconcile/proposal";
 
 /// One reply: status, `Content-Type` media type (the `; charset=utf-8` is added by the server) and
 /// body.
@@ -93,6 +100,16 @@ pub fn handle(
     if is_get && let Some(name) = extract_account_name(path, "/balance") {
         return account_balance_reply(&eng, &name, scenario, format, error_format, content_type);
     }
+    if let Some(name) = extract_account_name(path, PROPOSAL_SUFFIX) {
+        return proposal_reply(
+            &mut eng,
+            method,
+            &name,
+            body,
+            (format, error_format, content_type),
+            changed,
+        );
+    }
     if is_get && let Some(name) = extract_account_name(path, "/transactions") {
         let n = params
             .get("n")
@@ -101,6 +118,8 @@ pub fn handle(
         let args = TxArgs {
             name: &name,
             n,
+            from: params.get("from").map(String::as_str),
+            to: params.get("to").map(String::as_str),
             scenario,
             format,
             error_format,
@@ -213,6 +232,10 @@ struct TxArgs<'a> {
     name: &'a str,
     /// Maximum number of rows.
     n: usize,
+    /// Inclusive lower date bound from the query (R-API-11).
+    from: Option<&'a str>,
+    /// Inclusive upper date bound from the query (R-API-11).
+    to: Option<&'a str>,
     /// Scenario name from the query, if any.
     scenario: Option<&'a str>,
     /// Body format.
@@ -241,12 +264,108 @@ fn transactions_reply(eng: &Engine, args: &TxArgs<'_>) -> ApiResponse {
         Ok(sc) => sc,
         Err(reply) => return reply,
     };
+    if args.from.is_some() || args.to.is_some() {
+        // R-API-11: a date range returns every row in it, each with its id.
+        let parse = |v: Option<&str>| -> Result<Option<Date>, String> {
+            v.map(|s| s.parse::<Date>().map_err(|_| format!("Invalid date: {s}")))
+                .transpose()
+        };
+        let (from, to) = match (parse(args.from), parse(args.to)) {
+            (Ok(f), Ok(t)) => (f, t),
+            (Err(m), _) | (_, Err(m)) => {
+                let body = error_body(&m, args.error_format);
+                return ApiResponse::new(400, args.content_type, body);
+            }
+        };
+        let lines = transaction_lines_between(eng.db(), id, sc, from, to);
+        return ApiResponse::new(
+            200,
+            args.content_type,
+            format_transactions_with_ids(&stored_name, &lines, args.format),
+        );
+    }
     let lines = transaction_lines(eng.db(), id, sc, args.n);
     ApiResponse::new(
         200,
         args.content_type,
         format_transactions(&stored_name, &lines, args.format),
     )
+}
+
+/// R-API-12 … R-API-14: post, read or remove an account's reconciliation proposal. No route here
+/// changes a transaction; applying a proposal happens only in the app.
+fn proposal_reply(
+    eng: &mut Engine,
+    method: &str,
+    name: &str,
+    body: &str,
+    (format, error_format, content_type): (Format, Format, &'static str),
+    changed: &mut bool,
+) -> ApiResponse {
+    let Some((id, stored)) = eng
+        .db()
+        .account_by_name_ci(name)
+        .map(|a| (a.id, a.name.clone()))
+    else {
+        return ApiResponse::account_not_found(name);
+    };
+    let none = || {
+        ApiResponse::new(
+            404,
+            "text/plain",
+            format!("No reconciliation proposal for account '{stored}'."),
+        )
+    };
+    let fail = |msg: &str| ApiResponse::new(400, content_type, error_body(msg, error_format));
+    match method {
+        "POST" => {
+            let statement = match parse_statement_json(body) {
+                Ok(s) => s,
+                Err(e) => return fail(&e.to_string()),
+            };
+            let report = reconcile(&ReconcileInput {
+                db: eng.db(),
+                account: id,
+                statement: &statement,
+                preferred: preferred_reading(eng.db(), id),
+            });
+            match report {
+                Ok(r) => {
+                    let text = format_reconcile_report(&stored, eng.db(), &statement, &r, format);
+                    eng.proposals.insert(id, statement);
+                    *changed = true;
+                    ApiResponse::new(200, content_type, text)
+                }
+                Err(e) => fail(&e),
+            }
+        }
+        "GET" => {
+            let Some(statement) = eng.proposals.get(&id) else {
+                return none();
+            };
+            let report = reconcile(&ReconcileInput {
+                db: eng.db(),
+                account: id,
+                statement,
+                preferred: preferred_reading(eng.db(), id),
+            });
+            match report {
+                Ok(r) => {
+                    let text = format_reconcile_report(&stored, eng.db(), statement, &r, format);
+                    ApiResponse::new(200, content_type, text)
+                }
+                Err(e) => fail(&e),
+            }
+        }
+        "DELETE" => {
+            if eng.proposals.remove(&id).is_none() {
+                return none();
+            }
+            *changed = true;
+            ApiResponse::new(200, "text/plain", "Proposal removed.".to_string())
+        }
+        _ => ApiResponse::new(404, "text/plain", format!("Not Found: {method} {name}")),
+    }
 }
 
 /// R-API-8: imports the posted CSV with the account's saved mappings. Status 400 when the reply

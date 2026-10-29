@@ -334,3 +334,64 @@ fn ui_rec_button_reality_only() {
     h.run();
     assert!(h.query_by_label("Reconcile…").is_none());
 }
+
+#[test]
+/// R-REC-18: a stored proposal shows a banner; Review opens the dialog at the Review step and Cancel
+/// removes the proposal; Discard removes it; the banner is hidden in a scenario.
+fn ui_rec_banner_review_and_discard() {
+    let (db, a) = checking_db();
+    let json = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../fixtures/statements/checking.json"
+    ))
+    .expect("fixture");
+    let statement = pf_core::reconcile::parse_statement_json(&json).expect("statement");
+    let mut app = PfApp::new_for_test(engine_with(db));
+    app.set_screen(Screen::Account(a));
+    let proposals = |app: &PfApp| app.engine().lock().expect("lock").proposals.len();
+    app.engine()
+        .lock()
+        .expect("lock")
+        .proposals
+        .insert(a, statement.clone());
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        assert!(has(
+            &h,
+            "A statement for 2026-02-01 to 2026-02-28 is ready to review."
+        ));
+        click(&mut h, "Review");
+        assert!(has(&h, "Difference: $0.00"));
+        click(&mut h, "Cancel");
+        assert!(!has(&h, "Difference:"));
+        assert!(!has(&h, "is ready to review."));
+    }
+    assert_eq!(proposals(&app), 0);
+    app.engine()
+        .lock()
+        .expect("lock")
+        .proposals
+        .insert(a, statement.clone());
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        click(&mut h, "Discard");
+        assert!(!has(&h, "is ready to review."));
+    }
+    assert_eq!(proposals(&app), 0);
+    let mut t = TestDb::new();
+    let acct = t.account("Checking", AccountType::Checking);
+    let s = t.scenario("Plan");
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Account(acct));
+    {
+        let shared = app.engine();
+        let mut e = shared.lock().expect("lock");
+        e.proposals.insert(acct, statement);
+        e.set_active_scenario(Some(s));
+    }
+    let mut h = harness(&mut app);
+    h.run();
+    assert!(!has(&h, "is ready to review."));
+}
