@@ -83,9 +83,10 @@ as negative. Nothing here assumes one layout:
    counting exact-amount matches against PFRust both ways, then by the account type (Credit, Loan ⇒ owed
    style). The chosen reading is shown at the top of the review ("Read as: owed balances, charges negative")
    with a **Flip signs** button, and the choice is remembered per account as a starting guess for next time.
-4. **Per-section mistakes:** if one section's lines all fail to match while their sign-flipped amounts do
-   match, the review flags that section ("Lines under 'Payments and Credits' may have the wrong sign") with a
-   one-click fix for that section only.
+4. **Per-section mistakes:** one section with the wrong signs almost always breaks the arithmetic, so the
+   self-check rejects the file. Its message then names the section whose sign flip would make it add up
+   ("Flipping the signs under 'Payments and Credits' would make it add up."), which tells the skill exactly
+   what to re-read (R-REC-3).
 
 A CSV form is also accepted (one line per row, the balances entered in the dialog), so a bank's own CSV export
 works without any AI.
@@ -158,8 +159,8 @@ tables, no schema migration, and no change to the Markdown backup format.
   the skill is run again.
 * A statement fed in twice is caught by the "Already reconciled" section, not by a stored file hash.
 * Payee aliases are stored as `ImportMapping` rows of a new type, `statementPayee`, in the existing table.
-  **Check before release:** the Swift app's backup import must accept (or ignore) an unknown mapping type,
-  since these rows appear in the Markdown backup's ImportMappings section.
+  Checked: the Swift app's backup import (`MarkdownDataService.importImportMapping`) stores any mapping type
+  string as is, so these rows do not break a Swift restore.
 * Given up on purpose: undoing an old reconciliation as one unit after a restart, a history of past
   statements, and naming the changed row behind an opening-balance difference.
 * `PF.store` is never touched.
@@ -285,16 +286,20 @@ Option B feeds that dialog, and the core is where correctness lives. Loading a s
 directly (Option A) comes almost free with the dialog and is useful for testing, so it stays in. Option C can
 follow later if the terminal step becomes a nuisance. It reuses the schema and the review dialog unchanged.
 
-## Proposed tasks
+## Tasks
 
-| Task | Title | Deps | Notes |
-|---|---|---|---|
-| T29 | `pf-core::reconcile` | – | Statement model and parsing (JSON and CSV), self-check with both balance conventions, sign tie-break against PFRust and per-section sign flags, matching passes, sections, balance checks. New rule IDs `R-REC-*`. Property and golden tests, including the three statement layouts. |
-| T30 | Reconcile engine commands | T29 | Apply (one step: statuses, added lines, adjustment, aliases), mark-before-period as Reconciled for a first reconciliation, payee aliases (`statementPayee` mapping; check the Swift backup import with an unknown mapping type). No schema change. |
-| T31 | Reconcile dialog | T30 | Account action row "Reconcile…", load file, "Read as" line with Flip signs and per-section fixes, review sections, manual pair and unpair, live Difference, Finish with optional adjustment. Warn-then-allow on editing or deleting a Reconciled transaction (account table, dialogs). kittest. |
-| T32 | Option B: proposal API | T31 | `GET …/transactions?from&to` with ids; `POST`/`GET`/`DELETE …/reconcile/proposal`; proposal held in memory per account; "Statement ready to review" banner that opens the dialog with the proposal. No API route changes a status. API tests on port 0 with temp databases. |
-| T32b | Option B: `/reconcile` skill | T32 | `.claude/skills/reconcile/SKILL.md`: read the PDF, split a multi-account PDF into one statement file per account, sign each line by its section, self-check and re-read loop, post the proposal, explain the report, point the owner to the app. Tried by hand on two real statements. |
-| T33 | Option C: Claude API extraction (optional) | T31 | Blocked until the owner approves the HTTPS dependency. Keychain key, background call, retry on a failed self-check. |
+Task files are in `tasks/` and listed in `tasks/STATUS.md`. Each has the exact rules (`R-REC-1..18`,
+`R-API-11..14`), tests and "Done when" commands.
+
+| Task | File | Deps |
+|---|---|---|
+| T28 | `tasks/T28-reconcile-core.md`: `pf-core::reconcile` (statement parsing, self-check, readings, matching, sections, balance checks) | – |
+| T29 | `tasks/T29-reconcile-engine.md`: apply command, aliases, remembered reading | T28 |
+| T30 | `tasks/T30-reconcile-dialog.md`: Reconcile dialog, reconciled-edit warning | T29 |
+| T31 | `tasks/T31-reconcile-api.md`: transaction ranges with ids, proposal routes, banner | T30 |
+| T32 | `tasks/T32-reconcile-skill.md`: `/reconcile` skill, statement JSON schema, README section | T31 |
+
+Option C (the app calling the Claude API) is not planned. It would reuse the schema and the dialog.
 
 ## Decisions (owner, 2026-10-29)
 
