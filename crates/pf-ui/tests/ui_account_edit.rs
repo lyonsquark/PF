@@ -374,6 +374,36 @@ fn ui_category_picker_sets_category() {
 }
 
 #[test]
+/// Typing in an open category list moves the selection to the first match and Enter picks it.
+fn ui_category_picker_type_ahead_then_enter() {
+    let mut t = TestDb::new();
+    let chk = t.account("Everyday", AccountType::Checking);
+    t.category("Food", CategoryType::Expense);
+    let fuel = t.category("Fuel", CategoryType::Expense);
+    t.category("Rent", CategoryType::Expense);
+    let tx = t
+        .tx(chk, "2026-03-01", "-4.50", "Bakery")
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Account(chk));
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        h.get_by_label("Category Bakery").click();
+        h.run();
+        h.event(egui::Event::Text("fu".to_string()));
+        h.run();
+        h.key_press(egui::Key::Enter);
+        h.run();
+    }
+    let shared = app.engine();
+    let e = shared.lock().expect("engine lock");
+    assert_eq!(e.db().transaction(tx).expect("row").category_id, Some(fuel));
+    assert_eq!(e.undo_name(), Some("Change Category"));
+}
+
+#[test]
 /// The table scrolls sideways, so the last column (Status) is reachable in a normal window: a
 /// horizontal wheel over the table brings the picker on screen and its popup opens.
 fn ui_table_scrolls_to_status_column() {
