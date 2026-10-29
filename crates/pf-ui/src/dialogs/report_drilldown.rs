@@ -222,10 +222,13 @@ pub fn show_transactions(
             close = true;
         }
     });
-    // Apply a picked category as one undo step; the transaction then leaves this window.
+    // Apply a picked category as one undo step. In a report window the transaction then leaves, since
+    // its category may decide whether it belongs to the report; a context's window keeps it, because
+    // the context does not depend on the category.
     if let Some((id, category)) = picked {
         match edit_transaction(cx.engine, id, TxField::Category(category)) {
-            Ok(_) => ids.retain(|x| *x != id),
+            Ok(_) if is_report => ids.retain(|x| *x != id),
+            Ok(_) => {}
             Err(e) => cx.toasts.info(e.to_string()),
         }
     }

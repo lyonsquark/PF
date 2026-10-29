@@ -217,3 +217,46 @@ fn ui_ctx_count_opens_transactions_window() {
         "the editor stays closed"
     );
 }
+
+#[test]
+/// Changing a transaction's category in a context's window keeps it there: the context does not depend
+/// on the category, so the row stays and the category is saved.
+fn ui_ctx_category_change_keeps_row_in_window() {
+    let mut t = TestDb::new();
+    let chk = t.account("Checking", AccountType::Checking);
+    let trip = t.context("Trip");
+    let food = t.category("Food", pf_model::CategoryType::Expense);
+    let hotel = t
+        .tx(chk, "2026-03-01", "-40", "Hotel")
+        .contexts(&[trip])
+        .status(TransactionStatus::Cleared)
+        .done();
+    let mut app = PfApp::new_for_test(engine_with(t.build()));
+    app.set_screen(Screen::Contexts);
+    {
+        let mut h = harness(&mut app);
+        h.run();
+        h.get_by_role_and_label(Role::Button, "Transactions Trip (1)")
+            .click();
+        h.run();
+        h.get_by_role_and_label(Role::ComboBox, "Category Hotel")
+            .click();
+        h.run();
+        h.get_all_by_role_and_label(Role::Button, "Food")
+            .last()
+            .expect("Food in the picker")
+            .click();
+        h.run();
+        h.run();
+        assert!(
+            h.query_all_by_value("Hotel").next().is_some(),
+            "Hotel stays in the window"
+        );
+    }
+    let shared = app.engine();
+    let e = shared.lock().expect("engine lock");
+    assert_eq!(
+        e.db().transaction(hotel).and_then(|x| x.category_id),
+        Some(food)
+    );
+}
