@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pfrust.local/statement-schema.json",
+  "title": "Bank or card statement for PFRust reconciliation (R-REC-1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["period_start", "period_end", "opening_balance", "closing_balance", "lines"],
+  "properties": {
+    "institution": {"type": "string", "description": "Bank or card issuer name as printed."},
+    "account_hint": {"type": "string", "description": "Account name or last digits as printed, e.g. 'Visa ...9876'."},
+    "period_start": {"type": "string", "description": "First day of the statement period, YYYY-MM-DD."},
+    "period_end": {"type": "string", "description": "Last day of the statement period, YYYY-MM-DD."},
+    "opening_balance": {"type": "string", "description": "Opening or previous balance exactly as printed, e.g. '1,764.30'. Copy it; do not change its sign."},
+    "closing_balance": {"type": "string", "description": "Closing or new balance exactly as printed."},
+    "total_credits": {"type": "string", "description": "Printed total of credits or deposits, if the statement shows one."},
+    "total_debits": {"type": "string", "description": "Printed total of debits or purchases, if the statement shows one."},
+    "lines": {
+      "type": "array",
+      "description": "Every transaction line on the statement, in printed order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "amount"],
+        "properties": {
+          "date": {"type": "string", "description": "Transaction date, YYYY-MM-DD."},
+          "post_date": {"type": "string", "description": "Posting date, YYYY-MM-DD, when the statement shows both dates."},
+          "description": {"type": "string", "description": "Description exactly as printed."},
+          "amount": {"type": "string", "description": "Signed by what the line IS: money spent or owed more is negative; money received, paid to a card or refunded is positive. Use the section heading and marks like CR, - or brackets, not the column."},
+          "section": {"type": "string", "description": "The heading the line sits under, copied exactly as printed (e.g. 'Payments and Credits')."},
+          "reference": {"type": "string", "description": "Reference or check number, if printed."}
+        }
+      }
+    }
+  }
+}

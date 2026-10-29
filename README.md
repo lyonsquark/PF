@@ -82,10 +82,33 @@ otherwise). The `scenario` parameter takes a scenario name, or `REALITY` for no 
 | `GET /api/accounts/{name}/balance` | `format`, `scenario` | `curl "localhost:8989/api/accounts/Main%20Checking/balance?format=text"` |
 | `GET /api/accounts/{name}/transactions` | `n` (default 10), `format`, `scenario` | `curl "localhost:8989/api/accounts/Main%20Checking/transactions?n=5&format=text"` |
 | `POST /api/accounts/{name}/import` | CSV in the body; uses the account's saved column mappings | `curl -X POST --data-binary @bank.csv localhost:8989/api/accounts/Checking/import` |
+| `GET /api/accounts/{name}/transactions` | `from`, `to` (`YYYY-MM-DD`, either optional): every transaction in the range, each with its `id` | `curl "localhost:8989/api/accounts/Checking/transactions?from=2026-02-01&to=2026-02-28"` |
+| `POST /api/accounts/{name}/reconcile/proposal` | Statement JSON in the body; replies with the reconciliation report. Nothing is changed until you finish in the app | `curl -X POST --data-binary @statement.json localhost:8989/api/accounts/Checking/reconcile/proposal` |
+| `GET` / `DELETE /api/accounts/{name}/reconcile/proposal` | `format` | `curl "localhost:8989/api/accounts/Checking/reconcile/proposal?format=text"` |
 | `GET /api/export/markdown` | | `curl -s localhost:8989/api/export/markdown > pf-export.md` |
 
 Names in the path are case-insensitive. Replace spaces with `%20`. An unknown route returns `Not Found: GET /api/...`
 with status 404.
+
+## Reconciling a statement
+
+Reconcile an account against a bank or card statement. You download the statement yourself; no program logs in to your bank.
+
+**With Claude Code (the `/reconcile` skill).**
+
+1. Open PFRust and download the statement PDF from your bank.
+2. In Claude Code, from the PFRust folder, run `/reconcile path/to/statement.pdf Account Name`.
+3. Claude reads the PDF, checks that it adds up, and sends it to PFRust. It explains anything that does not match.
+4. In PFRust, open the account. A banner says the statement is ready. Click **Review**, look over the pairs, and press
+   **Finish**. Only then are transactions marked Reconciled. One undo reverses the whole reconciliation.
+
+**Without AI (a CSV).** On the account, click **Reconcile…**, choose the statement's CSV (columns `Date`, `Description`,
+`Amount`; optional `Post Date`, `Section`, `Reference`), type the period and the opening and closing balances printed on
+the statement, and review the same way. A JSON statement file works too (see `docs/statement-schema.json`).
+
+The review shows what matched, what differs, what is only on the statement or only in PFRust, and a live **Difference**
+that must reach $0.00 (or you can add a reconciliation adjustment). The first time you reconcile an account you can also
+mark all earlier transactions as Reconciled.
 
 ## Command line tool
 

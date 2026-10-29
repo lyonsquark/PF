@@ -56,6 +56,14 @@ Things the tests cannot judge: how things look and feel. Tick them off as you go
 - [ ] Reconcile one real checking statement from a CSV export (Reconcile… on the account, Choose File…, type the period and the printed balances) and confirm the Difference reaches $0.00. Finish, then undo once: everything returns.
 - [ ] Edit the amount or date of a Reconciled transaction: the warning appears. Change its status away from Reconciled: no warning.
 
+## /reconcile skill (T32)
+- [ ] `/reconcile` on a card statement with separate charge and credit tables: a proposal is posted; Difference is $0.00 or explained.
+- [ ] `/reconcile` on a card statement with one signed table: same.
+- [ ] `/reconcile` on a checking statement: same.
+- [ ] `/reconcile` with PFRust closed: it stops and says to open PFRust.
+- [ ] Deliberately change one PFRust amount (a tip) first: it is listed under "Amount differs" with a sensible explanation.
+- [ ] Click Review on the banner and Finish: transactions become Reconciled; one undo reverses it.
+
 ## Known gaps to decide on
 - Vertical scrolling may also rubber-band at the top and bottom (egui's own scroll). Tell me if it bothers you.
 - Glyphs were replaced with plain text (+, •, ×, -, Open/Attach, "Active", "Edit", "Apply"). Emoji now draw. Say if you want the symbols back where the font has them.
