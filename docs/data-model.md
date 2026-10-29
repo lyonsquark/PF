@@ -142,7 +142,7 @@ pub struct BudgetItem {
 
 pub struct ImportMapping {
     pub id: ImportMappingId,
-    pub mapping_type: String,              // "account" | "category" | "payee" | "column" | "setting"
+    pub mapping_type: String,              // "account" | "category" | "payee" | "column" | "setting" | "statementPayee"
     pub source_value: String,
     pub target_value: String,
     pub negate_amounts: bool,
@@ -254,3 +254,4 @@ Timestamps are stored as RFC 3339 strings (`Timestamp::to_string()`, e.g. `2026-
 | `sidebarGrouping` | `A-Z` \| `Institution` \| `Type` | Sidebar (Rust addition; Swift kept it as view state) |
 | `selectedTimePeriod` | TimePeriod label | Account detail |
 | `uiFont` | font key: `sf` (default), `arial`, `verdana`, `tahoma`, `trebuchet`, `geneva` | Settings → Font (UI font, not undoable) |
+| `reconcileReading.{account id}` | `asPrinted` \| `flipped` | Reconcile: the sign reading last used for the account (R-REC-16) |

@@ -302,7 +302,7 @@ impl BudgetItem {
 pub struct ImportMapping {
     /// Primary key.
     pub id: ImportMappingId,
-    /// One of "account", "category", "payee", "column", "setting".
+    /// One of "account", "category", "payee", "column", "setting", "statementPayee".
     pub mapping_type: String,
     /// Raw source value (CSV header or bank value).
     pub source_value: String,

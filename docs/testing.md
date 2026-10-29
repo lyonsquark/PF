@@ -148,6 +148,7 @@ fn scenario_transactions_do_not_change_reality() {
 | BEH-MD-02 | Export after import == golden file | T05 |
 | BEH-MD-03 | Import a backup in Settings → wipes old data, undo stack cleared | T10c |
 | BEH-BAK-01 | Cmd-S backup with folder set → file `PFBackup_*.md` written with the export contents | T10c |
+| BEH-REC-01 | Reconcile a September statement, then October's: the second report has opening difference 0 and `first_time` false | T29 |
 
 ### L4: API and CLI integration tests
 
