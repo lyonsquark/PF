@@ -53,7 +53,6 @@ impl Screen {
             self,
             Screen::Budget
                 | Screen::Categories
-                | Screen::Contexts
                 | Screen::Settings
                 | Screen::Obligations
                 | Screen::Charts
@@ -96,7 +95,6 @@ mod tests {
         let hidden = [
             Screen::Budget,
             Screen::Categories,
-            Screen::Contexts,
             Screen::Settings,
             Screen::Obligations,
             Screen::Charts,
@@ -109,6 +107,7 @@ mod tests {
             Screen::Account(AccountId(1)),
             Screen::Scenarios,
             Screen::Reports,
+            Screen::Contexts,
         ];
         for s in shown {
             assert!(s.shows_scenario_menu(), "{s:?} must show the menu");

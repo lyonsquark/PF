@@ -2,9 +2,10 @@
 //! Create and Save are disabled while the trimmed name is empty.
 
 use egui::{Id, Modal, RichText, Ui};
+use pf_core::balance::is_visible;
 use pf_core::format::format_currency;
 use pf_engine::commands::contexts::{ContextInput, create_context, update_context};
-use pf_model::{ContextId, Db};
+use pf_model::{ContextId, Db, ScenarioId};
 use rust_decimal::Decimal;
 
 use super::Outcome;
@@ -95,10 +96,14 @@ pub struct ContextTx {
 
 /// The live transactions tagged with `ctx`, newest first, and their total. These are the same
 /// transactions the Contexts screen counts.
-pub fn context_transactions(db: &Db, ctx: ContextId) -> (Vec<ContextTx>, Decimal) {
+pub fn context_transactions(
+    db: &Db,
+    ctx: ContextId,
+    active: Option<ScenarioId>,
+) -> (Vec<ContextTx>, Decimal) {
     let mut rows: Vec<ContextTx> = db
         .live_transactions()
-        .filter(|tx| tx.context_ids.contains(&ctx))
+        .filter(|tx| is_visible(tx, active) && tx.context_ids.contains(&ctx))
         .map(|tx| ContextTx {
             date: tx.date,
             account: tx
@@ -129,9 +134,10 @@ enum Action {
 /// Draws the context modal and runs the chosen action.
 pub fn show(cx: &mut UiCtx, ui: &mut Ui, form: &mut ContextForm) -> Outcome {
     let mut action = Action::None;
+    let active = cx.engine.state.active_scenario;
     let listing = form
         .editing
-        .map(|id| context_transactions(cx.engine.db(), id));
+        .map(|id| context_transactions(cx.engine.db(), id, active));
     let title = if form.editing.is_some() {
         "Edit Context"
     } else {
@@ -278,7 +284,7 @@ mod tests {
             .status(TransactionStatus::Cleared)
             .done();
         let db = t.build();
-        let (rows, total) = context_transactions(&db, trip);
+        let (rows, total) = context_transactions(&db, trip, None);
         let payees: Vec<&str> = rows.iter().map(|r| r.payee.as_str()).collect();
         assert_eq!(
             payees,
@@ -292,6 +298,32 @@ mod tests {
             rows[0].memo, "",
             "a transaction without a memo has an empty one"
         );
+    }
+
+    #[test]
+    /// Covers: R-SCN-1. The editor lists only the transactions visible under the active scenario.
+    fn context_transactions_follow_active_scenario() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let trip = t.context("Trip");
+        let plan = t.scenario("Plan A");
+        t.tx(chk, "2026-03-01", "-40", "Hotel")
+            .contexts(&[trip])
+            .done();
+        t.tx(chk, "2026-03-02", "-9", "Plan taxi")
+            .contexts(&[trip])
+            .scenario(plan)
+            .done();
+        let db = t.build();
+        let payees = |active| {
+            context_transactions(&db, trip, active)
+                .0
+                .iter()
+                .map(|r| r.payee.clone())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(payees(None), vec!["Hotel"]);
+        assert_eq!(payees(Some(plan)), vec!["Plan taxi", "Hotel"]);
     }
 
     #[test]
