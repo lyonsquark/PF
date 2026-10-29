@@ -32,15 +32,18 @@ pub enum SearchScope {
     Context,
     /// Match the status name (Pending, Cleared, Reconciled or Future).
     Status,
+    /// Match the memo.
+    Memo,
 }
 
 impl SearchScope {
     /// Every scope, in picker order.
-    pub const ALL: [SearchScope; 4] = [
+    pub const ALL: [SearchScope; 5] = [
         SearchScope::Payee,
         SearchScope::Category,
         SearchScope::Context,
         SearchScope::Status,
+        SearchScope::Memo,
     ];
 
     /// The picker label.
@@ -50,6 +53,7 @@ impl SearchScope {
             SearchScope::Category => "Category",
             SearchScope::Context => "Context",
             SearchScope::Status => "Status",
+            SearchScope::Memo => "Memo",
         }
     }
 }
@@ -144,6 +148,11 @@ fn matches_search(db: &Db, tx: &Transaction, scope: SearchScope, query: &str) ->
             .any(|c| !c.is_deleted && c.name.to_lowercase().contains(query)),
         // The status name as the picker shows it, so "fut" finds Future.
         SearchScope::Status => tx.status.label().to_lowercase().contains(query),
+        // A transaction without a memo never matches.
+        SearchScope::Memo => tx
+            .memo
+            .as_deref()
+            .is_some_and(|m| m.to_lowercase().contains(query)),
     }
 }
 
@@ -359,6 +368,30 @@ mod tests {
         assert!(!ids.contains(&uncat));
         search.text = "utilities".to_string();
         assert_eq!(kept(&db, TimePeriod::All, &search), vec![hit]);
+    }
+
+    #[test]
+    fn r_flt_3_search_memo() {
+        // Covers: R-FLT-3
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let tagged = t
+            .tx(chk, "2026-03-01", "-12", "Taxi")
+            .memo("Airport run")
+            .done();
+        let plain = t.tx(chk, "2026-03-02", "-5", "Misc").done();
+        let db = t.build();
+        let mut search = SearchState::new(today());
+        search.open = true;
+        search.scope = SearchScope::Memo;
+        search.text = "AIRPORT".to_string();
+        assert_eq!(kept(&db, TimePeriod::All, &search), vec![tagged]);
+        assert!(!kept(&db, TimePeriod::All, &search).contains(&plain));
+        search.text = "taxi".to_string();
+        assert!(
+            kept(&db, TimePeriod::All, &search).is_empty(),
+            "payee is not searched"
+        );
     }
 
     #[test]

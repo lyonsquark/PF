@@ -68,7 +68,7 @@ Notation: "live" = `!is_deleted`. "Reality" = `scenario_id == None`.
 |---|---|---|
 | R-FLT-1 | Time period start dates relative to today: PastMonth = today − 1 month; Past60Days = today − 60 days; YearToDate = Jan 1 of this year; PastYear = today − 1 year; Archival & All = none. | `TimePeriod.startDate` |
 | R-FLT-2 | Window filter: Archival ⇒ only reality rows dated before (today − 1 year). Otherwise: scenario rows always pass (future projections stay visible); reality rows pass if no start date or `date >= start`. | `filteredTransactions` |
-| R-FLT-3 | Search (when open and text non-empty, trimmed): scope Payee ⇒ payee contains query (case-insensitive); Category ⇒ category name or full name contains query; Context ⇒ any context name contains query; Status ⇒ status name (Pending, Cleared, Reconciled, Future) contains query (PFRust addition, not in Swift). | `filteredTransactions` |
+| R-FLT-3 | Search (when open and text non-empty, trimmed): scope Payee ⇒ payee contains query (case-insensitive); Category ⇒ category name or full name contains query; Context ⇒ any context name contains query; Status ⇒ status name (Pending, Cleared, Reconciled, Future) contains query (PFRust addition, not in Swift); Memo ⇒ memo contains query (PFRust addition; no memo ⇒ no match). | `filteredTransactions` |
 | R-FLT-4 | Search date range (when toggled): keep `start <= date <= end` (inclusive days). Default range: today − 1 year … today. | `filteredTransactions` |
 | R-FLT-5 | Default sort: date descending, then id descending. | `TransactionListView.init` |
 | R-FLT-6 | Closing search clears text and turns off the date range. | search close button |
