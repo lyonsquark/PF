@@ -140,7 +140,11 @@ fn ui_ctx_count_column() {
     app.set_screen(Screen::Contexts);
     let mut h = harness(&mut app);
     h.run();
-    assert!(h.query_by_label("2").is_some(), "count of two");
+    assert!(
+        h.query_by_role_and_label(Role::Button, "Transactions trip (2)")
+            .is_some(),
+        "the count of two is a button that opens the transactions"
+    );
 }
 
 #[test]
@@ -173,9 +177,10 @@ fn ui_ctx_create_default_blue() {
 }
 
 #[test]
-/// The editor of a context lists its transactions with their accounts, and the total underneath. The
-/// count on the Contexts screen is next to the name.
-fn ui_ctx_edit_lists_transactions_and_total() {
+/// The count on a context opens its transactions window: the tagged transactions across accounts,
+/// with the memo, and their total. The editor does not open.
+fn ui_ctx_count_opens_transactions_window() {
+    use egui::accesskit::Role;
     let mut t = TestDb::new();
     let chk = t.account("Checking", AccountType::Checking);
     let card = t.account("Card", AccountType::Credit);
@@ -193,22 +198,22 @@ fn ui_ctx_edit_lists_transactions_and_total() {
     app.set_screen(Screen::Contexts);
     let mut h = harness(&mut app);
     h.run();
-    h.get_by_label("Trip").click();
+    h.get_by_role_and_label(Role::Button, "Transactions Trip (2)")
+        .click();
+    h.run();
     h.run();
     assert!(
-        h.query_all_by_value("Transactions (2)").next().is_some(),
-        "lists two transactions"
+        h.query_all_by_value("Transactions: Trip").next().is_some(),
+        "the window is titled with the context"
     );
+    for text in ["Card", "Checking", "Airport run", "-$52.50"] {
+        assert!(
+            h.query_all_by_value(text).next().is_some(),
+            "the window shows {text}"
+        );
+    }
     assert!(
-        h.query_all_by_value("Card").next().is_some(),
-        "shows the Card account"
-    );
-    assert!(
-        h.query_all_by_value("Checking").next().is_some(),
-        "shows the Checking account"
-    );
-    assert!(
-        h.query_all_by_value("-$52.50").next().is_some(),
-        "shows the total"
+        h.query_by_label("Edit Context").is_none(),
+        "the editor stays closed"
     );
 }

@@ -84,6 +84,13 @@ pub enum Dialog {
         /// The transactions.
         ids: Vec<TransactionId>,
     },
+    /// A context's transactions, opened from the count on the Contexts screen.
+    ContextTransactions {
+        /// Heading of the modal.
+        title: String,
+        /// The transactions tagged with the context and visible under the active scenario.
+        ids: Vec<TransactionId>,
+    },
     /// Budget items behind a budgeted figure (T23).
     ReportBudgetItems {
         /// Heading of the modal.
@@ -186,9 +193,20 @@ pub fn show_active(cx: &mut UiCtx, ui: &mut egui::Ui) {
         Dialog::CategoryEdit(form) => category_edit::show(cx, ui, form),
         Dialog::ContextEdit(form) => context_edit::show(cx, ui, form),
         Dialog::CsvWizard(w) => csv_wizard::show(cx, ui, w),
-        Dialog::ReportTransactions { title, ids } => {
-            report_drilldown::show_transactions(cx, ui, title.as_str(), ids)
-        }
+        Dialog::ReportTransactions { title, ids } => report_drilldown::show_transactions(
+            cx,
+            ui,
+            title.as_str(),
+            ids,
+            report_drilldown::WindowKind::Report,
+        ),
+        Dialog::ContextTransactions { title, ids } => report_drilldown::show_transactions(
+            cx,
+            ui,
+            title.as_str(),
+            ids,
+            report_drilldown::WindowKind::Context,
+        ),
         Dialog::ReportBudgetItems {
             title,
             ids,

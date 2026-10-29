@@ -48,15 +48,29 @@ pub fn open_transactions(cx: &mut UiCtx, title: String, ids: Vec<TransactionId>)
     cx.dialogs.open(Dialog::ReportTransactions { title, ids });
 }
 
-/// The transactions behind a report number: date, account, payee, category (editable), amount, memo,
-/// context, status and, only while a scenario is active, the scenario. Newest first. Changing a
-/// transaction's category takes it out of this list (`ids`); the screen behind updates.
+/// Which transactions window is drawn. A report number's window has a Context column; a context's
+/// window (opened from the Contexts screen) leaves it out, since every row has that context, and
+/// shows the total underneath.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WindowKind {
+    /// Behind a report number.
+    Report,
+    /// A context's transactions.
+    Context,
+}
+
+/// The transactions behind a report number or a context: date, account, payee, category (editable),
+/// amount, memo, context (reports only), status and, only while a scenario is active, the scenario.
+/// Newest first. Changing a transaction's category takes it out of this list (`ids`); the screen
+/// behind updates.
 pub fn show_transactions(
     cx: &mut UiCtx,
     ui: &mut Ui,
     title: &str,
     ids: &mut Vec<TransactionId>,
+    kind: WindowKind,
 ) -> Outcome {
+    let is_report = kind == WindowKind::Report;
     let scenario_active = cx.engine.state.active_scenario.is_some();
     let rows = drill_rows(cx.engine.db(), ids, scenario_active);
     // The current category of each row, and the list the picker offers.
@@ -99,13 +113,15 @@ pub fn show_transactions(
                     .column(Column::initial(payee_w))
                     .column(Column::initial(category_w))
                     .column(Column::initial(amount_w))
-                    .column(Column::remainder().at_least(TX_MEMO_MIN_WIDTH))
-                    .column(Column::initial(context_w))
-                    .column(Column::initial(status_w));
+                    .column(Column::remainder().at_least(TX_MEMO_MIN_WIDTH));
+                if is_report {
+                    table = table.column(Column::initial(context_w));
+                }
+                table = table.column(Column::initial(status_w));
                 if scenario_active {
                     table = table.column(Column::initial(scenario_w));
                 }
-                let headers: Vec<&str> = if scenario_active {
+                let mut headers: Vec<&str> = if scenario_active {
                     vec![
                         "Date", "Account", "Payee", "Category", "Amount", "Memo", "Context",
                         "Status", "Scenario",
@@ -116,6 +132,9 @@ pub fn show_transactions(
                         "Status",
                     ]
                 };
+                if !is_report {
+                    headers.retain(|h| *h != "Context");
+                }
                 table
                     .header(HEADER_HEIGHT, |mut header| {
                         for h in headers {
@@ -160,9 +179,11 @@ pub fn show_transactions(
                             row.col(|ui| {
                                 row_clicked |= clickable(ui, RichText::new(&r.memo).weak());
                             });
-                            row.col(|ui| {
-                                row_clicked |= clickable(ui, &r.contexts);
-                            });
+                            if is_report {
+                                row.col(|ui| {
+                                    row_clicked |= clickable(ui, &r.contexts);
+                                });
+                            }
                             row.col(|ui| {
                                 row_clicked |= clickable(ui, r.status);
                             });
@@ -185,6 +206,16 @@ pub fn show_transactions(
                         });
                     });
             }
+        }
+        if !is_report && !rows.is_empty() {
+            let total: Decimal = rows.iter().map(|r| r.amount).sum();
+            ui.separator();
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("Total").strong());
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    ui.label(RichText::new(format::format_currency(total)).strong());
+                });
+            });
         }
         ui.add_space(8.0);
         if ui.button("Close").clicked() {

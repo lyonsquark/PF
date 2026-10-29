@@ -5,10 +5,10 @@
 
 use std::collections::BTreeMap;
 
-use egui::{Align, Frame, Layout, RichText, Sense, Ui};
+use egui::{Align, Frame, Layout, RichText, Role, Sense, Ui, WidgetInfo};
 use pf_core::balance::is_visible;
 use pf_engine::commands::contexts::{contexts_by_section, delete_context, set_context_archived};
-use pf_model::{ContextId, Db, ScenarioId};
+use pf_model::{ContextId, Db, ScenarioId, TransactionId};
 
 use crate::app::UiCtx;
 use crate::caches::Cached;
@@ -73,10 +73,24 @@ pub fn build_sections(db: &Db) -> (Vec<ContextRow>, Vec<ContextRow>) {
     )
 }
 
+/// The live transactions tagged with `ctx` that are visible under `active` (R-SCN-1): the ones the
+/// count shows and the context's transactions window lists.
+pub fn context_transaction_ids(
+    db: &Db,
+    ctx: ContextId,
+    active: Option<ScenarioId>,
+) -> Vec<TransactionId> {
+    db.live_transactions()
+        .filter(|tx| is_visible(tx, active) && tx.context_ids.contains(&ctx))
+        .map(|tx| tx.id)
+        .collect()
+}
+
 /// What the user asked for this frame, applied after the list is drawn.
 enum Action {
     Add,
     Edit(ContextId),
+    Transactions(ContextId),
     SetArchived(ContextId, bool),
     Delete(ContextId),
 }
@@ -133,6 +147,19 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     match action {
         None => {}
         Some(Action::Add) => cx.dialogs.open(Dialog::ContextEdit(Box::default())),
+        Some(Action::Transactions(id)) => {
+            let active = cx.engine.state.active_scenario;
+            let name = cx
+                .engine
+                .db()
+                .context(id)
+                .map_or_else(String::new, |c| c.name.clone());
+            let ids = context_transaction_ids(cx.engine.db(), id, active);
+            cx.dialogs.open(Dialog::ContextTransactions {
+                title: format!("Transactions: {name}"),
+                ids,
+            });
+        }
         Some(Action::Edit(id)) => {
             if let Some(form) = ContextForm::edit(cx.engine.db(), id) {
                 cx.dialogs.open(Dialog::ContextEdit(Box::new(form)));
@@ -161,6 +188,8 @@ fn context_row(ui: &mut Ui, row: &ContextRow, count: usize, action: &mut Option<
             c
         }
     };
+    // Where the count was drawn, so a click there opens the transactions rather than the editor.
+    let mut count_rect = egui::Rect::NOTHING;
     let resp = ui
         .horizontal(|ui| {
             color_dot(ui, dim(row.color.unwrap_or(FALLBACK)));
@@ -186,11 +215,21 @@ fn context_row(ui: &mut Ui, row: &ContextRow, count: usize, action: &mut Option<
                 }
             });
             ui.add_space(12.0);
-            ui.label(
-                RichText::new(count.to_string())
-                    .color(colors::BLUE)
-                    .strong(),
-            );
+            let count_label = ui
+                .label(
+                    RichText::new(count.to_string())
+                        .color(colors::BLUE)
+                        .strong(),
+                )
+                .on_hover_text("Show these transactions");
+            count_label.widget_info(|| {
+                WidgetInfo::labeled(
+                    Role::Button,
+                    true,
+                    format!("Transactions {} ({count})", row.name),
+                )
+            });
+            count_rect = count_label.rect;
             ui.label(RichText::new("Edit").small().weak());
         })
         .response;
@@ -200,7 +239,14 @@ fn context_row(ui: &mut Ui, row: &ContextRow, count: usize, action: &mut Option<
         Sense::click(),
     );
     if click.clicked() {
-        *action = Some(Action::Edit(row.id));
+        let on_count = ui
+            .input(|i| i.pointer.interact_pos())
+            .is_some_and(|p| count_rect.contains(p));
+        *action = Some(if on_count {
+            Action::Transactions(row.id)
+        } else {
+            Action::Edit(row.id)
+        });
     }
     click.context_menu(|ui| {
         let (label, archive) = if row.archived {
@@ -225,6 +271,35 @@ fn context_row(ui: &mut Ui, row: &ContextRow, count: usize, action: &mut Option<
 mod tests {
     use super::*;
     use pf_model::testing::TestDb;
+    use pf_model::{AccountType, TransactionStatus};
+
+    #[test]
+    /// Covers: R-SCN-1. A context's transactions window lists the tagged transactions visible under
+    /// the active scenario; the count is the same set.
+    fn r_scn_1_context_transactions_follow_active_scenario() {
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let trip = t.context("Trip");
+        let plan = t.scenario("Plan A");
+        let hotel = t
+            .tx(chk, "2026-03-01", "-40", "Hotel")
+            .contexts(&[trip])
+            .status(TransactionStatus::Cleared)
+            .done();
+        let taxi = t
+            .tx(chk, "2026-03-02", "-9", "Plan taxi")
+            .contexts(&[trip])
+            .scenario(plan)
+            .status(TransactionStatus::Cleared)
+            .done();
+        let db = t.build();
+        assert_eq!(context_transaction_ids(&db, trip, None), vec![hotel]);
+        assert_eq!(
+            context_transaction_ids(&db, trip, Some(plan)),
+            vec![hotel, taxi]
+        );
+        assert_eq!(count_by_context(&db, Some(plan)).get(&trip), Some(&2));
+    }
 
     #[test]
     /// Covers: R-CTX-3. Archived contexts are in their own list; each list is sorted by name.
