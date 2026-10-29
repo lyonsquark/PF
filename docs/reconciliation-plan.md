@@ -49,6 +49,7 @@ validate input and as the structured-output schema in Option C.
       "post_date": "2026-09-04",
       "description": "SQ *BLUE BOTTLE 8812",
       "amount": "-6.50",
+      "section": "Purchases",
       "reference": "2410…"
     }
   ]
@@ -56,10 +57,35 @@ validate input and as the structured-output schema in Option C.
 ```
 
 * Amounts are strings, parsed as `Decimal` (never `f64`).
-* `amount` uses the statement's own sign. The reconcile dialog asks once per account whether to flip signs
-  (credit cards print charges as positive). The choice is saved, like the CSV import's `negateAmounts` setting.
+* `amount` is signed from the account holder's point of view, as PFRust stores it: money spent or owed more
+  is negative (purchases, fees, interest, withdrawals), money received or owed less is positive (deposits,
+  payments to a card, refunds, credits). See "Signs and statement layouts" below for how this is made robust.
+* `section` is the heading the line came from on the statement ("Purchases", "Payments and Credits", "Fees",
+  "Interest Charged", "Deposits", …), copied as printed. It is shown in the review and used by the sign checks.
 * `date` is the transaction date, with `post_date` optional. Matching uses `date`, then `post_date`.
 * `total_credits`, `total_debits` and `reference` are optional. They only feed the self-check and the display.
+
+### Signs and statement layouts
+
+Card statements differ. Some list charges and credits in separate tables, each printed as positive numbers;
+some use one table with a minus sign or a "CR" mark on credits; some print the balance owed as positive, others
+as negative. Nothing here assumes one layout:
+
+1. **Per line, from its section:** the skill (or the CSV import) signs each line by what it is, using its
+   section heading and marks such as "CR", "-" or brackets, not by the column it sat in. A line in
+   "Payments and Credits" is positive even when printed without a sign.
+2. **Balance convention, checked by arithmetic:** the Rust side tries both ways of reading the balances,
+   *asset style* (opening + Σ lines = closing) and *owed style* (balances are amounts owed, so opening − Σ
+   lines = closing). The one that adds up is used, and owed-style balances are turned into PFRust's sign
+   (owed ⇒ negative) for the balance checks. If neither adds up, the file is rejected, as before.
+3. **Whole-file sign mistakes, checked against PFRust:** flipping every line and using the other balance
+   convention also adds up, so arithmetic alone cannot tell those apart. The Rust side breaks the tie by
+   counting exact-amount matches against PFRust both ways, then by the account type (Credit, Loan ⇒ owed
+   style). The chosen reading is shown at the top of the review ("Read as: owed balances, charges negative")
+   with a **Flip signs** button, and the choice is remembered per account as a starting guess for next time.
+4. **Per-section mistakes:** if one section's lines all fail to match while their sign-flipped amounts do
+   match, the review flags that section ("Lines under 'Payments and Credits' may have the wrong sign") with a
+   one-click fix for that section only.
 
 A CSV form is also accepted (one line per row, the balances entered in the dialog), so a bank's own CSV export
 works without any AI.
@@ -259,20 +285,21 @@ follow later if the terminal step becomes a nuisance. It reuses the schema and t
 | Task | Title | Deps | Notes |
 |---|---|---|---|
 | T28 | Reconciliation data | – | `pf-model` entity, `pf-store` tables, Markdown backup section, data-model doc. Check the Swift backup parser for unknown sections first. |
-| T29 | `pf-core::reconcile` | T28 | Statement model and parsing (JSON and CSV), self-check, matching passes, sections, balance checks. New rule IDs `R-REC-*`. Property and golden tests. |
+| T29 | `pf-core::reconcile` | T28 | Statement model and parsing (JSON and CSV), self-check with both balance conventions, sign tie-break against PFRust and per-section sign flags, matching passes, sections, balance checks. New rule IDs `R-REC-*`. Property and golden tests, including the three statement layouts. |
 | T30 | Reconcile engine commands | T29 | Apply (one step), undo a past reconciliation, payee aliases (`statementPayee` mapping). |
-| T31 | Reconcile dialog | T30 | Account action row "Reconcile…", load file, sign choice, review sections, manual pair and unpair, live Difference, Finish with optional adjustment. kittest. |
+| T31 | Reconcile dialog | T30 | Account action row "Reconcile…", load file, "Read as" line with Flip signs and per-section fixes, review sections, manual pair and unpair, live Difference, Finish with optional adjustment. Warn-then-allow on editing or deleting a Reconciled transaction (account table, dialogs). kittest. |
 | T32 | Option B: proposal API | T31 | `GET …/transactions?from&to` with ids; `POST`/`GET`/`DELETE …/reconcile/proposal`; `reconcile_proposals` table; "Statement ready to review" banner that opens the dialog with the proposal. No API route changes a status. API tests on port 0 with temp databases. |
-| T32b | Option B: `/reconcile` skill | T32 | `.claude/skills/reconcile/SKILL.md`: read the PDF, write the statement file, self-check and re-read loop, post the proposal, explain the report, point the owner to the app. Tried by hand on two real statements. |
+| T32b | Option B: `/reconcile` skill | T32 | `.claude/skills/reconcile/SKILL.md`: read the PDF, split a multi-account PDF into one statement file per account, sign each line by its section, self-check and re-read loop, post the proposal, explain the report, point the owner to the app. Tried by hand on two real statements. |
 | T33 | Option C: Claude API extraction (optional) | T31 | Blocked until the owner approves the HTTPS dependency. Keychain key, background call, retry on a failed self-check. |
 
-## Open questions for the owner
+## Decisions (owner, 2026-10-29)
 
-1. Which accounts first? Credit cards (sign flip, fees, interest) and checking (checks, transfers) need
-   slightly different test statements.
-2. Should Reconciled rows be locked against edits, or only warn? Swift never locked them. A warning keeps parity
-   and still protects the opening-balance check.
-3. Combined statements (checking and savings in one PDF): one statement file per account, or a list in one
-   file?
-4. Transfers between your own accounts appear on two statements. Should reconciling one side suggest the
-   other?
+1. **Accounts:** credit cards and checking from the start. Test statements: at least one card statement with
+   separate charge and credit tables, one card statement with a single signed table, and one checking
+   statement. Sign handling must not assume a layout (see "Signs and statement layouts").
+2. **Editing a reconciled transaction:** warn, then allow. Changing the amount or date of, or deleting, a
+   Reconciled transaction asks "This transaction was reconciled on {date}. Change it anyway?". This keeps
+   parity with Swift, which never locked. The next opening-balance check lists the changed rows.
+3. **Combined statements:** one proposal per account. The skill splits a multi-account PDF into one statement
+   file per account and posts each to its account; each is reviewed and finished on its own.
+4. **Transfers between own accounts:** nothing special. Each account is reconciled from its own statement.
