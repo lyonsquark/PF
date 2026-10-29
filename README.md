@@ -123,6 +123,7 @@ Most behaviour is the same. These are the places where PFRust does something dif
 - **CSV import** is one undo step, named "Import CSV". The Swift app could not undo it.
 - **Attachments** are checked by file type before they open; the list of allowed types is in `R-TXN-14`.
 - **Menus** are drawn inside the app window. The Swift app used the macOS menu bar.
+- **Find bar** has a Status scope, so you can search for Pending, Cleared, Reconciled or Future transactions. The Swift app did not have it.
 - **Icons:** the Swift app's SF Symbol icons are not shown; a few are replaced with text.
 - **Dashboard summary cards** add up all visible transactions when a scenario is chosen (pending and future rows included), and cleared transactions in Reality. A line under the cards says which.
 - **Charts** use their own drawing, not an embedded web view. Some chart details differ slightly from the Swift app.

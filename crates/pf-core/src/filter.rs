@@ -30,14 +30,17 @@ pub enum SearchScope {
     Category,
     /// Match any context name.
     Context,
+    /// Match the status name (Pending, Cleared, Reconciled or Future).
+    Status,
 }
 
 impl SearchScope {
     /// Every scope, in picker order.
-    pub const ALL: [SearchScope; 3] = [
+    pub const ALL: [SearchScope; 4] = [
         SearchScope::Payee,
         SearchScope::Category,
         SearchScope::Context,
+        SearchScope::Status,
     ];
 
     /// The picker label.
@@ -46,6 +49,7 @@ impl SearchScope {
             SearchScope::Payee => "Payee",
             SearchScope::Category => "Category",
             SearchScope::Context => "Context",
+            SearchScope::Status => "Status",
         }
     }
 }
@@ -138,6 +142,8 @@ fn matches_search(db: &Db, tx: &Transaction, scope: SearchScope, query: &str) ->
             .iter()
             .filter_map(|&c| db.context(c))
             .any(|c| !c.is_deleted && c.name.to_lowercase().contains(query)),
+        // The status name as the picker shows it, so "fut" finds Future.
+        SearchScope::Status => tx.status.label().to_lowercase().contains(query),
     }
 }
 
@@ -353,6 +359,33 @@ mod tests {
         assert!(!ids.contains(&uncat));
         search.text = "utilities".to_string();
         assert_eq!(kept(&db, TimePeriod::All, &search), vec![hit]);
+    }
+
+    #[test]
+    fn r_flt_3_search_status() {
+        // Covers: R-FLT-3
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let future = t
+            .tx(chk, "2026-03-01", "-80", "Power")
+            .status(TransactionStatus::Future)
+            .done();
+        let pending = t
+            .tx(chk, "2026-03-02", "-5", "Misc")
+            .status(TransactionStatus::Pending)
+            .done();
+        let db = t.build();
+        let mut search = SearchState::new(today());
+        search.open = true;
+        search.scope = SearchScope::Status;
+        search.text = "FUTURE".to_string();
+        assert_eq!(kept(&db, TimePeriod::All, &search), vec![future]);
+        search.text = "fut".to_string();
+        assert_eq!(kept(&db, TimePeriod::All, &search), vec![future]);
+        search.text = "pend".to_string();
+        assert_eq!(kept(&db, TimePeriod::All, &search), vec![pending]);
+        search.text = "cleared".to_string();
+        assert!(kept(&db, TimePeriod::All, &search).is_empty());
     }
 
     #[test]
