@@ -56,6 +56,17 @@ fn cli_help_exit_0() {
 }
 
 #[test]
+/// `--version` prints the program name and the workspace version, and exits 0.
+fn cli_version_exit_0() {
+    Command::cargo_bin("pf-cli")
+        .expect("pf-cli binary")
+        .arg("--version")
+        .assert()
+        .success()
+        .stdout(format!("pf-cli {}\n", env!("CARGO_PKG_VERSION")));
+}
+
+#[test]
 /// An unknown command exits 2 and shows the usage on stderr.
 fn cli_bad_command_exit_2() {
     let (_dir, db) = temp_db();

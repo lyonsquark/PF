@@ -7,7 +7,7 @@ use jiff::civil::Date;
 use pf_model::{CategoryId, Db, ScenarioId, TransactionId};
 use rust_decimal::Decimal;
 
-use super::{bucket, counted_transactions, signed};
+use super::{bucket, counted_transactions, is_transfer, signed};
 use crate::projector::generate_dates;
 
 /// Month headers, English short names (R-RPT-5d).
@@ -117,8 +117,12 @@ pub fn monthly_matrix(db: &Db, year: i16, scenario: Option<ScenarioId>) -> Month
         net_actual[m] += tx.amount;
     }
 
-    // R-RPT-5b: every occurrence of every live budget item adds its signed amount to its month.
-    for item in db.live_budget_items() {
+    // R-RPT-5b: every occurrence of every live budget item adds its signed amount to its month, except
+    // an item in a Transfer category.
+    for item in db
+        .live_budget_items()
+        .filter(|item| !is_transfer(db, item.category_id))
+    {
         let cat = bucket(db, item.category_id);
         for date in generate_dates(item, from, to) {
             let m = month_index(date);
@@ -128,8 +132,8 @@ pub fn monthly_matrix(db: &Db, year: i16, scenario: Option<ScenarioId>) -> Month
         }
     }
 
-    // R-RPT-5c: rows for live categories (transfers included) with any non-zero month, then
-    // Uncategorized, sorted by label.
+    // R-RPT-5c: rows for live categories with any non-zero month (a Transfer category never has one, see
+    // R-RPT-5a and R-RPT-5b), then Uncategorized, sorted by label.
     let mut rows: Vec<MatrixRow> = Vec::new();
     for cat in db.live_categories() {
         let a = actual.get(&Some(cat.id)).copied().unwrap_or(zero);
@@ -160,6 +164,38 @@ pub fn monthly_matrix(db: &Db, year: i16, scenario: Option<ScenarioId>) -> Month
         rows,
         net_actual,
         net_budget,
+    }
+}
+
+/// R-RPT-5f: the cutoff month (1..=12) a year starts with: this month in the current year, otherwise
+/// December.
+pub fn default_matrix_cutoff(year: i16, today: Date) -> u8 {
+    if year == today.year() {
+        u8::try_from(today.month()).unwrap_or(12)
+    } else {
+        12
+    }
+}
+
+impl MonthlyMatrix {
+    /// R-RPT-5f: the matrix as far as month `cutoff` (1..=12): later months are zero in every row and in
+    /// NET, so the totals leave them out, and a row with nothing left is dropped.
+    pub fn through(mut self, cutoff: u8) -> MonthlyMatrix {
+        let shown = usize::from(cutoff).min(12);
+        let clear = |months: &mut [Decimal; 12]| {
+            for value in months.iter_mut().skip(shown) {
+                *value = Decimal::ZERO;
+            }
+        };
+        for row in &mut self.rows {
+            clear(&mut row.actual);
+            clear(&mut row.budget);
+        }
+        clear(&mut self.net_actual);
+        clear(&mut self.net_budget);
+        self.rows
+            .retain(|row| has_value(&row.actual) || has_value(&row.budget));
+        self
     }
 }
 
@@ -232,6 +268,26 @@ pub fn matrix_drill(
         .collect()
 }
 
+/// R-RPT-5f: ids of the transactions behind a Total cell: as `matrix_drill` for the whole year, without
+/// the months after `cutoff` (1..=12).
+pub fn matrix_drill_through(
+    db: &Db,
+    year: i16,
+    scenario: Option<ScenarioId>,
+    category: Option<CategoryId>,
+    cutoff: u8,
+) -> Vec<TransactionId> {
+    let Some((from, to)) = year_bounds(year) else {
+        return Vec::new();
+    };
+    counted_transactions(db, from, to, scenario)
+        .into_iter()
+        .filter(|tx| bucket(db, tx.category_id) == category)
+        .filter(|tx| i32::from(tx.date.month()) <= i32::from(cutoff))
+        .map(|tx| tx.id)
+        .collect()
+}
+
 /// R-RPT-5e: drill-down title: "{label} — {Mon} {year}" for a month, "{label} {year}" for Total.
 pub fn matrix_drill_title(label: &str, year: i16, month: Option<u8>) -> String {
     match month {
@@ -260,6 +316,69 @@ mod tests {
         let labels: Vec<&str> = MatrixMode::ALL.iter().map(|m| m.label()).collect();
         assert_eq!(labels, ["Actual + Budget", "Actual Only", "Budget Only"]);
         assert_eq!(MatrixMode::default(), MatrixMode::All);
+    }
+
+    #[test]
+    fn r_rpt_5f_default_cutoff() {
+        // Covers: R-RPT-5f
+        let today = Date::new(2026, 3, 15).expect("a valid date");
+        assert_eq!(default_matrix_cutoff(2026, today), 3);
+        assert_eq!(default_matrix_cutoff(2025, today), 12);
+        assert_eq!(default_matrix_cutoff(2027, today), 12);
+    }
+
+    #[test]
+    fn r_rpt_5f_through_leaves_later_months_out() {
+        // Covers: R-RPT-5f
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let groc = t.category("Groceries", CategoryType::Expense);
+        let fun = t.category("Fun", CategoryType::Expense);
+        let plan = t.scenario("Plan");
+        t.tx(chk, "2026-03-31", "-10", "in").category(groc).done();
+        t.tx(chk, "2026-04-01", "-20", "out").category(groc).done();
+        // Only after the cutoff, and in a scenario: its row goes.
+        t.tx(chk, "2026-06-01", "-30", "later")
+            .category(fun)
+            .scenario(plan)
+            .done();
+        t.budget_item(
+            BudgetItemType::Expense,
+            "Food",
+            "5",
+            "2026-01-01",
+            BudgetFrequency::Monthly,
+        )
+        .category(groc)
+        .done();
+        let db = t.build();
+
+        let whole = monthly_matrix(&db, 2026, Some(plan));
+        assert_eq!(whole.rows.len(), 2);
+        let m = whole.through(3);
+        assert_eq!(m.rows.len(), 1, "the Fun row has nothing left");
+        let row = &m.rows[0];
+        assert_eq!(row.actual_total(), dec!(-10));
+        assert_eq!(row.budget_total(), dec!(-15));
+        assert_eq!(m.net_actual.iter().sum::<Decimal>(), dec!(-10));
+        assert_eq!(m.net_budget.iter().sum::<Decimal>(), dec!(-15));
+
+        let all = monthly_matrix(&db, 2026, Some(plan)).through(12);
+        assert_eq!(
+            all,
+            monthly_matrix(&db, 2026, Some(plan)),
+            "December is all"
+        );
+
+        assert_eq!(
+            matrix_drill_through(&db, 2026, None, Some(groc), 3).len(),
+            1,
+            "the Total drill-down matches the Total"
+        );
+        assert_eq!(
+            matrix_drill_through(&db, 2026, None, Some(groc), 4).len(),
+            2
+        );
     }
 
     #[test]
@@ -313,7 +432,6 @@ mod tests {
         // Covers: R-RPT-5b
         let mut t = TestDb::new();
         let inc = t.category("Income", CategoryType::Income);
-        let transfer = t.category("Savings Move", CategoryType::Transfer);
         t.budget_item(
             BudgetItemType::Income,
             "Pay",
@@ -326,24 +444,59 @@ mod tests {
         .done();
         t.budget_item(
             BudgetItemType::Bill,
-            "Move",
+            "Rent",
             "100",
             "2026-03-01",
             BudgetFrequency::Monthly,
         )
-        .category(transfer)
+        .end("2026-03-31")
+        .done();
+        let db = t.build();
+        let m = monthly_matrix(&db, 2026, None);
+        assert_eq!(row(&m, "Income").budget[0], dec!(4000));
+        assert_eq!(row(&m, "Income").budget[1], dec!(4000));
+        assert_eq!(row(&m, "Income").budget[2], dec!(0));
+        assert_eq!(row(&m, "Uncategorized").budget[2], dec!(-100));
+        assert_eq!(m.net_budget[2], dec!(-100));
+    }
+
+    /// The row labelled `label`.
+    fn row<'a>(m: &'a MonthlyMatrix, label: &str) -> &'a MatrixRow {
+        m.rows
+            .iter()
+            .find(|r| r.label == label)
+            .unwrap_or_else(|| panic!("row {label}"))
+    }
+
+    #[test]
+    fn r_rpt_5c_transfer_category_has_no_row_and_no_net() {
+        // Covers: R-RPT-5b, R-RPT-5c
+        let mut t = TestDb::new();
+        let chk = t.account("Checking", AccountType::Checking);
+        let payment = t.category("Payment", CategoryType::Transfer);
+        let groceries = t.category("Groceries", CategoryType::Expense);
+        t.tx(chk, "2026-03-02", "-500", "Card payment")
+            .category(payment)
+            .done();
+        t.tx(chk, "2026-03-03", "-10", "Store")
+            .category(groceries)
+            .done();
+        t.budget_item(
+            BudgetItemType::Bill,
+            "Card",
+            "500",
+            "2026-03-01",
+            BudgetFrequency::Monthly,
+        )
+        .category(payment)
         .end("2026-03-31")
         .done();
         let db = t.build();
         let m = monthly_matrix(&db, 2026, None);
         let labels: Vec<&str> = m.rows.iter().map(|r| r.label.as_str()).collect();
-        // A transfer category with a budget item does get a row.
-        assert_eq!(labels, ["Income", "Savings Move"]);
-        assert_eq!(m.rows[0].budget[0], dec!(4000));
-        assert_eq!(m.rows[0].budget[1], dec!(4000));
-        assert_eq!(m.rows[0].budget[2], dec!(0));
-        assert_eq!(m.rows[1].budget[2], dec!(-100));
-        assert_eq!(m.net_budget[2], dec!(-100));
+        assert_eq!(labels, ["Groceries"]);
+        assert_eq!(m.net_actual[2], dec!(-10));
+        assert_eq!(m.net_budget[2], dec!(0), "its budget is not in NET either");
     }
 
     #[test]

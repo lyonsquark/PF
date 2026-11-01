@@ -68,6 +68,7 @@ pub fn resolve_db_path(flag: Option<PathBuf>, env: Option<OsString>, default: Pa
 pub fn run(cmd: &Command, db: &Path) -> Result<String, Failure> {
     match cmd {
         Command::Help => Ok(line(USAGE)),
+        Command::Version => Ok(line(concat!("pf-cli ", env!("CARGO_PKG_VERSION")))),
         Command::DbPath => Ok(line(&db.to_string_lossy())),
         Command::Balances { scenario, format } => {
             let e = open(db)?;

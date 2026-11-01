@@ -7,14 +7,15 @@ use egui_extras::{Column, DatePickerButton, TableBuilder};
 use jiff::civil::Date;
 use pf_core::format;
 use pf_core::reports::{
-    BalanceSheet, MONTH_SHORT, MatrixCell, MatrixMode, MonthlyMatrix, PlRow, QUICK_SELECT,
-    ReportKind, Tone, balance_sheet, budget_drill_title, default_pnl_range, matrix_cell,
-    matrix_drill, matrix_drill_title, matrix_year_options, monthly_matrix, pnl_drill_title,
-    profit_and_loss, quick_select_range, tone,
+    BalanceSheet, MONTH_SHORT, MatrixMode, MonthlyMatrix, PlRow, QUICK_SELECT, ReportKind, Tone,
+    balance_sheet, budget_drill_title, default_matrix_cutoff, default_pnl_range,
+    matrix_year_options, monthly_matrix, pnl_drill_title, profit_and_loss, quick_select_range,
+    tone,
 };
-use pf_model::{BudgetItemId, Db, ScenarioId, TransactionId};
+use pf_model::{BudgetItemId, ScenarioId, TransactionId};
 use rust_decimal::Decimal;
 
+use self::matrix::{MatrixScroll, MatrixView, matrix_body};
 use crate::app::UiCtx;
 use crate::caches::Cached;
 use crate::dialogs::Dialog;
@@ -23,12 +24,10 @@ use crate::widgets::col_fit::fit;
 use crate::widgets::colors;
 use crate::widgets::hscroll::{self, HScroll};
 
-/// Width of the category column in the matrix, in points.
+mod matrix;
+
 /// Width of the name column (account, category, obligation), in points.
 const NAME_WIDTH: f32 = 200.0;
-const MATRIX_LABEL_WIDTH: f32 = 140.0;
-/// Width of a month or total column in the matrix, in points.
-const MATRIX_CELL_WIDTH: f32 = 90.0;
 /// Width of the balance sheet, in points.
 const BS_WIDTH: f32 = 700.0;
 /// Height of an account row (two lines: name and institution), in points.
@@ -48,11 +47,13 @@ pub struct State {
     pub matrix_year: Option<i16>,
     /// The matrix's display mode.
     pub matrix_mode: MatrixMode,
+    /// The cutoff month picked, and for which year. Another year goes back to its default.
+    pub matrix_cutoff: Option<(i16, u8)>,
     pl_hscroll: HScroll,
-    matrix_hscroll: HScroll,
+    matrix_scroll: MatrixScroll,
     pnl: Cached<(Option<ScenarioId>, Date, Date), Vec<PlRow>>,
     bs: Cached<(Option<ScenarioId>, Date), BalanceSheet>,
-    matrix: Cached<(Option<ScenarioId>, i16), MonthlyMatrix>,
+    matrix: Cached<(Option<ScenarioId>, i16, u8), MonthlyMatrix>,
 }
 
 /// A drill-down the user asked for, opened after the report is drawn.
@@ -101,12 +102,13 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
     st.range = Some((start, end));
     ui.separator();
 
+    let year = st.matrix_year.unwrap_or(today.year());
+    let cutoff = matrix_cutoff(st, year, today);
     let State {
         report,
-        matrix_year,
         matrix_mode,
         pl_hscroll,
-        matrix_hscroll,
+        matrix_scroll,
         pnl,
         bs,
         matrix,
@@ -127,19 +129,17 @@ pub fn show(cx: &mut UiCtx, st: &mut State, ui: &mut Ui) {
             balance_sheet_body(ui, sheet);
         }
         ReportKind::MonthlyMatrix => {
-            let year = matrix_year.unwrap_or(today.year());
-            let grid = matrix.get(revision, &(scenario, year), || {
-                monthly_matrix(db, year, scenario)
+            let grid = matrix.get(revision, &(scenario, year, cutoff), || {
+                monthly_matrix(db, year, scenario).through(cutoff)
             });
-            matrix_body(
-                ui,
+            let view = MatrixView {
                 db,
                 grid,
-                *matrix_mode,
+                mode: *matrix_mode,
                 scenario,
-                matrix_hscroll,
-                &mut drill,
-            );
+                cutoff,
+            };
+            matrix_body(ui, &view, matrix_scroll, &mut drill);
         }
     }
 
@@ -205,7 +205,31 @@ fn matrix_controls(ui: &mut Ui, today: Date, st: &mut State) {
             .response
             .widget_info(|| WidgetInfo::labeled(Role::ComboBox, true, "Matrix Year"));
         st.matrix_year = Some(chosen);
+        ui.label("Budget total cutoff");
+        let cutoff = matrix_cutoff(st, chosen, today);
+        let cutoff_box = ComboBox::from_id_salt("matrix_cutoff")
+            // Tall enough to list all twelve months without scrolling.
+            .height(400.0)
+            .selected_text(MONTH_SHORT[usize::from(cutoff).clamp(1, 12) - 1])
+            .show_ui(ui, |ui| {
+                for (month, name) in (1u8..).zip(MONTH_SHORT) {
+                    if ui.selectable_label(month == cutoff, name).clicked() {
+                        st.matrix_cutoff = Some((chosen, month));
+                    }
+                }
+            });
+        cutoff_box
+            .response
+            .widget_info(|| WidgetInfo::labeled(Role::ComboBox, true, "Budget total cutoff"));
     });
+}
+
+/// R-RPT-5f: the last month the matrix shows for `year`: the one picked for that year, or its default.
+fn matrix_cutoff(st: &State, year: i16, today: Date) -> u8 {
+    match st.matrix_cutoff {
+        Some((picked_year, month)) if picked_year == year => month,
+        _ => default_matrix_cutoff(year, today),
+    }
 }
 
 /// The money text and its colour (R-RPT-2): green above zero, red below, plain at zero.
@@ -441,164 +465,6 @@ fn balance_sheet_body(ui: &mut Ui, sheet: &BalanceSheet) {
 /// Lays `add` out right-aligned in the current cell.
 fn with_right(ui: &mut Ui, add: impl FnOnce(&mut Ui)) {
     ui.with_layout(Layout::right_to_left(Align::Center), add);
-}
-
-/// The monthly matrix: one row per category with its months, the total, and the NET row. Each cell is a
-/// button that opens the transactions behind it (R-RPT-5); the NET row is plain.
-fn matrix_body(
-    ui: &mut Ui,
-    db: &Db,
-    grid: &MonthlyMatrix,
-    mode: MatrixMode,
-    scenario: Option<ScenarioId>,
-    hscroll_state: &mut HScroll,
-    drill: &mut Option<Drill>,
-) {
-    hscroll::show(ui, hscroll_state, |ui| {
-        egui::ScrollArea::vertical()
-            .auto_shrink([false, true])
-            .show(ui, |ui| {
-                egui::Grid::new("matrix")
-                    .num_columns(14)
-                    .spacing([8.0, 6.0])
-                    .show(ui, |ui| {
-                        ui.add_sized(
-                            [MATRIX_LABEL_WIDTH, 18.0],
-                            egui::Label::new(RichText::new("Category").strong()),
-                        );
-                        for m in MONTH_SHORT {
-                            ui.add_sized(
-                                [MATRIX_CELL_WIDTH, 18.0],
-                                egui::Label::new(RichText::new(m).strong()),
-                            );
-                        }
-                        ui.add_sized(
-                            [MATRIX_CELL_WIDTH, 18.0],
-                            egui::Label::new(RichText::new("Total").strong()),
-                        );
-                        ui.end_row();
-                        for row in &grid.rows {
-                            ui.label(&row.label);
-                            for m in 0..12 {
-                                let month = u8::try_from(m + 1).unwrap_or(1);
-                                let cell = matrix_cell(mode, row.actual[m], row.budget[m]);
-                                let click = Click {
-                                    title: matrix_drill_title(&row.label, grid.year, Some(month)),
-                                    ids: move || {
-                                        matrix_drill(
-                                            db,
-                                            grid.year,
-                                            scenario,
-                                            row.category_id,
-                                            Some(month),
-                                        )
-                                    },
-                                };
-                                cell_ui(ui, &cell, Some(click), drill);
-                            }
-                            let cell = matrix_cell(mode, row.actual_total(), row.budget_total());
-                            let click = Click {
-                                title: matrix_drill_title(&row.label, grid.year, None),
-                                ids: move || {
-                                    matrix_drill(db, grid.year, scenario, row.category_id, None)
-                                },
-                            };
-                            cell_ui(ui, &cell, Some(click), drill);
-                            ui.end_row();
-                        }
-                        ui.label(RichText::new("NET").strong());
-                        for m in 0..12 {
-                            let cell = matrix_cell(mode, grid.net_actual[m], grid.net_budget[m]);
-                            cell_ui::<fn() -> Vec<TransactionId>>(ui, &cell, None, drill);
-                        }
-                        let total_actual: Decimal = grid.net_actual.iter().sum();
-                        let total_budget: Decimal = grid.net_budget.iter().sum();
-                        let cell = matrix_cell(mode, total_actual, total_budget);
-                        cell_ui::<fn() -> Vec<TransactionId>>(ui, &cell, None, drill);
-                        ui.end_row();
-                    });
-            });
-    });
-}
-
-/// What a matrix cell opens when clicked: its heading, and the transactions behind it (computed only
-/// on the click).
-struct Click<F: FnOnce() -> Vec<TransactionId>> {
-    title: String,
-    ids: F,
-}
-
-/// One matrix cell. A dash for nothing; one amount; or actual with its budget and difference. The
-/// actual is the button that opens the drill-down; a cell without a `click` (the NET row) is plain.
-fn cell_ui<F: FnOnce() -> Vec<TransactionId>>(
-    ui: &mut Ui,
-    cell: &MatrixCell,
-    click: Option<Click<F>>,
-    drill: &mut Option<Drill>,
-) {
-    let mut click = click;
-    ui.allocate_ui_with_layout(
-        egui::vec2(MATRIX_CELL_WIDTH, 36.0),
-        Layout::top_down(Align::Max),
-        |ui| {
-            let mut amount = |ui: &mut Ui, value: Decimal| {
-                if click.is_some() {
-                    if clickable_amount(ui, value, false).clicked()
-                        && let Some(c) = click.take()
-                    {
-                        *drill = Some(Drill::Transactions {
-                            title: c.title,
-                            ids: (c.ids)(),
-                        });
-                    }
-                } else {
-                    money(ui, value, false);
-                }
-            };
-            match cell {
-                MatrixCell::Dash => {
-                    ui.label(RichText::new("—").weak());
-                }
-                MatrixCell::One(v) => amount(ui, *v),
-                MatrixCell::Three {
-                    actual,
-                    budget,
-                    diff,
-                } => {
-                    amount(ui, *actual);
-                    ui.label(
-                        RichText::new(format::format_currency(*budget))
-                            .small()
-                            .weak(),
-                    );
-                    let diff_color = if *diff >= Decimal::ZERO {
-                        colors::GREEN
-                    } else {
-                        colors::ORANGE
-                    };
-                    ui.label(
-                        RichText::new(format::format_currency(*diff))
-                            .small()
-                            .color(diff_color),
-                    );
-                }
-            }
-        },
-    );
-}
-
-/// An amount as a button, coloured by its sign.
-fn clickable_amount(ui: &mut Ui, amount: Decimal, bold: bool) -> egui::Response {
-    let mut text = RichText::new(format::format_currency(amount));
-    if bold {
-        text = text.strong();
-    }
-    text = match tone(amount) {
-        Tone::Positive => text.color(colors::GREEN),
-        Tone::Negative => text.color(colors::RED),
-        Tone::Zero => text,
-    };
-    ui.add(Button::new(text).frame(false))
 }
 
 /// "Mar 1, 2026" (the Swift date format).

@@ -49,8 +49,7 @@ pub fn open_transactions(cx: &mut UiCtx, title: String, ids: Vec<TransactionId>)
 }
 
 /// Which transactions window is drawn. A report number's window has a Context column; a context's
-/// window (opened from the Contexts screen) leaves it out, since every row has that context, and
-/// shows the total underneath.
+/// window (opened from the Contexts screen) leaves it out, since every row has that context.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowKind {
     /// Behind a report number.
@@ -61,8 +60,8 @@ pub enum WindowKind {
 
 /// The transactions behind a report number or a context: date, account, payee, category (editable),
 /// amount, memo, context (reports only), status and, only while a scenario is active, the scenario.
-/// Newest first. Changing a transaction's category takes it out of this list (`ids`); the screen
-/// behind updates.
+/// Newest first, with the total of the rows underneath. Changing a transaction's category takes it out
+/// of this list (`ids`), so the total follows; the screen behind updates.
 pub fn show_transactions(
     cx: &mut UiCtx,
     ui: &mut Ui,
@@ -86,6 +85,8 @@ pub fn show_transactions(
     let mut close = false;
     let response = Modal::new(egui::Id::unique(("report_transactions",))).show(ui.ctx(), |ui| {
         ui.set_width(dialog_width(ui));
+        // Where the Amount column ends on screen, read from its heading as the table is drawn.
+        let mut amount_right: Option<f32> = None;
         ui.heading(title);
         if rows.is_empty() {
             ui.label(RichText::new("No transactions").weak());
@@ -139,6 +140,9 @@ pub fn show_transactions(
                     .header(HEADER_HEIGHT, |mut header| {
                         for h in headers {
                             header.col(|ui| {
+                                if h == "Amount" {
+                                    amount_right = Some(ui.max_rect().right());
+                                }
                                 ui.strong(h);
                             });
                         }
@@ -207,14 +211,17 @@ pub fn show_transactions(
                     });
             }
         }
-        if !is_report && !rows.is_empty() {
+        // The total ends where the Amount column ends, so it reads as that column's sum.
+        if let Some(right) = amount_right {
             let total: Decimal = rows.iter().map(|r| r.amount).sum();
             ui.separator();
-            ui.horizontal(|ui| {
+            let size = egui::vec2(
+                (right - ui.cursor().left()).max(0.0),
+                ui.spacing().interact_size.y,
+            );
+            ui.allocate_ui_with_layout(size, Layout::right_to_left(Align::Center), |ui| {
+                ui.label(amount_text(total).strong());
                 ui.label(RichText::new("Total").strong());
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    ui.label(RichText::new(format::format_currency(total)).strong());
-                });
             });
         }
         ui.add_space(8.0);

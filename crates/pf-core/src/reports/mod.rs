@@ -1,5 +1,5 @@
 //! Report numbers as pure functions over `Db`: P&L (R-RPT-1..3), drill-downs (R-RPT-3b/3c),
-//! balance sheet (R-RPT-4..4d) and monthly matrix (R-RPT-5..5e). The Reports UI only renders them.
+//! balance sheet (R-RPT-4..4d) and monthly matrix (R-RPT-5..5f). The Reports UI only renders them.
 
 mod balance_sheet;
 mod drill;
@@ -16,8 +16,9 @@ pub use drill::{
     BudgetDrillRow, DrillRow, budget_drill_rows, budget_drill_title, drill_rows, pnl_drill_title,
 };
 pub use matrix::{
-    MONTH_SHORT, MatrixCell, MatrixMode, MatrixRow, MonthlyMatrix, matrix_cell, matrix_drill,
-    matrix_drill_title, matrix_year_options, monthly_matrix,
+    MONTH_SHORT, MatrixCell, MatrixMode, MatrixRow, MonthlyMatrix, default_matrix_cutoff,
+    matrix_cell, matrix_drill, matrix_drill_through, matrix_drill_title, matrix_year_options,
+    monthly_matrix,
 };
 pub use pnl::{PlRow, profit_and_loss};
 

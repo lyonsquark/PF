@@ -19,6 +19,7 @@ Commands:
   backup FOLDER                             write PFBackup_<timestamp>.md into FOLDER
   purge                                     open the DB (which purges soft-deleted rows) and exit
   help | --help | -h
+  --version                                 print the version
 
 F = json | text | markdown (default text). --db defaults to $PF_DB, then the app database.";
 
@@ -98,6 +99,8 @@ pub enum Command {
     Purge,
     /// Print the usage.
     Help,
+    /// `--version`: print the program name and version.
+    Version,
 }
 
 /// Options and arguments collected while scanning one command's arguments.
@@ -133,6 +136,12 @@ pub fn parse_args(args: &[String]) -> Result<Cli, String> {
                 return Ok(Cli {
                     db,
                     command: Command::Help,
+                });
+            }
+            "--version" => {
+                return Ok(Cli {
+                    db,
+                    command: Command::Version,
                 });
             }
             other if other.starts_with('-') => {
