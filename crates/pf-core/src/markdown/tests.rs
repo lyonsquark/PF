@@ -540,3 +540,35 @@ fn r_md_1_sort_orders() {
         "same date: higher id first"
     );
 }
+
+/// Covers: R-MD-3. Archived contexts stay archived through a backup and restore.
+#[test]
+fn r_md_3_archived_context_round_trips() {
+    let doc =
+        "## Contexts\n| Name | Color | Notes |\n| --- | --- | --- |\n| Old | | |\n| New | | |\n";
+    let mut db = import(doc, &chicago()).db;
+    let old = db.context_by_name("Old").expect("Old").id;
+    db.contexts.get_mut(&old).expect("Old").is_archived = true;
+
+    let text = export_markdown(&db, &chicago());
+    assert!(
+        text.contains("| Name | Color | Notes | Archived |"),
+        "{text}"
+    );
+    let back = import(&text, &chicago());
+    assert_eq!(back.skipped_rows, 0);
+    assert!(back.db.context_by_name("Old").expect("Old").is_archived);
+    assert!(!back.db.context_by_name("New").expect("New").is_archived);
+}
+
+/// Covers: R-MD-1. With nothing archived the contexts table stays exactly the Swift format, and a
+/// backup without the column imports as not archived.
+#[test]
+fn r_md_1_no_archived_column_without_archived_contexts() {
+    let doc = "## Contexts\n| Name | Color | Notes |\n| --- | --- | --- |\n| Ctx | #fff | note |\n";
+    let db = import(doc, &chicago()).db;
+    assert!(!db.context_by_name("Ctx").expect("Ctx").is_archived);
+    let text = export_markdown(&db, &chicago());
+    assert!(text.contains("| Name | Color | Notes |\n"), "{text}");
+    assert!(!text.contains("Archived"), "{text}");
+}

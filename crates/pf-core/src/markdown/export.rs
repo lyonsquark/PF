@@ -10,6 +10,8 @@ use super::values::{fmt_date, fmt_decimal, fmt_timestamp, parse_date};
 
 const TITLE: &str = "# Personal Finance Data\n\n";
 const CONTEXT_HEADER: &[&str] = &["Name", "Color", "Notes"];
+/// The contexts table when any context is archived (Rust addition, see `docs/markdown-format.md`).
+const CONTEXT_HEADER_ARCHIVED: &[&str] = &["Name", "Color", "Notes", "Archived"];
 const CATEGORY_HEADER: &[&str] = &["Name", "Type", "Icon", "Notes", "Parent", "Match Patterns"];
 const SCENARIO_HEADER: &[&str] = &["Name", "Color", "Notes"];
 const ACCOUNT_HEADER: &[&str] = &["Name", "Type", "Institution", "Currency", "External"];
@@ -105,18 +107,29 @@ fn opt_cell(value: Option<&str>) -> String {
 }
 
 fn write_contexts(db: &Db, out: &mut String) {
-    let rows: Vec<Vec<String>> = db
-        .contexts_by_name()
+    let contexts = db.contexts_by_name();
+    // Without an archived context the table stays exactly the Swift format.
+    let any_archived = contexts.iter().any(|c| c.is_archived);
+    let rows: Vec<Vec<String>> = contexts
         .into_iter()
         .map(|c| {
-            vec![
+            let mut row = vec![
                 esc(&c.name),
                 opt_cell(c.color_hex.as_deref()),
                 opt_cell(c.notes.as_deref()),
-            ]
+            ];
+            if any_archived {
+                row.push(c.is_archived.to_string());
+            }
+            row
         })
         .collect();
-    push_table(out, "## Contexts", CONTEXT_HEADER, &rows);
+    let header = if any_archived {
+        CONTEXT_HEADER_ARCHIVED
+    } else {
+        CONTEXT_HEADER
+    };
+    push_table(out, "## Contexts", header, &rows);
 }
 
 /// Top-level categories first, then children; each group by name (R-MD-1 sort order).

@@ -220,3 +220,24 @@ fn contexts_by_section_splits_and_sorts() {
     assert_eq!(active, vec![alpha, beta]);
     assert_eq!(archived, vec![zeta]);
 }
+
+/// R-CTX-3: an archived context is still archived after the app restarts, and unarchiving lasts too.
+#[test]
+fn archived_context_survives_restart() {
+    let mut w = World::new();
+    let id = create_context(
+        &mut w.engine,
+        ContextInput {
+            name: "Taxes".into(),
+            color_hex: None,
+            notes: None,
+        },
+    )
+    .expect("create");
+    set_context_archived(&mut w.engine, id, true).expect("archive");
+    w.reload();
+    assert_eq!(contexts_by_section(w.engine.db()).1, vec![id]);
+    set_context_archived(&mut w.engine, id, false).expect("unarchive");
+    w.reload();
+    assert!(contexts_by_section(w.engine.db()).1.is_empty());
+}

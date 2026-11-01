@@ -221,7 +221,7 @@ impl<'a> Importer<'a> {
         }
     }
 
-    /// Contexts: Name | Color | Notes. Skipped if the name already exists (R-MD-6).
+    /// Contexts: Name | Color | Notes | Archived (Archived optional). Skipped if the name already exists (R-MD-6).
     fn import_context(&mut self, c: &[String]) -> bool {
         if c.len() < 3 || lookup(&self.contexts, &c[0]).is_some() {
             return false;
@@ -230,6 +230,7 @@ impl<'a> Importer<'a> {
         let mut ctx = Context::new(ContextId::from(self.db.alloc_id()), name);
         ctx.color_hex = non_empty(&c[1]);
         ctx.notes = non_empty(&c[2]);
+        ctx.is_archived = c.get(3).is_some_and(|v| v == "true");
         self.contexts.insert(name.clone(), ctx.id);
         self.db.put(Record::Context(ctx));
         true

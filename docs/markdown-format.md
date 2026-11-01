@@ -18,7 +18,9 @@ Real examples to use as fixtures (copy into `PF/fixtures/`, never edit originals
 ## Contexts
 | Name | Color | Notes |
 | --- | --- | --- |
-| {name} | {colorHex or ""} | {notes or ""} |
+| {name} | {colorHex or ""} | {notes or ""} |            <- Rust addition: when any context is archived, the
+                                                             table has a 4th column `Archived` (true/false).
+                                                             Without one it is exactly the Swift format.
 
 ## Categories
 | Name | Type | Icon | Notes | Parent | Match Patterns |
