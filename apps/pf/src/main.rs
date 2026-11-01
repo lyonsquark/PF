@@ -1,4 +1,4 @@
-//! PFRust desktop entry point (T13). Opens the engine, starts the local API on the same engine
+//! PF desktop entry point (T13). Opens the engine, starts the local API on the same engine
 //! (R-API-1), and runs the egui window.
 
 use std::path::PathBuf;
@@ -20,6 +20,10 @@ fn main() -> anyhow::Result<()> {
         .unwrap_or_else(Engine::default_db_path);
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
+    }
+    // The default file may still have its old name. A file chosen with $PF_DB is left alone.
+    if path == Engine::default_db_path() {
+        Engine::move_legacy_db(&path, DEFAULT_API_PORT)?;
     }
     let engine = Engine::open(&path)?;
     let ui_font = pf_engine::commands::settings::ui_font(&engine).map(str::to_owned);

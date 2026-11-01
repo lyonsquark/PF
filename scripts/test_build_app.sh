@@ -1,10 +1,10 @@
 #!/bin/bash
 set -uo pipefail
 
-# Builds PFRust.app (without --install) and checks the bundle. Prints OK, or the failing check.
+# Builds PF.app (without --install) and checks the bundle. Prints OK, or the failing check.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-APP="${ROOT}/PFRust.app"
+APP="${ROOT}/PF.app"
 
 fail() {
     echo "FAIL: $1" >&2
@@ -22,7 +22,7 @@ VERSION="$(awk '/^\[workspace.package\]/ { f = 1; next } /^\[/ { f = 0 } f && /^
 "${SCRIPT_DIR}/build_app.sh" > /dev/null 2>&1 || fail "build_app.sh failed"
 
 check "binary exists and is executable" test -x "${APP}/Contents/MacOS/PF"
-check "bundle identifier" test "$(plutil -extract CFBundleIdentifier raw "${APP}/Contents/Info.plist")" = "local.pfrust.app"
+check "bundle identifier" test "$(plutil -extract CFBundleIdentifier raw "${APP}/Contents/Info.plist")" = "local.pf.app"
 check "version matches the workspace" test "$(plutil -extract CFBundleShortVersionString raw "${APP}/Contents/Info.plist")" = "${VERSION}"
 if [ -f "${ROOT}/apps/pf/macos/AppIcon.png" ]; then
     check "icon exists" test -f "${APP}/Contents/Resources/AppIcon.icns"

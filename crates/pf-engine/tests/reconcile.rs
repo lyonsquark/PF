@@ -92,7 +92,7 @@ struct Fx {
     st: Statement,
 }
 
-/// Coffee matches; Pizza differs by a tip; the fee and the Blue Bottle line are missing from PFRust.
+/// Coffee matches; Pizza differs by a tip; the fee and the Blue Bottle line are missing from PF.
 fn fixture() -> Fx {
     let mut t = TestDb::new();
     let a = t.account("Chk", AccountType::Checking);

@@ -1,8 +1,8 @@
 # Swift → Rust source map
 
-Every Swift file in `../PFApp/Sources/PFApp/` and where its behaviour goes in PFRust. When a
+Every Swift file in `../PFApp/Sources/PFApp/` and where its behaviour goes in Rust PF. When a
 task says "port X", read the Swift file listed here. Paths on the left are relative to
-`PFApp/Sources/PFApp/`. Module paths on the right are relative to `PFRust/`. UI module names are
+`PFApp/Sources/PFApp/`. Module paths on the right are relative to `PF/`. UI module names are
 suggestions; the owning task may refine them.
 
 ## App entry
@@ -98,6 +98,6 @@ suggestions; the owning task may refine them.
 | Swift | Rust | Task |
 |---|---|---|
 | `WebCharts/echarts.min.js` | Not ported (no JavaScript). | – |
-| `Resources/AppIcon.png`, `Resources/Info.plist` | `scripts/build_app.sh` (icns via `sips`/`iconutil`, plist for PFRust.app) | T25 |
+| `Resources/AppIcon.png`, `Resources/Info.plist` | `scripts/build_app.sh` (icns via `sips`/`iconutil`, plist for PF.app) | T25 |
 | `../../build_app.sh` (PFApp root) | reference for `scripts/build_app.sh` | T25 |
 | `../../Tests/PFAppTests/*.swift` | Their scenarios are covered by BEH-SCN-02, BEH-OBL-01 and BEH-MD-01/02 | T05, T10b |

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Records the read-only API replies of the running Swift PF app into fixtures/parity/ (T26).
-# Run it with the Swift app open and holding fixtures/SampleData2.md. Never run it against PFRust.
+# Run it with the Swift app open and holding fixtures/SampleData2.md. Never run it against Rust PF.
 set -euo pipefail
 
 BASE="http://localhost:8989"
@@ -11,7 +11,7 @@ MAIN="Main%20Checking"
 REWARDS="Rewards%20Card"
 SCN="New%20Car%20Savings"
 
-echo "Precondition 1: the Swift PF app must be running on port 8989 (PFRust uses the same port)."
+echo "Precondition 1: the Swift PF app must be running on port 8989 (Rust PF uses the same port)."
 if ! curl -sf "${BASE}/api/scenarios" > /dev/null; then
     echo "error: nothing answers on ${BASE}/api/scenarios. Start the Swift app and try again." >&2
     exit 1

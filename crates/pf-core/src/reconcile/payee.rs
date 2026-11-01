@@ -1,4 +1,4 @@
-//! R-REC-11: statement descriptions against PFRust payees.
+//! R-REC-11: statement descriptions against PF payees.
 
 use pf_model::{AccountId, Db};
 

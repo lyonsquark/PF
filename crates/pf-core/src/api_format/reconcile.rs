@@ -178,7 +178,7 @@ fn text_report(account_name: &str, db: &Db, st: &Statement, r: &Report, diff: De
     }
     if !r.opening_difference.is_zero() {
         out.push(format!(
-            "PFRust's reconciled balance is {} (off by {}).",
+            "PF's reconciled balance is {} (off by {}).",
             format_currency(r.reconciled_balance),
             format_currency(r.opening_difference)
         ));
@@ -217,7 +217,7 @@ fn text_report(account_name: &str, db: &Db, st: &Statement, r: &Report, diff: De
         r.statement_only.iter().map(|&i| line_text(i)).collect(),
     );
     section(
-        "In PFRust only, in this period",
+        "In PF only, in this period",
         r.pf_only_in_period.iter().map(|&t| tx_text(t)).collect(),
     );
     section(
@@ -228,7 +228,7 @@ fn text_report(account_name: &str, db: &Db, st: &Statement, r: &Report, diff: De
             .collect(),
     );
     section(
-        "In PFRust only, outside this period",
+        "In PF only, outside this period",
         r.pf_only_outside.iter().map(|&t| tx_text(t)).collect(),
     );
     out.join("\n")

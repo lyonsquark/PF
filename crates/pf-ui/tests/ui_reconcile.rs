@@ -126,7 +126,7 @@ fn ui_rec_02_untick_pair_changes_difference() {
 }
 
 #[test]
-/// UI-REC-03: pair an "In PFRust only" transaction with an "On statement only" line by hand.
+/// UI-REC-03: pair an "In PF only" transaction with an "On statement only" line by hand.
 fn ui_rec_03_manual_pair() {
     let mut t = TestDb::new();
     let a = t.account("Checking", AccountType::Checking);
@@ -141,12 +141,12 @@ fn ui_rec_03_manual_pair() {
     click(&mut h, "Reconcile…");
     click(&mut h, "Choose File…");
     assert!(has(&h, "On statement only (1)"));
-    assert!(has(&h, "In PFRust only, in this period (1)"));
+    assert!(has(&h, "In PF only, in this period (1)"));
     click(&mut h, "Pair with Mystery");
     h.get_by_label_contains("2026-02-27 FEE").click();
     h.run();
     assert!(!has(&h, "On statement only"));
-    assert!(!has(&h, "In PFRust only, in this period"));
+    assert!(!has(&h, "In PF only, in this period"));
     assert!(has(&h, "Matched (1)"));
     assert!(has(&h, "Manual"));
     click(&mut h, "Unpair");

@@ -1,5 +1,5 @@
 //! Build automation: `cargo xtask rules` (traceability check), `cargo xtask ci` (full gate) and
-//! `cargo xtask bundle [--install]` (the PFRust.app bundle, via `scripts/build_app.sh`).
+//! `cargo xtask bundle [--install]` (the PF.app bundle, via `scripts/build_app.sh`).
 
 mod ci;
 mod rules;

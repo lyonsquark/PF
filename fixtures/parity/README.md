@@ -1,7 +1,7 @@
 # Swift parity captures (T26)
 
 These files record the read-only HTTP replies of the **Swift** PF app for the data in
-`fixtures/SampleData2.md`. `crates/pf-api/tests/parity.rs` loads the same data into PFRust and
+`fixtures/SampleData2.md`. `crates/pf-api/tests/parity.rs` loads the same data into Rust PF and
 compares its replies with these captures.
 
 ## Files
@@ -13,7 +13,7 @@ compares its replies with these captures.
 
 ## How to re-capture
 
-1. Quit PFRust (both apps use port 8989).
+1. Quit Rust PF (both apps use port 8989).
 2. Start the **Swift** app and export a backup first: importing wipes its data.
 3. In the Swift app, Settings > Import from Markdown, with `fixtures/SampleData2.md`.
 4. Run `scripts/capture_swift_parity.sh` and answer `y` at the prompt.

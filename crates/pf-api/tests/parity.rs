@@ -1,6 +1,6 @@
 //! Parity tests against the Swift app (T26, L6). `fixtures/parity/` holds the replies the running
 //! Swift app gave for `fixtures/SampleData2.md` (see its README). Each manifest line is one request.
-//! These tests replay every line against PFRust and compare the status, the content type and the body.
+//! These tests replay every line against PF and compare the status, the content type and the body.
 //! The captures come from `scripts/capture_swift_parity.sh`.
 
 mod common;

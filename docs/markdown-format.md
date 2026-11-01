@@ -2,10 +2,10 @@
 
 The Markdown backup is the **migration bridge**: the user exports from the Swift app
 (Settings → Export, or `curl http://localhost:8989/api/export/markdown > backup.md`)
-and imports into PFRust. PFRust's export must be readable by the Swift importer and
+and imports into Rust PF. Rust PF's export must be readable by the Swift importer and
 vice-versa. Source of truth: `PFApp/Sources/PFApp/Services/MarkdownDataService.swift`.
 
-Real examples to use as fixtures (copy into `PFRust/fixtures/`, never edit originals):
+Real examples to use as fixtures (copy into `PF/fixtures/`, never edit originals):
 `SampleData.md`, `SampleData2.md`, `SampleData3.md`, `LargeSampleData.md`,
 `PersonalFinance_Backup.md` (all in the repo root). Note `SampleData.md` is an
 *older* format (Categories without "Match Patterns", BudgetItems without "End Date").

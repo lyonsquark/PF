@@ -37,9 +37,9 @@ pub struct Report {
     pub matches_flipped: usize,
     /// Each line's amount under the chosen reading.
     pub amounts: Vec<Decimal>,
-    /// Statement opening balance, PFRust sign.
+    /// Statement opening balance, PF sign.
     pub opening: Decimal,
-    /// Statement closing balance, PFRust sign.
+    /// Statement closing balance, PF sign.
     pub closing: Decimal,
     /// Pass 1 and 2 pairs.
     pub matched: Vec<Pair>,
@@ -75,7 +75,7 @@ pub struct Choice {
 }
 
 impl Choice {
-    /// R-REC-13: accept every pair (PFRust amounts) and add every statement-only line.
+    /// R-REC-13: accept every pair (PF amounts) and add every statement-only line.
     pub fn default_for(report: &Report) -> Choice {
         Choice {
             pairs: report
@@ -214,10 +214,10 @@ pub enum Section {
     AmountDiffers,
     /// Lines only on the statement.
     StatementOnly,
-    /// Transactions in the period only in PFRust.
+    /// Transactions in the period only in PF.
     PfOnlyInPeriod,
     /// Lines a Reconciled transaction explains.
     AlreadyReconciled,
-    /// Transactions outside the period only in PFRust.
+    /// Transactions outside the period only in PF.
     PfOnlyOutside,
 }

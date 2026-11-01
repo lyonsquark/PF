@@ -1,6 +1,6 @@
 # Data Model (Rust + SQLite)
 
-This is the **authoritative** definition of the PFRust data model. It mirrors the
+This is the **authoritative** definition of the Rust PF data model. It mirrors the
 Swift SwiftData models in `PFApp/Sources/PFApp/Models/*.swift`. If this file and the
 Swift code disagree on *behaviour*, the Swift code wins (and fix this file). If they
 disagree on *representation* (types, ids, storage), this file wins.
@@ -186,7 +186,7 @@ only: not undoable, not stored, not in backups, empty at launch.
 
 ## SQLite schema (`pf-store`)
 
-File: `~/Library/Application Support/PF/PFRust.sqlite` (use `directories` crate or
+File: `~/Library/Application Support/PF/PF.sqlite` (use `directories` crate or
 `$HOME/Library/Application Support`). **Never open or modify the Swift app's `PF.store`.**
 
 ```sql

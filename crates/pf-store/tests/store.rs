@@ -353,9 +353,9 @@ fn replace_all_is_atomic_and_complete() {
 }
 
 #[test]
-fn default_db_path_is_pfrust_sqlite() {
+fn default_db_path_is_pf_sqlite() {
     let path = default_db_path();
-    assert!(path.ends_with("Library/Application Support/PF/PFRust.sqlite"));
+    assert!(path.ends_with("Library/Application Support/PF/PF.sqlite"));
     assert!(!path.to_string_lossy().contains("PF.store"));
 }
 

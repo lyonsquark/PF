@@ -1,5 +1,5 @@
 /target
 *.pending-snap
 *.snap.new
-/PFRust.app
+/PF.app
 .DS_Store

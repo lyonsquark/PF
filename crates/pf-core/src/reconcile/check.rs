@@ -147,7 +147,7 @@ pub fn line_amount(line: &StatementLine, reading: Reading) -> Decimal {
     }
 }
 
-/// R-REC-6: a printed balance in PFRust's sign (owed balances are negative).
+/// R-REC-6: a printed balance in PF's sign (owed balances are negative).
 pub fn pf_balance(printed: Decimal, style: BalanceStyle) -> Decimal {
     match style {
         BalanceStyle::Asset => printed,

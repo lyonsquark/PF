@@ -2,8 +2,10 @@
 //! only way to change data (R-UND-1); every applied step is persisted before it returns (R-UND-6).
 
 use std::collections::BTreeMap;
+use std::net::{SocketAddr, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use jiff::Timestamp;
 use jiff::civil::Date;
@@ -92,9 +94,28 @@ impl Engine {
         })
     }
 
-    /// The default database file (`~/Library/Application Support/PF/PFRust.sqlite`).
+    /// The default database file (`~/Library/Application Support/PF/PF.sqlite`).
     pub fn default_db_path() -> PathBuf {
         pf_store::default_db_path()
+    }
+
+    /// Moves the database from its old name (`PFRust.sqlite`) to `path`, if it is still there. Refuses
+    /// while something answers on `port`: an app still running would have the old file open. Returns
+    /// whether it moved.
+    pub fn move_legacy_db(path: &Path, port: u16) -> std::io::Result<bool> {
+        if pf_store::legacy_db_to_move(path).is_none() {
+            return Ok(false);
+        }
+        let addr = SocketAddr::from(([127, 0, 0, 1], port));
+        if TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_ok() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::AddrInUse,
+                format!(
+                    "PF has to move its database to a new name, but an app is running on port {port}. Quit it, then try again."
+                ),
+            ));
+        }
+        pf_store::move_legacy_db(path)
     }
 
     /// The SQLite file, or `None` for an in-memory engine.

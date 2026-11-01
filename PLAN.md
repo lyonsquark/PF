@@ -1,6 +1,6 @@
-# PFRust: Port Plan (PFApp Swift → Rust)
+# Rust PF: Port Plan (PFApp Swift → Rust)
 
-PFRust is a ground-up Rust rewrite of the PFApp personal finance app
+Rust PF is a ground-up Rust rewrite of the PFApp personal finance app
 (`../PFApp`, Swift 6 / SwiftUI / SwiftData, about 10.5k lines). Goals:
 
 1. **Fast**: instant startup, no UI stalls with 100k+ transactions (see the perf budgets in `docs/testing.md`).
@@ -25,7 +25,7 @@ PFRust is a ground-up Rust rewrite of the PFApp personal finance app
 | GUI | **egui / eframe 0.37** (wgpu backend), `egui_extras` 0.37 (TableBuilder, DatePickerButton), `egui_plot` 0.38 | Same stack as DeckCraft (`storytold/deckcraft` uses eframe 0.37 + wgpu) and NoteCraft. Immediate mode suits data-heavy tables; virtualised rows handle 100k transactions. |
 | Dates | **`jiff` 0.2** (`jiff::civil::Date` for calendar days, `jiff::Timestamp` for instants) | `egui_extras::DatePickerButton` 0.37 takes `&mut jiff::civil::Date`; one date library everywhere. **Do not add chrono.** |
 | Money | **`rust_decimal` 1.x** (`Decimal`), stored as TEXT | Exact, like Swift `Decimal`. |
-| Storage | **SQLite via `rusqlite` 0.41 (`bundled`)**, one file `~/Library/Application Support/PF/PFRust.sqlite` | Small, fast, inspectable. Never opens the Swift `PF.store`. |
+| Storage | **SQLite via `rusqlite` 0.41 (`bundled`)**, one file `~/Library/Application Support/PF/PF.sqlite` | Small, fast, inspectable. Never opens the Swift `PF.store`. |
 | Data access | **Whole DB in memory** (`Db` of `BTreeMap`s), loaded at startup; SQLite is write-through persistence | Personal finance data is small (100k rows ≈ tens of MB). In-memory reads are what make the UI fast; this is the main speed win over SwiftData `@Query`. |
 | Mutations & undo | Every mutation goes through `Engine::apply(name, closure)`, which records before/after row images ⇒ generic undo/redo, atomic persistence | Mirrors DeckCraft's "every action is a command with undo". No per-command inverse code to get wrong. |
 | Migration | Import the Swift app's **Markdown backup** (`docs/markdown-format.md`) | Already exists, already tested in Swift, human-readable. No reverse-engineering of Core Data. |
@@ -42,7 +42,7 @@ its egui_kittest test. See `docs/egui-cheatsheet.md` for the verified API.
 ## Architecture
 
 ```
-PFRust/
+PF/
 ├── Cargo.toml                 workspace (versions pinned in [workspace.dependencies])
 ├── CLAUDE.md                  rules for agents
 ├── PLAN.md                    this file
@@ -203,7 +203,7 @@ Each task is sized for one focused session of a small model (about 150–600 lin
 ### Phase 4: Ship
 | Task | Title | Deps |
 |---|---|---|
-| T25 | `scripts/build_app.sh`: PFRust.app bundle, icon, install | T13 |
+| T25 | `scripts/build_app.sh`: PF.app bundle, icon, install | T13 |
 | T26 | Swift parity capture script + parity tests un-ignored | T12 |
 | T27 | Final parity checklist walkthrough (`docs/parity-checklist.md`), README for the user | all |
 
@@ -214,7 +214,7 @@ independent except where listed.
 
 1. In the Swift app: Settings → Export (or `curl -s localhost:8989/api/export/markdown > ~/pf-export.md`).
 2. Quit the Swift app (both apps use port 8989).
-3. `pf-cli import-md ~/pf-export.md`, or in PFRust: Settings → Import.
+3. `pf-cli import-md ~/pf-export.md`, or in Rust PF: Settings → Import.
 4. Compare: `pf-cli balances --format text` vs the Swift app's `curl localhost:8989/api/accounts/balances?format=text`.
 
 ## Out of scope (v1)

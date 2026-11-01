@@ -21,7 +21,7 @@ pub enum Confidence {
     AmountDiffers,
 }
 
-/// A statement line paired with a PFRust transaction.
+/// A statement line paired with a PF transaction.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pair {
     /// Index into `statement.lines`.

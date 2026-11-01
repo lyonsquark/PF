@@ -1,6 +1,6 @@
-# Parity checklist (PFRust vs Swift PFApp)
+# Parity checklist (Rust PF vs Swift PFApp)
 
-Date: 2026-10-27 · PFRust commit: see `git log -1` at the time of the run · Tester: Claude (automated rows), the app's owner (needs user rows)
+Date: 2026-10-27 · Rust PF commit: see `git log -1` at the time of the run · Tester: Claude (automated rows), the app's owner (needs user rows)
 Setup: `fixtures/SampleData2.md` imported in Settings (Import from Markdown) into a fresh data folder, unless a row says otherwise.
 
 ## How to read the results
@@ -117,7 +117,7 @@ The Swift app was not running when the automated rows were checked, so the parit
 ## 12. Migration from the real Swift data (user, optional, read-only on the Swift side)
 | #    | Check                                                                                                            | IDs       | Result     | Notes                                                                                                                    |
 | ---- | ---------------------------------------------------------------------------------------------------------------- | --------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 12.1 | Swift export → PFRust import: counts per entity match (the import's summary line vs the Swift Markdown sections) | BEH-MD-01 | needs user | `pf-cli stats` does not exist. Use the summary line that `import-md` prints, and count the sections of the Swift export. |
+| 12.1 | Swift export → Rust PF import: counts per entity match (the import's summary line vs the Swift Markdown sections) | BEH-MD-01 | needs user | `pf-cli stats` does not exist. Use the summary line that `import-md` prints, and count the sections of the Swift export. |
 | 12.2 | `pf-cli balances --format text` equals Swift `curl …/api/accounts/balances?format=text`                          | R-API-6   | needs user | The same check on `SampleData2` passes (parity tests, ✅ auto). Run it on your data after exporting a backup.             |
 | 12.3 | Same check with each scenario                                                                                    | R-API-4   | needs user | As 12.2.                                                                                                                 |
 

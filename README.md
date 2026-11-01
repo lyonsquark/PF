@@ -1,6 +1,6 @@
-# PFRust
+# PF
 
-PFRust is a Rust rewrite of the PF personal-finance app (the Swift app in `../PFApp`). It does the same job, with the same
+PF is a personal-finance app, a Rust rewrite of the Swift app in `../PFApp`. It does the same job, with the same
 numbers, and it is much faster with large data sets (the whole database is held in memory, so the screens respond
 instantly). It uses egui for the window and SQLite for storage. It also keeps the Swift app's local HTTP API and command
 line tool working.
@@ -17,11 +17,11 @@ each check. Some checks can only be done by looking at the app, so they wait for
 
 ## Build and run
 
-Run these from the `PFRust` folder.
+Run these from the `PF` folder.
 
 ```bash
 cargo run -p pf --release        # build and run the app
-scripts/build_app.sh             # build PFRust.app in this folder
+scripts/build_app.sh             # build PF.app in this folder
 scripts/build_app.sh --install   # also copy it to /Applications
 cargo test --workspace           # run the test suite
 ```
@@ -31,26 +31,26 @@ Quit one before starting the other.
 
 ## Moving your data from the Swift app
 
-Your Swift data is never changed by PFRust, so you can keep using the Swift app.
+Your Swift data is never changed by PF, so you can keep using the Swift app.
 
 1. In the Swift app, export a backup: `curl -s localhost:8989/api/export/markdown > ~/pf-export.md`
    (the Swift app must be running).
 2. Quit the Swift app, so that port 8989 is free.
-3. Start PFRust. Go to Settings, then Import from Markdown, and choose `~/pf-export.md`.
+3. Start PF. Go to Settings, then Import from Markdown, and choose `~/pf-export.md`.
    Or from the command line, using a database file of your choice:
    ```bash
    cargo run -q -p pf-cli -- --db ~/pf-rust-test.sqlite import-md ~/pf-export.md --yes
    ```
    Importing replaces all the data in the database it is given, so use a new file for a trial run.
-4. Check the balances. Start PFRust and compare its Dashboard with the Swift app, or run:
+4. Check the balances. Start PF and compare its Dashboard with the Swift app, or run:
    ```bash
    cargo run -q -p pf-cli -- --db ~/pf-rust-test.sqlite balances
    ```
 
 ## Where your data lives
 
-- The database: `~/Library/Application Support/PF/PFRust.sqlite`. SQLite may also create `PFRust.sqlite-wal` and
-  `PFRust.sqlite-shm` next to it. To copy the database by hand, quit PFRust first, then copy all three files.
+- The database: `~/Library/Application Support/PF/PF.sqlite`. Before the rename it was `PFRust.sqlite`; the first start moves it, once any app still running has quit. SQLite may also create `PF.sqlite-wal` and
+  `PF.sqlite-shm` next to it. To copy the database by hand, quit PF first, then copy all three files.
 - Backups: choose a folder with Settings, then press Cmd-S. Each backup is a Markdown file named
   `PFBackup_yyyy-MM-dd_HH-mm-ss.md`. Backups never overwrite an earlier file.
 - The command line tool can use any database file: `--db PATH`, or the `PF_DB` environment variable.
@@ -96,17 +96,17 @@ Reconcile an account against a bank or card statement. You download the statemen
 
 **With Claude Code (the `/reconcile` skill).**
 
-1. Open PFRust and download the statement PDF from your bank.
-2. In Claude Code, from the PFRust folder, run `/reconcile path/to/statement.pdf Account Name`.
-3. Claude reads the PDF, checks that it adds up, and sends it to PFRust. It explains anything that does not match.
-4. In PFRust, open the account. A banner says the statement is ready. Click **Review**, look over the pairs, and press
+1. Open PF and download the statement PDF from your bank.
+2. In Claude Code, from the PF folder, run `/reconcile path/to/statement.pdf Account Name`.
+3. Claude reads the PDF, checks that it adds up, and sends it to PF. It explains anything that does not match.
+4. In PF, open the account. A banner says the statement is ready. Click **Review**, look over the pairs, and press
    **Finish**. Only then are transactions marked Reconciled. One undo reverses the whole reconciliation.
 
 **Without AI (a CSV).** On the account, click **Reconcile…**, choose the statement's CSV (columns `Date`, `Description`,
 `Amount`; optional `Post Date`, `Section`, `Reference`), type the period and the opening and closing balances printed on
 the statement, and review the same way. A JSON statement file works too (see `docs/statement-schema.json`).
 
-The review shows what matched, what differs, what is only on the statement or only in PFRust, and a live **Difference**
+The review shows what matched, what differs, what is only on the statement or only in PF, and a live **Difference**
 that must reach $0.00 (or you can add a reconciliation adjustment). The first time you reconcile an account you can also
 mark all earlier transactions as Reconciled.
 
@@ -136,7 +136,7 @@ F = json | text | markdown (default text). --db defaults to $PF_DB, then the app
 
 ## Differences from the Swift app
 
-Most behaviour is the same. These are the places where PFRust does something different on purpose. The rules marked
+Most behaviour is the same. These are the places where PF does something different on purpose. The rules marked
 "(fix)" in `docs/business-rules.md` are the ones that were deliberately changed; the others are presentation differences:
 
 - **Scenario toggle** compares scenarios by identity, not by name, so two scenarios with the same name no longer clash.

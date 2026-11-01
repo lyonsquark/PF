@@ -51,7 +51,7 @@ fn running() -> Running {
     }
 }
 
-/// A statement that matches Coffee and lists a fee PFRust lacks. Opening 100, -5, -12 ⇒ 83.
+/// A statement that matches Coffee and lists a fee PF lacks. Opening 100, -5, -12 ⇒ 83.
 const STATEMENT: &str = r#"{"period_start":"2026-02-01","period_end":"2026-02-28",
  "opening_balance":"100","closing_balance":"83",
  "lines":[{"date":"2026-02-03","description":"COFFEE","amount":"-5"},
@@ -214,5 +214,5 @@ fn r_api_13_text_format() {
     assert!(body.contains("Matched (1)"));
     assert!(body.contains("On statement only (1)"));
     assert!(body.contains("2026-02-27  -$12.00       FEE"));
-    assert!(body.contains("In PFRust only, in this period (1)"));
+    assert!(body.contains("In PF only, in this period (1)"));
 }

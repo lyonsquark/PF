@@ -285,7 +285,7 @@ impl Store {
     }
 }
 
-/// The app's database file: `$HOME/Library/Application Support/PF/PFRust.sqlite`.
+/// The app's database file: `$HOME/Library/Application Support/PF/PF.sqlite`.
 /// Never the Swift app's `PF.store`. Creates nothing.
 pub fn default_db_path() -> PathBuf {
     let home = std::env::var_os("HOME")
@@ -294,7 +294,40 @@ pub fn default_db_path() -> PathBuf {
     home.join("Library")
         .join("Application Support")
         .join("PF")
-        .join("PFRust.sqlite")
+        .join("PF.sqlite")
+}
+
+/// The database's name before the app was renamed from PFRust to PF.
+const LEGACY_DB_FILE: &str = "PFRust.sqlite";
+
+/// The database under its old name next to `path`, when it still has to be moved to `path`: the old
+/// file exists and `path` does not. An existing `path` is never replaced.
+pub fn legacy_db_to_move(path: &Path) -> Option<PathBuf> {
+    let legacy = path.parent()?.join(LEGACY_DB_FILE);
+    (legacy.exists() && !path.exists()).then_some(legacy)
+}
+
+/// Moves the database from its old name to `path`, with its `-wal` and `-shm` files. Returns whether it
+/// moved. The main file goes last, so an interrupted move simply continues on the next start.
+pub fn move_legacy_db(path: &Path) -> std::io::Result<bool> {
+    let Some(legacy) = legacy_db_to_move(path) else {
+        return Ok(false);
+    };
+    for suffix in ["-wal", "-shm"] {
+        let from = with_suffix(&legacy, suffix);
+        if from.exists() {
+            std::fs::rename(from, with_suffix(path, suffix))?;
+        }
+    }
+    std::fs::rename(legacy, path)?;
+    Ok(true)
+}
+
+/// `path` with `suffix` added to its file name.
+fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
+    let mut name = path.as_os_str().to_owned();
+    name.push(suffix);
+    PathBuf::from(name)
 }
 
 /// Connection PRAGMAs shared by file and in-memory databases.

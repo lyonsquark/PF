@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
-description = "PFRust command-line tool"
+description = "PF command-line tool"
 
 [lints]
 workspace = true

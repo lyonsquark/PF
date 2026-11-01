@@ -4,11 +4,11 @@ Status: Option B chosen (accept in the app). Nothing here is built yet.
 
 ## Goal
 
-Check an account in PFRust against a bank or card statement:
+Check an account in PF against a bank or card statement:
 
-1. The statement's opening and closing balances agree with PFRust.
-2. Every statement line is paired with a PFRust transaction, or is listed as missing.
-3. Every PFRust transaction in the statement period is paired, or is listed as not on the statement.
+1. The statement's opening and closing balances agree with PF.
+2. Every statement line is paired with a PF transaction, or is listed as missing.
+3. Every PF transaction in the statement period is paired, or is listed as not on the statement.
 4. When the owner accepts the result, the paired transactions become **Reconciled**, in one undoable step.
 
 Today, Reconciled is only a label (it counts as cleared everywhere, see R-BAL-2). This work gives it a
@@ -22,7 +22,7 @@ meaning: "checked against a statement".
 | The statement is a PDF that must be understood | Turn the PDF into a small, fixed **statement file** (JSON, schema below). The options differ only in *who* writes that file: the owner, Claude Code, or the app calling the Claude API. Everything after that is ordinary, tested Rust code with no AI in it. |
 | An AI may misread the PDF | The statement file must add up: opening + sum of lines = closing, and the deposit and withdrawal totals match the statement's summary box. If it does not add up, the file is rejected before any matching, with the difference shown. This catches dropped lines, doubled lines and sign mistakes. |
 | Same-day transactions in a different order | Matching never uses position or order. Lines and transactions are matched as sets, by amount and date (see the algorithm). A property test shuffles the order and requires the same result. |
-| Transactions at the start or end may fall outside the statement | PFRust candidates are taken from a wider window (statement start − 7 days to end + 7 days). Unpaired PFRust rows outside the statement period are listed as "carried to the next statement", not as errors. Unpaired rows inside the period are listed separately. |
+| Transactions at the start or end may fall outside the statement | PF candidates are taken from a wider window (statement start − 7 days to end + 7 days). Unpaired PF rows outside the statement period are listed as "carried to the next statement", not as errors. Unpaired rows inside the period are listed separately. |
 | My payee is not the statement's description | The payee is never required to match. Amount and date make the match; payee similarity only breaks ties and ranks suggestions. Pairs the owner confirms are remembered as aliases, so the next statement matches better. |
 | Confirm start and end balances, and explain discrepancies | Three balance checks (below), each with a stated difference and the rows that explain it. Finishing with a non-zero difference needs an explicit choice. |
 
@@ -57,7 +57,7 @@ validate input and as the structured-output schema in Option C.
 ```
 
 * Amounts are strings, parsed as `Decimal` (never `f64`).
-* `amount` is signed from the account holder's point of view, as PFRust stores it: money spent or owed more
+* `amount` is signed from the account holder's point of view, as PF stores it: money spent or owed more
   is negative (purchases, fees, interest, withdrawals), money received or owed less is positive (deposits,
   payments to a card, refunds, credits). See "Signs and statement layouts" below for how this is made robust.
 * `section` is the heading the line came from on the statement ("Purchases", "Payments and Credits", "Fees",
@@ -76,11 +76,11 @@ as negative. Nothing here assumes one layout:
    "Payments and Credits" is positive even when printed without a sign.
 2. **Balance convention, checked by arithmetic:** the Rust side tries both ways of reading the balances,
    *asset style* (opening + Σ lines = closing) and *owed style* (balances are amounts owed, so opening − Σ
-   lines = closing). The one that adds up is used, and owed-style balances are turned into PFRust's sign
+   lines = closing). The one that adds up is used, and owed-style balances are turned into PF's sign
    (owed ⇒ negative) for the balance checks. If neither adds up, the file is rejected, as before.
-3. **Whole-file sign mistakes, checked against PFRust:** flipping every line and using the other balance
+3. **Whole-file sign mistakes, checked against PF:** flipping every line and using the other balance
    convention also adds up, so arithmetic alone cannot tell those apart. The Rust side breaks the tie by
-   counting exact-amount matches against PFRust both ways, then by the account type (Credit, Loan ⇒ owed
+   counting exact-amount matches against PF both ways, then by the account type (Credit, Loan ⇒ owed
    style). The chosen reading is shown at the top of the review ("Read as: owed balances, charges negative")
    with a **Flip signs** button, and the choice is remembered per account as a starting guess for next time.
 4. **Per-section mistakes:** one section with the wrong signs almost always breaks the arithmetic, so the
@@ -103,10 +103,10 @@ Inputs: the statement, the account's live Reality transactions, the account's ex
    groups are small, so an exact assignment is cheap. Confidence: high.
 3. **Pass 2, exact amount, wider date:** the same, up to 10 days apart. Confidence: medium.
 4. **Pass 3, amount differs:** what is left, paired when the date is within 3 days and the payee is clearly
-   similar (for example a restaurant charge plus tip). Shown as "amount differs: $X on statement, $Y in PFRust".
+   similar (for example a restaurant charge plus tip). Shown as "amount differs: $X on statement, $Y in PF".
 5. **Payee similarity:** both texts are upper-cased and stripped of digits, punctuation and common prefixes
    (`POS`, `DEBIT`, `ACH`, `SQ *`, `TST*`, …), then compared by shared tokens. A saved alias (statement text →
-   PFRust payee) counts as an exact match. Existing Monarch payee mappings are used as aliases too.
+   PF payee) counts as an exact match. Existing Monarch payee mappings are used as aliases too.
 6. **Deterministic:** ties are broken by date, then id, so the same input always gives the same pairing.
 
 ### Result sections (what the review screen shows)
@@ -114,10 +114,10 @@ Inputs: the statement, the account's live Reality transactions, the account's ex
 | Section | Meaning | Usual action |
 |---|---|---|
 | Matched | Paired, high or medium confidence | Accept (default on) |
-| Amount differs | Paired, but amounts differ | Keep PFRust's amount, or change it to the statement's |
-| On statement only | No PFRust transaction | Add it (payee from alias or description; category by auto-categorize, R-CAT-1) |
-| In PFRust only, inside the period | Not on the statement | Usually not posted yet, a duplicate, or the wrong account. Leave it uncleared, or delete it |
-| In PFRust only, outside the period | Edge timing | Ignored; carried to the next statement |
+| Amount differs | Paired, but amounts differ | Keep PF's amount, or change it to the statement's |
+| On statement only | No PF transaction | Add it (payee from alias or description; category by auto-categorize, R-CAT-1) |
+| In PF only, inside the period | Not on the statement | Usually not posted yet, a duplicate, or the wrong account. Leave it uncleared, or delete it |
+| In PF only, outside the period | Edge timing | Ignored; carried to the next statement |
 | Already reconciled | A statement line matches a transaction already reconciled earlier | Warning: possible duplicate on the statement or a double import |
 
 The owner can unpair any pair, and pair any statement line with any candidate by hand.
@@ -126,7 +126,7 @@ The owner can unpair any pair, and pair any statement line with any candidate by
 
 1. **Statement adds up:** opening + Σ lines = closing (and the credit and debit totals, when present). If it
    fails, nothing else runs.
-2. **Opening balance:** PFRust's reconciled balance (sum of Reconciled transactions of the account) must equal
+2. **Opening balance:** PF's reconciled balance (sum of Reconciled transactions of the account) must equal
    the statement's opening balance. On the first reconciliation nothing is Reconciled yet, so the dialog
    offers two choices: mark every transaction dated before the statement period as Reconciled (so the
    baseline exists from then on), or skip the opening check this once. Later, a difference here means a
@@ -181,7 +181,7 @@ The options differ only in how the PDF becomes a statement file, and who looks a
 ### Option A: the owner supplies the statement file (no AI)
 
 1. Download the statement as PDF, plus CSV or OFX if the bank offers it.
-2. In PFRust, open the account, then **Reconcile…**, then choose the CSV (or a statement JSON).
+2. In PF, open the account, then **Reconcile…**, then choose the CSV (or a statement JSON).
 3. Type the opening and closing balances from the PDF (two fields).
 4. Review, fix and finish in the dialog.
 
@@ -209,7 +209,7 @@ that marks anything Reconciled.
 5. The skill explains the report in plain words, for example "the $43.17 line on 9/14 is probably your
    'Trader Joe's' entry of $41.17; the statement adds a $2.00 fee". It can look up nearby transactions with
    `GET /api/accounts/{name}/transactions?from=…&to=…` to explain a gap. It ends by telling the owner to open
-   the account in PFRust.
+   the account in PF.
 6. The app shows a "Statement ready to review" banner on the account. The owner opens the review dialog
    (the same one as Option A), adjusts pairs if needed, and presses Finish. **Only Finish changes the books**,
    in one "Reconcile Statement" undo step.
@@ -227,7 +227,7 @@ The pending proposal is kept in memory in the running app (one per account, a ne
 restart drops it, and the skill is simply run again. Finishing or cancelling in the app removes it.
 
 * **Pros:** reading the PDF and explaining differences is AI work, and the decision stays in the app.
-  No API key or network code inside PFRust. Uses the owner's existing Claude Code setup. The AI never sees bank
+  No API key or network code inside PF. Uses the owner's existing Claude Code setup. The AI never sees bank
   credentials. It sees only the PDF the owner hands it. The API cannot change the books, so a mistaken or
   repeated skill run is harmless. Little new Rust code beyond the shared core: four routes and a stored
   proposal.
@@ -239,7 +239,7 @@ restart drops it, and the skill is simply run again. Finishing or cancelling in 
 ### Option C: the app calls the Claude API itself
 
 1. Download the PDF.
-2. In PFRust, open **Reconcile…** and drop the PDF on the dialog.
+2. In PF, open **Reconcile…** and drop the PDF on the dialog.
 3. The app sends the PDF to the Claude Messages API and gets the statement file back as structured JSON. It
    runs the self-check (and retries once if the file does not add up), then shows the same review.
 
@@ -261,7 +261,7 @@ Technical notes (checked against the current Claude API documentation):
   backup.
 
 * **Pros:** one place, one click, no terminal.
-* **Cons:** PFRust gains network code, API-key handling and AI error handling. Each statement costs money. The
+* **Cons:** PF gains network code, API-key handling and AI error handling. Each statement costs money. The
   PDF is sent to Anthropic from inside the finance app. Per `CLAUDE.md`, the new dependencies (an HTTPS client
   such as `ureq` with `rustls`; base64 can be written by hand) need the owner's approval before the task
   starts.
@@ -272,9 +272,9 @@ Technical notes (checked against the current Claude API documentation):
 | | A: owner's file | B: Claude Code proposal | C: built-in API |
 |---|---|---|---|
 | Reads PDFs | No (CSV/OFX + 2 typed balances) | Yes | Yes |
-| AI inside PFRust | No | No | Yes |
+| AI inside PF | No | No | Yes |
 | New Rust dependencies | None | None | HTTPS client |
-| API key in PFRust | No | No | Yes (Keychain) |
+| API key in PF | No | No | Yes (Keychain) |
 | Cost per statement | 0 | Claude Code usage | ≈ $0.10–0.30 (to measure) |
 | Explains discrepancies in words | No | Yes | Only the numbers |
 | Extra work beyond the core | Small | Small–medium | Medium–large |

@@ -22,7 +22,7 @@ fn input<'a>(
     }
 }
 
-/// A one-line statement that adds up both ways; PFRust has -30 or +30 depending on the case.
+/// A one-line statement that adds up both ways; PF has -30 or +30 depending on the case.
 fn tie_case(tx_amount: &str, t: AccountType) -> (pf_model::Db, pf_model::AccountId) {
     let mut db = TestDb::new();
     let a = db.account("A", t);
@@ -33,7 +33,7 @@ fn tie_case(tx_amount: &str, t: AccountType) -> (pf_model::Db, pf_model::Account
 /// Covers: R-REC-7
 #[test]
 fn r_rec_7_reading_by_match_count() {
-    // Statement prints a charge as +30; PFRust has -30 => the flipped reading matches.
+    // Statement prints a charge as +30; PF has -30 => the flipped reading matches.
     let st = statement(
         "2026-02-01",
         "2026-02-28",
@@ -119,7 +119,7 @@ fn r_rec_13_balance_checks() {
     assert_eq!(difference(&r, &c), m("-5"));
     c.adjustment = Some(m("-5"));
     assert_eq!(difference(&r, &c), m("0"));
-    // Use the statement amount for a pair whose PFRust amount differs.
+    // Use the statement amount for a pair whose PF amount differs.
     assert_eq!(
         reconcile(&input(&db, b, &st, None))
             .expect("a value")

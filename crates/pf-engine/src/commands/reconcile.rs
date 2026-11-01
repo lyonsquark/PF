@@ -46,7 +46,7 @@ pub fn preferred_reading(db: &Db, account: AccountId) -> Option<Reading> {
     }
 }
 
-/// A new transaction for a statement line that PFRust lacks.
+/// A new transaction for a statement line that PF lacks.
 struct NewLine {
     date: jiff::civil::Date,
     amount: Decimal,

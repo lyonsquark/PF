@@ -112,7 +112,7 @@ impl Review {
             .collect()
     }
 
-    /// PFRust-only transactions in the period not paired by hand.
+    /// PF-only transactions in the period not paired by hand.
     fn open_txs(&self) -> Vec<TransactionId> {
         self.report
             .pf_only_in_period
@@ -244,7 +244,7 @@ fn balances(ui: &mut Ui, r: &mut Review) {
     ui.label(format!("Opening balance: {}", money(r.report.opening)));
     if !r.report.opening_difference.is_zero() {
         let text = format!(
-            "PFRust's reconciled balance is {} (off by {}).",
+            "PF's reconciled balance is {} (off by {}).",
             money(r.report.reconciled_balance),
             money(r.report.opening_difference)
         );
@@ -299,15 +299,9 @@ fn sections(db: &Db, ui: &mut Ui, r: &mut Review, ops: &mut Vec<Op>) {
     }
     let txs = r.open_txs();
     if !txs.is_empty() {
-        group(
-            ui,
-            "In PFRust only, in this period",
-            txs.len(),
-            true,
-            |ui| {
-                pf_only_rows(db, ui, r, &txs, ops);
-            },
-        );
+        group(ui, "In PF only, in this period", txs.len(), true, |ui| {
+            pf_only_rows(db, ui, r, &txs, ops);
+        });
     }
     if !r.report.already_reconciled.is_empty() {
         let list = r.report.already_reconciled.clone();
@@ -325,7 +319,7 @@ fn sections(db: &Db, ui: &mut Ui, r: &mut Review, ops: &mut Vec<Op>) {
         let list = r.report.pf_only_outside.clone();
         group(
             ui,
-            "In PFRust only, outside this period",
+            "In PF only, outside this period",
             list.len(),
             false,
             |ui| {
@@ -355,7 +349,7 @@ fn line_cells(ui: &mut Ui, r: &Review, line: usize) {
     ui.label(money(r.report.amounts[line]));
 }
 
-/// Date, payee and amount of a PFRust transaction.
+/// Date, payee and amount of a PF transaction.
 fn tx_cells(db: &Db, ui: &mut Ui, id: TransactionId) {
     match db.transaction(id) {
         Some(t) => {
@@ -472,7 +466,7 @@ fn buttons(cx: &mut UiCtx, ui: &mut Ui, account: AccountId, r: &mut Review, acti
     let diff = r.difference();
     if r.confirm_adjust {
         ui.label(format!(
-            "The statement and PFRust differ by {}. Add a \"Reconciliation adjustment\" transaction for {}?",
+            "The statement and PF differ by {}. Add a \"Reconciliation adjustment\" transaction for {}?",
             money(diff),
             money(diff)
         ));

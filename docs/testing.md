@@ -1,6 +1,6 @@
 # Testing Strategy
 
-PFRust replaces a working app holding real financial data, so the test suite is the
+Rust PF replaces a working app holding real financial data, so the test suite is the
 specification. **No task is done until its tests exist and pass.** Each task file
 lists the exact tests it must add; this document defines the layers, tools,
 conventions and the cross-cutting suites.
@@ -208,7 +208,7 @@ Widgets that tests must find need stable accessible labels: use visible text, or
 | UI-CSV-01 | Walk the CSV wizard (column mapping → translation → done) with a fake file; the result counts are shown | T22 |
 | UI-REC-01 | Load a JSON statement through the fake file dialog; Difference shows $0.00; Finish marks the transactions Reconciled as one undo step `Reconcile Statement` | T30 |
 | UI-REC-02 | Untick one Matched pair: Difference becomes non-zero and the button reads `Finish with Adjustment…`; tick it again: $0.00 | T30 |
-| UI-REC-03 | Pair an "In PFRust only" transaction with an "On statement only" line by hand; both leave their sections | T30 |
+| UI-REC-03 | Pair an "In PF only" transaction with an "On statement only" line by hand; both leave their sections | T30 |
 | UI-REC-04 | Edit the amount of a Reconciled transaction: the warning appears; Cancel keeps the old amount; Change saves it | T30 |
 | UI-RPT-01 | Each report renders for the fixture; P&L total row present | T23 |
 | UI-CHT-01 | The charts dashboard renders all 9 charts without panic for the fixture and for an empty Db | T24b |
@@ -221,10 +221,10 @@ transaction count), not on pixels. No screenshot tests.
 `fixtures/parity/` holds outputs captured **from the running Swift app**, loaded with
 `fixtures/SampleData2.md`. Capture with `scripts/capture_swift_parity.sh` (task T26): it
 calls every API route/format on `localhost:8989` and saves the bodies. A human runs it once
-with the Swift app open. `crates/pf-api/tests/parity.rs` loads the same fixture into PFRust and
+with the Swift app open. `crates/pf-api/tests/parity.rs` loads the same fixture into Rust PF and
 compares responses byte-for-byte (JSON compared as parsed values, because Swift's float
 formatting of `balance` may differ: compare numbers to within 0.005). The Swift `/api/export/markdown`
-output is compared to PFRust's export after normalising the `## Settings` section.
+output is compared to Rust PF's export after normalising the `## Settings` section.
 Parity tests are `#[ignore]` until the capture exists; T26 removes the `#[ignore]`.
 
 ### Performance tests
@@ -243,7 +243,7 @@ they are only checked in release builds.
 ## Commands
 
 ```bash
-cd PFRust
+cd PF
 cargo test --workspace                       # L1–L5 (fast, run constantly)
 cargo test -p pf-core r_prj                  # run tests for one rule family
 cargo test --release -p pf-engine -- --ignored   # perf

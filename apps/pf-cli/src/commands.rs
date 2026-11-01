@@ -19,7 +19,7 @@ use pf_model::{AccountId, ScenarioId};
 use crate::args::{Command, USAGE};
 
 /// The API port used when the database has no `apiPort` setting (Swift's fixed port).
-const DEFAULT_API_PORT: u16 = 8989;
+pub const DEFAULT_API_PORT: u16 = 8989;
 
 /// A command that did not succeed: the exit code and the text for each stream.
 #[derive(Debug, Clone, PartialEq, Eq)]

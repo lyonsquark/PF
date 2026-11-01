@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ─── Configuration ───
-APP_NAME="PFRust"
+APP_NAME="PF"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TARGET_DIR="${ROOT}/target/release"
@@ -25,7 +25,7 @@ esac
 VERSION="$(awk '/^\[workspace.package\]/ { f = 1; next } /^\[/ { f = 0 } f && /^version = / { gsub(/"/, "", $3); print $3; exit }' "${ROOT}/Cargo.toml")"
 BUILD="$(git -C "${ROOT}" rev-list --count HEAD 2>/dev/null || echo 1)"
 
-echo "🔨 Building PFRust in release mode..."
+echo "🔨 Building PF in release mode..."
 cargo build --release -p pf --manifest-path "${ROOT}/Cargo.toml"
 
 echo "📦 Assembling ${APP_NAME}.app bundle..."
@@ -90,7 +90,7 @@ if [ "${1:-}" = "--install" ]; then
     cp -R "${APP_BUNDLE}" "/Applications/${APP_NAME}.app"
     echo "✅ Installed to /Applications/${APP_NAME}.app"
     echo ""
-    echo "You can now launch PFRust from Launchpad, Spotlight, or /Applications!"
+    echo "You can now launch PF from Launchpad, Spotlight, or /Applications!"
 else
     echo "To install to /Applications, run:  scripts/build_app.sh --install"
 fi

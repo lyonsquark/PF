@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://pfrust.local/statement-schema.json",
-  "title": "Bank or card statement for PFRust reconciliation (R-REC-1)",
+  "$id": "https://pf.local/statement-schema.json",
+  "title": "Bank or card statement for PF reconciliation (R-REC-1)",
   "type": "object",
   "additionalProperties": false,
   "required": ["period_start", "period_end", "opening_balance", "closing_balance", "lines"],

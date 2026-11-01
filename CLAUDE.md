@@ -1,4 +1,4 @@
-# CLAUDE.md: rules for agents working in PFRust
+# CLAUDE.md: rules for agents working in PF
 
 You are porting the Swift app in `../PFApp` to Rust. The plan is `PLAN.md`; the work
 queue is `tasks/STATUS.md`. You are expected to be a small model working on **one task at a time**.
@@ -14,7 +14,7 @@ queue is `tasks/STATUS.md`. You are expected to be a small model working on **on
 4. Run the task's "Done when" commands. All must pass with **zero warnings**.
 5. Update `tasks/STATUS.md`: `done`, plus a short note. Commit only if the user asked you to.
 
-## Commands (run from `PFRust/`)
+## Commands (run from `PF/`)
 
 ```bash
 cargo build --workspace
@@ -32,7 +32,7 @@ cargo run -p pf-cli -- --help
 * **Stay inside your task.** Do not refactor other crates or "improve" unrelated code. If you
   need a change in another crate's public API, make the smallest additive change and note it.
 * **Never touch `../PFApp`** or the Swift database (`~/Library/Application Support/PF/PF.store`).
-  Read Swift files; never edit them. Copy fixtures into `PFRust/fixtures/`, never move them.
+  Read Swift files; never edit them. Copy fixtures into `PF/fixtures/`, never move them.
 * **Never use `f64` for money.** `rust_decimal::Decimal` everywhere; `dec!()` in tests.
   Convert to `f64` only at the last moment for chart rendering.
 * **Dates are `jiff`.** `jiff::civil::Date` for days, `jiff::Timestamp` for instants. Do not add `chrono`.

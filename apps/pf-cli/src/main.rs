@@ -24,6 +24,17 @@ fn main() -> ExitCode {
     };
     let db =
         commands::resolve_db_path(cli.db, std::env::var_os("PF_DB"), Engine::default_db_path());
+    // The default file may still have its old name. A file chosen with --db or $PF_DB is left alone.
+    if db == Engine::default_db_path()
+        && !matches!(
+            cli.command,
+            args::Command::Help | args::Command::Version | args::Command::DbPath
+        )
+        && let Err(e) = Engine::move_legacy_db(&db, commands::DEFAULT_API_PORT)
+    {
+        eprintln!("{e}");
+        return ExitCode::from(1);
+    }
     match commands::run(&cli.command, &db) {
         Ok(out) => {
             // A closed pipe is not an error for a CLI that prints its result.
