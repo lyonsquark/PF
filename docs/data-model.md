@@ -254,6 +254,7 @@ Timestamps are stored as RFC 3339 strings (`Timestamp::to_string()`, e.g. `2026-
 | `lastProjectionStartDate` | `YYYY-MM-DD` | same |
 | `lastProjectionEndDate` | `YYYY-MM-DD` | same |
 | `backupFolder` | absolute folder path | Cmd-S backup (Swift used a macOS bookmark; we store a plain path) |
+| `backupOnExit` | `true` \| `false`, default on | Backup when the app exits (R-MD-8; Rust addition) |
 | `apiPort` | integer, default `8989` | API server |
 | `sidebarGrouping` | `A-Z` \| `Institution` \| `Type` | Sidebar (Rust addition; Swift kept it as view state) |
 | `selectedTimePeriod` | TimePeriod label | Account detail |

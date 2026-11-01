@@ -226,6 +226,7 @@ value only (undefined order on ties), Rust breaks ties by name ascending.
 | R-MD-5 | Importing a backup from Settings asks for confirmation, wipes all data (hard delete), then imports, and **clears the undo stack** (not undoable, same as Swift). Progress text is shown while importing. | `SettingsView.importMarkdown` |
 | R-MD-6 | Name lookups during import (category, account, context, scenario) are exact-string, first created wins; duplicate names are skipped for Context/Category/Scenario/Account. | `cached*` |
 | R-MD-7 | Cmd-S backup writes `PFBackup_yyyy-MM-dd_HH-mm-ss.md` into the backup folder; if none set, prompt for one first; toast `Backup saved to: {path}` for 4 s; errors shown in an alert. | `BackupManager.performBackup` |
+| R-MD-8 | Rust PF addition. Settings → "Back up automatically when the app exits" (`backupOnExit`, on unless `false`). Closing the window or quitting writes one backup as R-MD-7 does, unless the newest `PFBackup_*.md` in the folder already holds exactly the current export; then it writes and says nothing. With no folder set it asks for one; cancelling still exits. A backup written shows a small native message with an OK button. A failure when closing the window shows the alert and keeps the app open once; closing again exits. Cmd-Q skips the close request and cannot stay open, so a failure there is only shown in the small message. | (none) |
 
 ## 13. HTTP API (`pf-api`) — must be byte-compatible with Swift clients
 

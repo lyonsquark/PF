@@ -2,10 +2,10 @@
 //! (T13). Every write goes through an engine command; the engine is locked once per frame.
 
 use std::any::Any;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use egui::{Align, Button, Key, KeyboardShortcut, Layout, Modifiers, Ui};
-use pf_engine::commands::backup;
+use pf_engine::commands::{backup, settings};
 use pf_engine::{Engine, SharedEngine};
 use pf_model::AccountId;
 
@@ -66,6 +66,23 @@ pub struct PfApp {
     files: Box<dyn FileDialogs>,
     /// Resources that live as long as the app, e.g. the API server handle.
     keep_alive: Vec<Box<dyn Any>>,
+    /// The exit backup has been dealt with, so `on_exit` does not repeat it.
+    exit_backup_done: bool,
+    /// The exit backup failed once and the app stayed open to say so. The next close goes ahead.
+    exit_backup_failed: bool,
+}
+
+/// How a backup attempt ended.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum BackupOutcome {
+    /// The file was written here.
+    Saved(PathBuf),
+    /// The newest backup already holds the current data, so nothing was written (exit backup only).
+    Unchanged,
+    /// The user cancelled the folder prompt.
+    Cancelled,
+    /// It failed, for this reason. An alert has been opened too.
+    Failed(String),
 }
 
 impl PfApp {
@@ -82,6 +99,8 @@ impl PfApp {
             caches: ViewCaches::default(),
             files,
             keep_alive: Vec::new(),
+            exit_backup_done: false,
+            exit_backup_failed: false,
         }
     }
 
@@ -148,6 +167,24 @@ impl PfApp {
             files: self.files.as_ref(),
         };
 
+        // R-MD-8: the window is closing. Unlike `on_exit`, this can still keep it open to report a failure.
+        if ui.ctx().input(|i| i.viewport().close_requested())
+            && !self.exit_backup_done
+            && settings::backup_on_exit(cx.engine)
+        {
+            match run_exit_backup(&mut cx) {
+                BackupOutcome::Failed(_) if !self.exit_backup_failed => {
+                    self.exit_backup_failed = true;
+                    ui.ctx()
+                        .send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                }
+                outcome => {
+                    self.exit_backup_done = true;
+                    tell_exit_outcome(&cx, &outcome);
+                }
+            }
+        }
+
         guard_navigation(&mut cx);
         handle_shortcuts(&mut cx, ui);
         // Cmd-F opens or closes the account search bar, but not while a dialog is open (T15c).
@@ -209,9 +246,41 @@ impl PfApp {
     }
 }
 
+impl PfApp {
+    /// R-MD-8: the backup for an exit that skips the window's close request (Cmd-Q on macOS). The app is
+    /// already going and cannot stay open, so a failure is only reported.
+    pub fn exit_backup(&mut self) {
+        if self.exit_backup_done {
+            return;
+        }
+        self.exit_backup_done = true;
+        let engine_arc = self.engine.clone();
+        let mut guard = engine_arc
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if !settings::backup_on_exit(&guard) {
+            return;
+        }
+        let mut cx = UiCtx {
+            engine: &mut guard,
+            screen: &mut self.screen,
+            dialogs: &mut self.dialogs,
+            toasts: &mut self.toasts,
+            caches: &mut self.caches,
+            files: self.files.as_ref(),
+        };
+        let outcome = run_exit_backup(&mut cx);
+        tell_exit_outcome(&cx, &outcome);
+    }
+}
+
 impl eframe::App for PfApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         self.ui_root(ui);
+    }
+
+    fn on_exit(&mut self) {
+        self.exit_backup();
     }
 }
 
@@ -370,18 +439,50 @@ fn redo(cx: &mut UiCtx) {
     }
 }
 
-/// Cmd-S / File → Backup Data (R-MD-7). Asks for a folder when none is set; a cancelled pick does
-/// nothing. A folder that has gone missing is forgotten and reported.
+/// Cmd-S / File → Backup Data (R-MD-7).
 pub(crate) fn backup_now(cx: &mut UiCtx) {
+    run_backup(cx);
+}
+
+/// R-MD-8: a backup unless the newest one already holds the current data. With no usable folder there
+/// is nothing to compare, so this goes on to `run_backup`, which asks for one or reports it.
+fn run_exit_backup(cx: &mut UiCtx) -> BackupOutcome {
+    if let Some(folder) = backup::backup_folder(cx.engine)
+        && backup::backup_is_current(cx.engine, &folder)
+    {
+        return BackupOutcome::Unchanged;
+    }
+    run_backup(cx)
+}
+
+/// R-MD-8: the small window saying what the exit backup did. The app is closing, so a toast or an alert
+/// would not be seen. An exit that wrote nothing says nothing.
+fn tell_exit_outcome(cx: &UiCtx, outcome: &BackupOutcome) {
+    match outcome {
+        BackupOutcome::Saved(path) => cx.files.message(
+            "Backup Saved",
+            &format!("Backup saved to: {}", path.display()),
+        ),
+        BackupOutcome::Failed(reason) => {
+            log::warn!("the backup on exit failed: {reason}");
+            cx.files.message("Backup Error", reason);
+        }
+        BackupOutcome::Unchanged | BackupOutcome::Cancelled => {}
+    }
+}
+
+/// Writes a backup (R-MD-7). Asks for a folder when none is set; a cancelled pick does nothing. A folder
+/// that has gone missing is forgotten and reported.
+fn run_backup(cx: &mut UiCtx) -> BackupOutcome {
     let folder = match backup::backup_folder(cx.engine) {
         Some(path) if !path.as_os_str().is_empty() => path,
         _ => {
             let Some(picked) = cx.files.pick_folder("Set Backup Folder") else {
-                return;
+                return BackupOutcome::Cancelled;
             };
             if let Err(e) = backup::set_backup_folder(cx.engine, &picked) {
                 cx.dialogs.alert("Backup Error", e.to_string());
-                return;
+                return BackupOutcome::Failed(e.to_string());
             }
             picked
         }
@@ -391,18 +492,22 @@ pub(crate) fn backup_now(cx: &mut UiCtx) {
         if let Err(e) = backup::set_backup_folder(cx.engine, Path::new("")) {
             log::warn!("could not clear the backup folder: {e}");
         }
-        cx.dialogs.alert(
-            "Backup Error",
-            "Backup folder access lost. Please choose the folder again.",
-        );
-        return;
+        let reason = "Backup folder access lost. Please choose the folder again.";
+        cx.dialogs.alert("Backup Error", reason);
+        return BackupOutcome::Failed(reason.to_owned());
     }
     match backup::perform_backup(cx.engine, &folder) {
-        Ok(path) => cx.toasts.show_for(
-            format!("Backup saved to: {}", path.display()),
-            ToastKind::Success,
-            BACKUP_TOAST_SECS,
-        ),
-        Err(e) => cx.dialogs.alert("Backup Error", e.to_string()),
+        Ok(path) => {
+            cx.toasts.show_for(
+                format!("Backup saved to: {}", path.display()),
+                ToastKind::Success,
+                BACKUP_TOAST_SECS,
+            );
+            BackupOutcome::Saved(path)
+        }
+        Err(e) => {
+            cx.dialogs.alert("Backup Error", e.to_string());
+            BackupOutcome::Failed(e.to_string())
+        }
     }
 }

@@ -14,6 +14,8 @@ pub fn engine_with_fixture() -> Engine {
     World::with_fixture("world").into_engine()
 }
 
+// Not every test binary uses the empty engine.
+#[allow(dead_code)]
 /// Empty engine on a temp file.
 pub fn empty_engine() -> Engine {
     World::new().into_engine()

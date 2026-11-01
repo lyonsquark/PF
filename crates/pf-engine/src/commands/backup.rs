@@ -108,6 +108,25 @@ fn free_backup_name(folder: &Path, stem: &str) -> String {
     name
 }
 
+/// R-MD-8: true when the newest `PFBackup_*.md` in `folder` already holds exactly what a backup would
+/// write now. A folder without backups, or a newest file that cannot be read, is not current.
+pub fn backup_is_current(e: &Engine, folder: &Path) -> bool {
+    let Ok(entries) = std::fs::read_dir(folder) else {
+        return false;
+    };
+    // Names sort by time. The stem is the key because `X-2.md` sorts before `X.md` but is newer.
+    let newest = entries
+        .filter_map(|entry| entry.ok()?.file_name().into_string().ok())
+        .filter_map(|name| {
+            let stem = name.strip_suffix(".md")?.to_owned();
+            stem.starts_with("PFBackup_").then_some((stem, name))
+        })
+        .max();
+    newest.is_some_and(|(_, name)| {
+        std::fs::read(folder.join(name)).is_ok_and(|bytes| bytes == export_markdown(e).as_bytes())
+    })
+}
+
 /// Cmd-S backup. Writes `export_markdown(e)` into `folder` under a free `PFBackup_*.md` name
 /// stamped with the engine's instant in its time zone, through a `.tmp` file that is renamed into
 /// place (atomic). Returns the full path, for the toast `Backup saved to: {path}`. An I/O failure

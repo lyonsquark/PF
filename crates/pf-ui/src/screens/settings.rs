@@ -115,6 +115,15 @@ fn backup_section(cx: &mut UiCtx, ui: &mut Ui) {
             app::backup_now(cx);
         }
     }
+    // R-MD-8: on by default. With no folder set, exiting asks for one, as Cmd-S does.
+    let mut on_exit = settings::backup_on_exit(cx.engine);
+    if ui
+        .checkbox(&mut on_exit, "Back up automatically when the app exits")
+        .changed()
+        && let Err(e) = settings::set_backup_on_exit(cx.engine, on_exit)
+    {
+        cx.dialogs.alert("Backup Error", e.to_string());
+    }
 }
 
 /// Asks for a folder and stores it as `backupFolder`. A cancelled pick changes nothing.

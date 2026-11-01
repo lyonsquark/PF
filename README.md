@@ -51,7 +51,8 @@ Your Swift data is never changed by PF, so you can keep using the Swift app.
 
 - The database: `~/Library/Application Support/PF/PF.sqlite`. Before the rename it was `PFRust.sqlite`; the first start moves it, once any app still running has quit. SQLite may also create `PF.sqlite-wal` and
   `PF.sqlite-shm` next to it. To copy the database by hand, quit PF first, then copy all three files.
-- Backups: choose a folder with Settings, then press Cmd-S. Each backup is a Markdown file named
+- Backups: if your data changed since the newest backup, PF backs up when it exits and shows a small message to say so. You
+  can turn this off in Settings. It asks for a folder the first time if none is set. To back up at any other time, press Cmd-S. Each backup is a Markdown file named
   `PFBackup_yyyy-MM-dd_HH-mm-ss.md`. Backups never overwrite an earlier file.
 - The command line tool can use any database file: `--db PATH`, or the `PF_DB` environment variable.
 

@@ -14,6 +14,8 @@ pub trait FileDialogs {
     fn save_file(&self, title: &str, default_name: &str, extensions: &[&str]) -> Option<PathBuf>;
     /// Opens a file with the OS default app (`open <path>` on macOS).
     fn open_path(&self, path: &Path) -> Result<(), String>;
+    /// Shows a small native message with an OK button, and waits for it.
+    fn message(&self, title: &str, text: &str);
 }
 
 /// The rfd-backed implementation used by the desktop app.
@@ -40,6 +42,15 @@ impl FileDialogs for RfdDialogs {
             dialog = dialog.add_filter("Files", extensions);
         }
         dialog.save_file()
+    }
+
+    fn message(&self, title: &str, text: &str) {
+        rfd::MessageDialog::new()
+            .set_level(rfd::MessageLevel::Info)
+            .set_title(title)
+            .set_description(text)
+            .set_buttons(rfd::MessageButtons::Ok)
+            .show();
     }
 
     fn open_path(&self, path: &Path) -> Result<(), String> {
@@ -107,6 +118,13 @@ impl FileDialogs for FakeDialogs {
 
     fn save_file(&self, title: &str, _default_name: &str, _extensions: &[&str]) -> Option<PathBuf> {
         self.answer(format!("save_file:{title}"))
+    }
+
+    fn message(&self, title: &str, _text: &str) {
+        self.inner
+            .borrow_mut()
+            .calls
+            .push(format!("message:{title}"));
     }
 
     fn open_path(&self, path: &Path) -> Result<(), String> {
